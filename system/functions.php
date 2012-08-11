@@ -13,28 +13,11 @@
  * @return bool File loaded?
  */
 function load_file($file, $system = true) {
-    if (file_exists(APPLICATION . $file)) {
-        require_once($file);
-    } else if ($system && file_exists(SYSTEM . $file)) {
-        require_once($file);
+    if (file_exists(APPLICATION . $file) || ($system && file_exists(SYSTEM . $file))) {
+        return require_once($file);
     } else {
         return false;
     }
-
-    return true;
-}
-
-/**
- * Returns the last item of an array, useful when that's
- * all that you need from a function. Only works when an array
- * is integer key based.
- *
- * @param array $arr Array to use
- * @return mixed Last item in $arr
- * @todo Allow for non-integer key based arrays
- */
-function array_last($arr) {
-    return $arr[count($arr) - 1];
 }
 
 /**
@@ -57,7 +40,7 @@ function recursive_scan_dir($dir, $filetype = false) {
             $files = array_merge($files, recursive_scan_dir($item, $filetype));
         } else {
             if ($filetype) {
-                if (array_last(explode(".", $item)) !== $filetype) continue;
+                if (end(explode(".", $item)) !== $filetype) continue;
             }
 
             $files[] = $item;

@@ -1,0 +1,1 @@
+License can be found at http://www.gnu.org/copyleft/gpl.html

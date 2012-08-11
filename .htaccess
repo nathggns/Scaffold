@@ -1,0 +1,3 @@
+ErrorDocument 404 system/bootstrap.php
+ErrorDocument 403 system/bootstrap.php
+Options -Indexes

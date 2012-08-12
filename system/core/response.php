@@ -54,6 +54,17 @@ class Response
     protected $headers_sent = false;
 
     /**
+     * Add JSON to the response
+     *
+     * @param mixed $data data to convert to JSON
+     * @return object this
+     */
+    public function json($data, $force_object = false) {
+        $this->body = json_encode($data, ($force_object) ? JSON_FORCE_OBJECT : 0);
+        return $this;
+    }
+
+    /**
      * Send response
      */
     public function send() {

@@ -9,16 +9,15 @@ class Request
     const DELETE = 'delete';
     const HEAD   = 'head';
 
-    protected $uri      = null;
-    protected $segments = [];
+    public $uri      = null;
+    public $segments = [];
 
-    protected $query   = [];
-    protected $params  = [];
-    protected $body    = [];
-    protected $headers = [];
+    public $query   = [];
+    public $params  = [];
+    public $body    = [];
+    public $headers = [];
 
-    protected $resource = null;
-    protected $method   = null;
+    protected $method = null;
 
     /**
      * Gather data of the request
@@ -29,15 +28,63 @@ class Request
         $this->uri = ($uri !== null) ? $uri : self::detect_uri();
 
         $this->segments = self::parse_uri($this->uri);
-        $this->resource = $this->segments[0];
         $this->method   = self::detect_request_method();
+
+        $this->params['resource'] = $this->segments[0];
 
         $this->query   = $_GET;
         $this->body    = self::detect_body();
         $this->headers = self::detect_headers();
     }
 
+    /**
+     * Syntactic sugar to get data or a default value
+     *
+     * @param string $method property name
+     * @param array  $arguments array with key and eventually a default value
+     * @return mixed data
+     */
+    public function __call($method, array $arguments) {
+        switch (count($arguments)) {
+            case 0:
+                // Return property
+                $value = $this->$method;
+                break;
 
+            case 2:
+                // Return key or default
+                if (empty($this->$method[$arguments[0]])) return $arguments[1];
+
+            case 1:
+                // Return key
+                $value = $this->$method[$arguments[0]];
+
+            default:
+                $value = null;
+        }
+
+        return $value;
+    }
+
+    /**
+     * Getter for resource, id and method
+     *
+     * @param string $key property to get
+     * @return mixed value
+     */
+    public function __get($key) {
+        switch ($key) {
+            case 'resource':
+            case 'id':
+                return $this->params[$key];
+
+            case 'method':
+                return $this->method;
+
+            default:
+                return null;
+        }
+    }
 
     /**
      * Detect URI

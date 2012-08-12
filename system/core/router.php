@@ -32,7 +32,7 @@ class Router {
     }
 
     /**
-     * Add a custom POST route
+     * Add a custom PUT route
      *
      * @param string $path           path
      * @param mixed  $target         target
@@ -108,10 +108,10 @@ class Router {
      * @param Request $request Request object
      * @return object this
      */
-    public function run(Request $request = null) {
+    public function run(Request $request = null, Response $response = null) {
         $this->request = ($request !== null) ? $request : new Request;
 
-        $response = new Response;
+        $response = ($response !== null) ? $response : new Response;
         $method   = $this->request->method;
 
         if ($route = $this->find_custom_route()) {
@@ -146,13 +146,18 @@ class Router {
                 $controller->after();
             }
         } else {
-            $controller = new $this->request->controller();
+            if (!empty($this->request->segments[1])) {
+                $this->request->params['id'] = $this->request->segments[1];
+            }
+
+            $name       = 'Controller' . $this->request->resource;
+            $controller = new $name;
             $method     = $this->request->method;
 
             // Call before event
             $controller->before();
 
-            if (is_numeric($this->request->segments[1])) {
+            if (!empty($this->request->params['id'])) {
                 // Call resource loader
                 $controller->resource();
             }

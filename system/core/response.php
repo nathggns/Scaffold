@@ -65,13 +65,21 @@ class Response
         $this->sent = true;
     }
 
-
+    /**
+     * Set header
+     *
+     * @param string $key   name
+     * @param string $value value
+     * @return object this
+     */
     public function header($key, $value) {
         $this->headers[$key] = $value;
         return $this;
     }
 
-
+    /**
+     * Send headers
+     */
     public function send_headers() {
         if ($this->headers_sent) return;
 
@@ -84,6 +92,12 @@ class Response
         $this->headers_sent = true;
     }
 
+    /**
+     * Redirect and exit script
+     *
+     * @param string  $location location
+     * @param integer $code     http status code
+     */
     public function redirect($location, $code = 302) {
         header('Location: ' . $location, $code);
         exit;

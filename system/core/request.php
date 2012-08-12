@@ -58,6 +58,7 @@ class Request
             case 1:
                 // Return key
                 $value = $this->$method[$arguments[0]];
+                break;
 
             default:
                 $value = null;

@@ -5,7 +5,11 @@ class Response
 
     protected $headers = [];
     protected $body    = null;
-    protected $code    = 200;
+    protected $data    = null;
+
+    public $code = 200;
+
+    protected $encoder = 'json_encode';
 
     public static $codes = [
         100 => "Continue",
@@ -54,14 +58,39 @@ class Response
     protected $headers_sent = false;
 
     /**
-     * Add JSON to the response
+     * Add data to the response
      *
-     * @param mixed $data data to convert to JSON
+     * @param mixed $data data
      * @return object this
      */
-    public function json($data, $force_object = false) {
-        $this->body = json_encode($data, ($force_object) ? JSON_FORCE_OBJECT : 0);
+    public function data($data) {
+        $this->data = $data;
         return $this;
+    }
+
+    /**
+     * Set data encoder
+     *
+     * @param mixed $encoder encoder
+     * @return object this
+     */
+    public function encoder($encoder) {
+        $this->encoder = $encoder;
+        return $this;
+    }
+
+    /**
+     * Run encoding
+     *
+     * @param bool $set set body
+     * @return string encoded data
+     */
+    public function encode($set = true) {
+        $body = call_user_func($this->encoder, $this->data);
+
+        if ($set) $this->body = $body;
+
+        return $body;
     }
 
     /**
@@ -69,6 +98,8 @@ class Response
      */
     public function send() {
         if ($this->sent) return;
+
+        $this->encode();
 
         $this->send_headers();
         echo $this->body;

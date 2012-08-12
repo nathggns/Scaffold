@@ -12,7 +12,10 @@ abstract class Controller
     }
 
     public function before() {}
-    public function after() {}
     public function resource() {}
+
+    public function after() {
+        $this->response->send();
+    }
 
 }

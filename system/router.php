@@ -32,7 +32,7 @@ class Router {
     }
 
     /**
-     * Add a custom POST route
+     * Add a custom PUT route
      *
      * @param string $path           path
      * @param mixed  $target         target
@@ -108,10 +108,10 @@ class Router {
      * @param Request $request Request object
      * @return object this
      */
-    public function run(Request $request = null) {
+    public function run(Request $request = null, Response $response = null) {
         $this->request = ($request !== null) ? $request : new Request;
 
-        $response = new Response;
+        $response = ($response !== null) ? $response : new Response;
         $method   = $this->request->method;
 
         if ($route = $this->find_custom_route()) {

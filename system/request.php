@@ -38,22 +38,32 @@ class Request
     }
 
     /**
-     * Get or set data
+     * Syntactic sugar to get data or a default value
      *
      * @param string $method property name
-     * @param array  $arguments array with key and eventually a value
+     * @param array  $arguments array with key and eventually a default value
      * @return mixed data
      */
     public function __call($method, array $arguments) {
-        if (empty($arguments)) return $this->$method;
+        switch (count($arguments)) {
+            case 0:
+                // Return property
+                $value = $this->$method;
+                break;
 
-        $key = $arguments[0];
+            case 2:
+                // Return key or default
+                if (empty($this->$method[$arguments[0]])) return $arguments[1];
 
-        if (count($arguments) > 1) {
-            $this->$method[$key] = $arguments[1];
+            case 1:
+                // Return key
+                $value = $this->$method[$arguments[0]];
+
+            default:
+                $value = null;
         }
 
-        return $this->$method[$key];
+        return $value;
     }
 
     /**

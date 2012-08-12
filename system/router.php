@@ -146,13 +146,17 @@ class Router {
                 $controller->after();
             }
         } else {
-            $controller = new $this->request->controller();
+            if (!empty($this->request->segments[1])) {
+                $this->request->params['id'] = $this->request->segments[1];
+            }
+
+            $controller = new $this->request->resource;
             $method     = $this->request->method;
 
             // Call before event
             $controller->before();
 
-            if (is_numeric($this->request->segments[1])) {
+            if (!empty($this->request->params['id'])) {
                 // Call resource loader
                 $controller->resource();
             }

@@ -1,4 +1,4 @@
-<?php
+<?php defined('SCAFFOLD') or die();
 
 class Response
 {

@@ -63,7 +63,7 @@ class ModelData {
      */
     public function set($data, $value = null) {
 
-        if ($value !== null) return array($data => $value);
+        if (!is_null($value)) return $this->set(array($data => $value));
 
         if (!is_array($data)) return $this->set(array($data));
 

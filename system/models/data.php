@@ -75,6 +75,10 @@ class ModelData {
 
             if (!isset($this->data[$id])) $this->data[$id] = array();
 
+            if (!isset($this->data[$id]['id'])) {
+                $this->data[$id]['id'] = $id;
+            }
+
             foreach ($data as $key => $value) {
                 $this->data[$id][$key] = $value;
             }

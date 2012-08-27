@@ -7,11 +7,21 @@
  */
 class ModelFile extends ModelData {
 
-    private $file;
+    public $file;
 
-    public function __construct($file) {
-        $this->file = $file;
-        $this->data = $this->decode(file_get_contents($this->file));
+    public function __construct($file = false) {
+        if ($file) $this->file = $file;
+
+        $this->load();
+    }
+
+    public function load() {
+        if ($this->file)
+            $this->data = $this->decode(file_get_contents($this->file));
+
+        else return false;
+
+        return $this;
     }
 
     public function decode($data) {

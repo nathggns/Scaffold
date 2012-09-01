@@ -25,13 +25,13 @@ class Autoload {
      */
     public static function load($class) {
         $parts = preg_split('/([[:upper:]][[:lower:]]+)/', $class, null, PREG_SPLIT_DELIM_CAPTURE|PREG_SPLIT_NO_EMPTY);
-         
+
         $parts = array_map("strtolower", $parts);
- 
+
         if (in_array($parts[0], array('controller', 'model', 'exception'))) {
             $parts[0] = $parts[0] . 's';
         }
- 
+
         $path = strtolower(implode('/', $parts)) . '.php';
 
         if (strpos($path, '/') === false) {

@@ -32,10 +32,10 @@ class Autoload {
             $parts[0] = $parts[0] . 's';
         }
 
-        $path = strtolower(implode('/', $parts)) . '.php';
+        $path = strtolower(implode(DS, $parts)) . '.php';
 
-        if (strpos($path, '/') === false) {
-            $path = 'core/' . $path;
+        if (strpos($path, DS) === false) {
+            $path = 'core' . DS . $path;
         }
 
         return load_file($path);

@@ -25,22 +25,27 @@ define('START', microtime(true));
 define('SCAFFOLD', true);
 
 /**
+ * Standard directory seperator.
+ */
+define('DS', DIRECTORY_SEPEATOR);
+
+/**
  * Access to the root folder, independent of the
  * location of the file using it.
  */
-define('ROOT', pathinfo(__FILE__, PATHINFO_DIRNAME) . '/');
+define('ROOT', pathinfo(__FILE__, PATHINFO_DIRNAME) . DS);
 
 /**
  * Access to the system folder, independent of the
  * location of the file using it.
  */
-define('SYSTEM', ROOT . 'system/');
+define('SYSTEM', ROOT . 'system' . DS);
 
 /**
  * Access to the application folder, independent
  * of the location of the file using it.
  */
-define('APPLICATION', ROOT . 'application/');
+define('APPLICATION', ROOT . 'application' . DS);
 
 /**
  * Boot Scaffold

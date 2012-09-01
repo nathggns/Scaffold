@@ -32,7 +32,7 @@ function recursive_scan_dir($dir, $filetype = false) {
     $items = scandir($dir);
 
     foreach ($items as $item) {
-        if ($item[0] == "_" || $item[0] == ".") continue;
+        if ($item[0] == '_' || $item[0] == '.') continue;
 
         $item = $dir . DS . $item;
 
@@ -40,7 +40,7 @@ function recursive_scan_dir($dir, $filetype = false) {
             $files = array_merge($files, recursive_scan_dir($item, $filetype));
         } else {
             if ($filetype) {
-                if (end(explode(".", $item)) !== $filetype) continue;
+                if (end(explode('.', $item)) !== $filetype) continue;
             }
 
             $files[] = $item;

@@ -199,7 +199,7 @@ class Validate {
 	 * Is Regex test
 	 */
 	public function check_is_regex($value) {
-		return @preg_match($regex, '') !== false;
+		return @preg_match($value, '') !== false;
 	}
 
 	/**

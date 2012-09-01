@@ -134,9 +134,9 @@ class Validate {
 						$result = $this->$funcname($result, $origRule);
 					}
 
-					$rulePref = implode('_', $mods);
-					if ($rulePref != '') $rulePref .= '_';
-					$rule = $rulePref . $rule;
+					$rule_pref = implode('_', $mods);
+					if ($rule_pref != '') $rule_pref .= '_';
+					$rule = $rule_pref . $rule;
 
 					$results[] = array(
 						'result' => $result,

@@ -88,7 +88,7 @@ class Validate {
 				$info = array(
 					'name' => $key,
 					'tests' => $rules,
-					'valuee' => $value,
+					'value' => $value,
 					'errors' => array()
 				);
 				$results = array();
@@ -206,7 +206,7 @@ class Validate {
 	 * Regex match test
 	 */
 	public function check_regex($value, $rule) {
-		return preg_match($rule, $value);
+		return preg_match_all($rule, $value) === strlen($value);
 	}
 
 	/**

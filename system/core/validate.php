@@ -76,10 +76,10 @@ class Validate {
 			if (isset($this->_rules[$key])) {
 				$rules = $this->_rules[$key];
 				$info = array(
-					"name" => $key,
-					"tests" => $rules,
-					"value" => $value,
-					"errors" => array()
+					'name' => $key,
+					'tests' => $rules,
+					'valuee' => $value,
+					'errors' => array()
 				);
 				$results = array();
 
@@ -110,7 +110,7 @@ class Validate {
 					}
 
 					if (in_array($rule, $this->checks)) {
-						$funcname = "check_" . $rule;
+						$funcname = 'check_' . $rule;
 						$result = $this->$funcname($value, $origRule);
 					}
 
@@ -120,7 +120,7 @@ class Validate {
 					}
 
 					foreach ($mods as $mod) {
-						$funcname = "modifier_" . $mod;
+						$funcname = 'modifier_' . $mod;
 						$result = $this->$funcname($result, $origRule);
 					}
 
@@ -189,7 +189,7 @@ class Validate {
 	 * Is Regex test
 	 */
 	public function check_is_regex($value) {
-		return @preg_match($regex, "") !== false;
+		return @preg_match($regex, '') !== false;
 	}
 
 	/**

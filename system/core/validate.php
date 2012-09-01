@@ -60,7 +60,7 @@ class Validate {
 	/**
 	 * Set a single rule
 	 */
-	public function set($name = false, $value = false) {
+	public function set($name = false, $value = null) {
 		if (is_array($name) || !$value) {
 			foreach ($this->args($name) as $key => $value) {
 				$this->set($key, $value);

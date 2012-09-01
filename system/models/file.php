@@ -33,7 +33,7 @@ class ModelFile extends ModelData {
     }
 
     public function save() {
-        file_put_contents($this->file, $this->encode($this->data));
+        if (parent::save()) file_put_contents($this->file, $this->encode($this->data));
 
         return $this;
     }

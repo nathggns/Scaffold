@@ -28,7 +28,7 @@ class Autoload {
 
         $parts = array_map('strtolower', $parts);
 
-        if (in_array($parts[0], array('controller', 'model', 'exception'))) {
+        if (count($parts) > 1 && in_array($parts[0], array('controller', 'model', 'exception'))) {
             $parts[0] = $parts[0] . 's';
         }
 

@@ -5,18 +5,7 @@
  *
  * Stores non-persistant data.
  */
-class ModelData {
-
-    /**
-     * Store data
-     */
-    public $data;
-
-    /**
-     * Reference to the object_ids
-     */
-    private $object_id;
-
+class ModelData extends Model {
 
     /**
      * Select an object via it's id.

@@ -93,8 +93,8 @@ class Validate {
 				);
 				$results = array();
 
-				foreach ($rules as $origRule) {
-					$rule = $origRule;
+				foreach ($rules as $original_rule) {
+					$rule = $original_rule;
 					$mods = array();
 
 					if (is_callable($rule)) {
@@ -121,7 +121,7 @@ class Validate {
 
 					if (in_array($rule, $this->checks)) {
 						$funcname = 'check_' . $rule;
-						$result = $this->$funcname($value, $origRule);
+						$result = $this->$funcname($value, $original_rule);
 					}
 
 					if (!isset($result)) {
@@ -131,7 +131,7 @@ class Validate {
 
 					foreach ($mods as $mod) {
 						$funcname = 'modifier_' . $mod;
-						$result = $this->$funcname($result, $origRule);
+						$result = $this->$funcname($result, $original_rule);
 					}
 
 					$rule_pref = implode('_', $mods);

@@ -27,18 +27,8 @@ class Validate {
 	/**
 	 * Set rules from instantiation
 	 */
-	public function Validate($name = false, $value = null) {
-
-		// Argument shuffling
-		if (is_array($name) && is_array($value)) {
-			$rules = array_combine($name, $value);
-		} else if (is_string($name) && !is_null($value)) {
-			$rules = array($name => $value);
-		} else if (is_array($name) && is_null($value)) {
-			$rules = $name;
-		} else {
-			$rules = false;
-		}
+	public function __construct($name = false, $value = null) {
+		$rules = $this->args($name, $value);
 
 		// Apply the rules if they exist
 		if (is_array($rules)) {
@@ -50,11 +40,31 @@ class Validate {
 	}
 
 	/**
+	 * Argument shuffling
+	 */
+	public function args($name, $value) {
+		// Argument shuffling
+		if (is_array($name) && is_array($value)) {
+			$rules = array_combine($name, $value);
+		} else if (is_string($name) && !is_null($value)) {
+			$rules = array($name => $value);
+		} else if (is_array($name) && is_null($value)) {
+			$rules = $name;
+		} else {
+			$rules = false;
+		}
+
+		return $rules;
+	}
+
+	/**
 	 * Set a single rule
 	 */
 	public function set($name = false, $value = false) {
 		if (is_array($name) || !$value) {
-			$this->Validate($name, $value);
+			foreach ($this->args($name) as $key => $value) {
+				$this->set($key, $value);
+			}
 		} else {
 			if (!is_array($value)) $value = array($value);
 

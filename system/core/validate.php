@@ -206,7 +206,7 @@ class Validate {
 	 * Regex match test
 	 */
 	public function check_regex($value, $rule) {
-		return preg_match_all($rule, $value) === strlen($value);
+		return preg_match_all($rule, $value, $matches) === strlen($value);
 	}
 
 	/**

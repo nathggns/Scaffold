@@ -27,7 +27,7 @@ define('SCAFFOLD', true);
 /**
  * Standard directory seperator.
  */
-define('DS', DIRECTORY_SEPEATOR);
+define('DS', DIRECTORY_SEPARATOR);
 
 /**
  * Access to the root folder, independent of the

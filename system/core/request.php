@@ -93,25 +93,7 @@ class Request
      * @return string URI
      */
     public static function detect_uri() {
-        if (!empty($_SERVER['PATH_INFO'])) {
-            $uri = $_SERVER['PATH_INFO'];
-        } else {
-            if (isset($_SERVER['REQUEST_URI'])) {
-                $uri = rawurldecode($uri);
-            } elseif (isset($_SERVER['PHP_SELF'])) {
-                $uri = $_SERVER['PHP_SELF'];
-            } elseif (isset($_SERVER['REDIRECT_URL'])) {
-                $uri = $_SERVER['REDIRECT_URL'];
-            }
-
-            $base_url = parse_url(Kohana::$base_url, PHP_URL_PATH);
-
-            if (strpos($uri, $base_url) === 0) {
-                $uri = substr($uri, strlen($base_url));
-            }
-        }
-
-        return $uri;
+        return isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : '/';
     }
 
     /**

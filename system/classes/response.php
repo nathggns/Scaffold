@@ -1,7 +1,6 @@
 <?php defined('SCAFFOLD') or die();
 
-class Response
-{
+class Response {
 
     protected $headers = [];
     protected $body    = null;

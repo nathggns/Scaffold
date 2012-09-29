@@ -15,12 +15,12 @@ class Validate {
 	/**
 	 * Our default checks
 	 */
-	private $checks = array('empty', 'email', 'alphanumeric', 'regex', 'is_regex', 'equal');
+	private $checks = ['empty', 'email', 'alphanumeric', 'regex', 'is_regex', 'equal'];
 
 	/**
 	 * Checks can be prepended with some of these modifiers
 	 */
-	private $modifiers = array('not');
+	private $modifiers = ['not'];
 
 	const TEST_FAILED = 1;
 
@@ -47,7 +47,7 @@ class Validate {
 		if (is_array($name) && is_array($value)) {
 			$rules = array_combine($name, $value);
 		} else if (is_string($name) && !is_null($value)) {
-			$rules = array($name => $value);
+			$rules = [$name => $value];
 		} else if (is_array($name) && is_null($value)) {
 			$rules = $name;
 		} else {
@@ -66,7 +66,7 @@ class Validate {
 				$this->set($key, $value);
 			}
 		} else {
-			if (!is_array($value)) $value = array($value);
+			if (!is_array($value)) $value = [$value];
 
 			$this->_rules[$name] = $value;
 		}
@@ -79,23 +79,23 @@ class Validate {
 	 */
 	public function test($data) {
 
-		$errors = array();
+		$errors = [];
 
 		foreach ($data as $key => $value) {
 
 			if (isset($this->_rules[$key])) {
 				$rules = $this->_rules[$key];
-				$info = array(
+				$info = [
 					'name' => $key,
 					'tests' => $rules,
 					'value' => $value,
-					'errors' => array()
-				);
-				$results = array();
+					'errors' => []
+				];
+				$results = [];
 
 				foreach ($rules as $original_rule) {
 					$rule = $original_rule;
-					$mods = array();
+					$mods = [];
 
 					if (is_callable($rule)) {
 						$result = $rule($value);
@@ -138,11 +138,11 @@ class Validate {
 					if ($rule_pref != '') $rule_pref .= '_';
 					$rule = $rule_pref . $rule;
 
-					$results[] = array(
+					$results[] = [
 						'result' => $result,
 						'rule' => $rule,
 						'value' => $value
-					);
+					];
 				}
 
 				foreach ($results as $result) {

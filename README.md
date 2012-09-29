@@ -38,16 +38,16 @@ You saw a little sneak peek at our validator in the previous section. Scaffold's
 ### Example
 
     <?php
-    $validator = new Validate(array(
+    $validator = new Validate([
         'name' => ['not_empty', 'alphanumeric'],
         'email' => ['not_empty', 'email']
-    ));
+    ]);
     $validator->set('password', 'not_empty');
     
-    $validator->test(array('name' => 'Bob', 'email' => 'scaffold.is.awesome@gmail.com', 'password' => 'scaffold'));
+    $validator->test(['name' => 'Bob', 'email' => 'scaffold.is.awesome@gmail.com', 'password' => 'scaffold']);
     // Returns true
     
-    $validator->test(array('name' => '', 'email' => 'scaffold'));
+    $validator->test(['name' => '', 'email' => 'scaffold']);
     // Raises ExceptionValidate
 
 

@@ -1,7 +1,6 @@
 <?php defined('SCAFFOLD') or die();
 
-abstract class Controller
-{
+abstract class Controller {
 
     protected $request  = null;
     protected $response = null;

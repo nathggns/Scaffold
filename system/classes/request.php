@@ -1,7 +1,6 @@
 <?php defined('SCAFFOLD') or die();
 
-class Request
-{
+class Request {
 
     const GET    = 'get';
     const POST   = 'post';

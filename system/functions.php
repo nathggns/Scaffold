@@ -28,7 +28,7 @@ function load_file($file, $system = true) {
  * @return array List of files in directory.
  */
 function recursive_scan_dir($dir, $filetype = false) {
-    $files = array();
+    $files = [];
     $items = scandir($dir);
 
     foreach ($items as $item) {

@@ -11,7 +11,7 @@ class Autoload {
      * Register with PHP's spl_autoload
      */
     public static function run() {
-        spl_autoload_register(array('Autoload', 'load'));
+        spl_autoload_register(['Autoload', 'load']);
     }
 
     /**
@@ -37,7 +37,7 @@ class Autoload {
 
         $parts = array_map('strtolower', $parts);
 
-        if (count($parts) > 1 && in_array($parts[0], array('controller', 'model', 'exception'))) {
+        if (count($parts) > 1 && in_array($parts[0], ['controller', 'model', 'exception'])) {
             $parts[0] = $parts[0] . 's';
         }
 

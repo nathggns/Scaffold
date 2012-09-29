@@ -13,12 +13,12 @@ class Model {
 	 * Associative array mapping keys to some sort
 	 * of validation test. 
 	 */
-	protected $_rules = array();
+	protected $_rules = [];
 
 	/**
 	 * Store data
 	 */
-	public $data = array();
+	public $data = [];
 
 	/**
 	 * Reference to the object_ids

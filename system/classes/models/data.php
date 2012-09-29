@@ -28,15 +28,15 @@ class ModelData extends Model {
 
         $id = array_pop($this->object_id);
 
-        return array($id => $this->data[$id]);
+        return [$id => $this->data[$id]];
     }
 
     /**
      * Return all selected data
      */
     public function all() {
-        var_dump($this->data);
-        $results = array();
+        $results = [];
+
         while ($row = $this->row()) {
            $key = key($row);
            $results[$key] = $row[$key];
@@ -52,9 +52,9 @@ class ModelData extends Model {
      */
     public function set($data, $value = null) {
 
-        if (!is_null($value)) return $this->set(array($data => $value));
+        if (!is_null($value)) return $this->set([$data => $value]);
 
-        if (!is_array($data)) return $this->set(array($data));
+        if (!is_array($data)) return $this->set([$data]);
 
         if (is_null($this->object_id)) {
             $this->object_id[] = count($this->data);
@@ -62,7 +62,7 @@ class ModelData extends Model {
 
         foreach ($this->object_id as $id) {
 
-            if (!isset($this->data[$id])) $this->data[$id] = array();
+            if (!isset($this->data[$id])) $this->data[$id] = [];
 
             if (!isset($this->data[$id]['id'])) {
                 $this->data[$id]['id'] = $id;

@@ -184,15 +184,7 @@ class Validate {
 	 * Email test
 	 */
 	public function check_email($value) {
-		return preg_match(
-			'/^(?:[\w\!\#\$\%\&\'\*\+\-\/\=\?\^\`\{\|\}\~]+\.)*'.
-			'[\w\!\#\$\%\&\'\*\+\-\/\=\?\^\`\{\|\}\~]+@(?:(?:(?'.
-			':[a-zA-Z0-9](?:[a-zA-Z0-9\-](?!\.)){0,61}[a-zA-Z0-'.
-			'9]?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9\-](?!$)){0,61}[a-z'.
-			'A-Z0-9]?)|(?:\[(?:(?:[01]?\d{1,2}|2[0-4]\d|25[0-5]'.
-			')\.){3}(?:[01]?\d{1,2}|2[0-4]\d|25[0-5])\]))$/',
-			$value
-		) === true ? true : false;
+		return filter_var($value, FILTER_VALIDATE_EMAIL) ? true : false;
 	}
 
 	/**

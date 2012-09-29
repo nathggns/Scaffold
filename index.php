@@ -51,6 +51,3 @@ define('APPLICATION', ROOT . 'application' . DS);
  * Boot Scaffold
  */
 require(SYSTEM . 'bootstrap.php');
-
-$router = new Router;
-$router->run();

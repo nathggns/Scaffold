@@ -12,5 +12,4 @@ class ExceptionValidate extends Exception {
 	public function __construct(array $errors) {
 		$this->errors = $errors;
 	}
-
 }

@@ -26,6 +26,15 @@ class Autoload {
     public static function load($class) {
         $parts = preg_split('/([[:upper:]][[:lower:]]+)/', $class, null, PREG_SPLIT_DELIM_CAPTURE|PREG_SPLIT_NO_EMPTY);
 
+        for ($i = 1, $l = count($parts); $i < $l; $i++) {
+            $part = $parts[$i];
+
+            if (strtoupper($part) === $part) {
+                $parts[$i -1] .= $part;
+                unset($parts[$i]);
+            }
+        }
+
         $parts = array_map('strtolower', $parts);
 
         if (count($parts) > 1 && in_array($parts[0], array('controller', 'model', 'exception'))) {
@@ -34,10 +43,6 @@ class Autoload {
 
         $path = strtolower(implode(DS, $parts)) . '.php';
 
-        if (strpos($path, DS) === false) {
-            $path = 'core' . DS . $path;
-        }
-
-        return load_file($path);
+        return load_file('classes' . DS . $path);
     }
 }

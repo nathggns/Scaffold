@@ -25,7 +25,7 @@ if (load_file('bootstrap.php', false)) die();
  *
  * This is the only class we should be including manually.
  */
-load_file('core/autoload.php');
+load_file('classes' . DS . 'autoload.php');
 
 /**
  * Run the Autoloader

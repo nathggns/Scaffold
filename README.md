@@ -3,6 +3,8 @@ Scaffold
 
 Lightweight PHP API Framework
 
+**Note:** This is not a usable state yet.
+
 Contents
 =======
 
@@ -87,6 +89,7 @@ $validator->set('not_empty');
 $validator->set(['not_empty']);
 $validator->set(null, 'not_empty');
 $validator->set([null => 'not_empty']);
+```
 
 ### List of Rules
 

@@ -10,7 +10,12 @@ class Validate {
     /**
      * Holds the rules that we are to validate against.
      */
-    public $_rules;
+    public $_rules = [];
+
+    /**
+     * Holds required fields
+     */
+    public $required = [];
 
     /**
      * Our default checks
@@ -27,6 +32,7 @@ class Validate {
      */
     const TEST_FAILED = 1;
     const INVALID_DATA = 2;
+    const MISSING_FIELDS = 3;
 
     /**
      * Global rule
@@ -86,6 +92,16 @@ class Validate {
         return $rules;
     }
 
+    /**
+     * Set required fields
+     */
+    public function required($fields) {
+        if (!is_array($fields)) $fields = [$fields];
+        $this->required = array_merge($this->required, $fields);
+
+        return $this;
+    }
+
 
     /**
      * Test data against our rules
@@ -95,9 +111,17 @@ class Validate {
     public function test($data) {
         $errors = [];
 
+        foreach ($this->required as $field) {
+            if (!isset($data)) {
+                $errors[] = ['errors' => [
+                    'type' => Validate::MISSING_FIELDS
+                ]];
+            }
+        }
+
         if (!is_hash($data)) {
             $errors[] = ['errors' => [
-                'type' => VALIDATE::INVALID_DATA
+                'type' => Validate::INVALID_DATA
             ]];
         } else {
 

@@ -1,0 +1,246 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Scaffold by nathggns</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/main.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+
+      <header>
+        <h1>Scaffold</h1>
+        <p>Light Weight PHP API Framework</p>
+      </header>
+
+      <div id="banner">
+        <span id="logo"></span>
+
+        <a href="https://github.com/nathggns/Scaffold" class="button fork"><strong>View On GitHub</strong></a>
+        <div class="downloads">
+          <span>Downloads:</span>
+          <ul>
+            <li><a href="https://github.com/nathggns/Scaffold/zipball/master" class="button">ZIP</a></li>
+            <li><a href="https://github.com/nathggns/Scaffold/tarball/master" class="button">TAR</a></li>
+          </ul>
+        </div>
+      </div><!-- end banner -->
+
+    <div class="wrapper">
+      <nav>
+        <ul></ul>
+      </nav>
+      <section>
+        <h1>Scaffold</h1>
+
+<p>Lightweight PHP API Framework</p>
+
+<p><strong>Note:</strong> This is not a usable state yet.</p>
+
+<h1>Contents</h1>
+
+<ul>
+<li><a href="#scaffold">Scaffold</a></li>
+<li><a href="#requirements">Requirements</a></li>
+<li>
+<a href="#features">Features</a>
+
+<ul>
+<li><a href="#autoloader">Autoloader</a></li>
+<li>
+<a href="#validator">Validator</a>
+
+<ul>
+<li><a href="#example">Example</a></li>
+<li><a href="#global-rules">Global Rules</a></li>
+<li>
+<a href="#list-of-rules">List of Rules</a>
+
+<ul>
+<li><a href="#empty">empty</a></li>
+<li><a href="#email">email</a></li>
+<li><a href="#alphanumeric">alphanumeric</a></li>
+<li><a href="#others">Others</a></li>
+</ul>
+</li>
+<li>
+<a href="#list-of-modifiers">List of Modifiers</a>
+
+<ul>
+<li><a href="#not">not</a></li>
+</ul>
+</li>
+<li><a href="#exceptionvalidate">ExceptionValidate</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul><h1>Requirements</h1>
+
+<ul>
+<li>PHP <strong>5.4+</strong>
+</li>
+</ul><h1>Features</h1>
+
+<p>Scaffold, despite it's ultimate speed and ease of use, is just jam-packed with features.</p>
+
+<h2>Autoloader</h2>
+
+<p>At the heart of Scaffold, is it's Autoloader. No longer do you need to care about loading different classes for use in your application. But that doesn't mean your application will be slowed down with useless resources it doesn't need: <strong>Scaffold operates on a <em>there when you need it, out of the way when you don't</em> basis</strong>. </p>
+
+<p>In order to use a class, you just use it:</p>
+
+<div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
+<span class="nv">$validator</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Validate</span><span class="p">();</span>
+<span class="nv">$validator</span><span class="o">-&gt;</span><span class="na">set</span><span class="p">(</span><span class="s1">'name'</span><span class="p">,</span> <span class="s1">'not_empty'</span><span class="p">);</span>
+<span class="nv">$validator</span><span class="o">-&gt;</span><span class="na">test</span><span class="p">(</span><span class="nv">$data</span><span class="p">);</span>
+</pre></div>
+
+<p>But that doesn't mean that's the only way to do things, Scaffold provides a method for manually loading a class.</p>
+
+<div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
+<span class="nx">Autoload</span><span class="o">::</span><span class="na">load</span><span class="p">(</span><span class="s1">'Validate'</span><span class="p">);</span>
+<span class="nx">Autoload</span><span class="o">::</span><span class="na">load</span><span class="p">(</span><span class="s1">'Router'</span><span class="p">);</span>
+<span class="c1">// etc</span>
+</pre></div>
+
+<h2>Validator</h2>
+
+<p>You saw a little sneak peek at our validator in the previous section. Scaffold's validator is about as simple as it gets, while still remaining extremely powerful.</p>
+
+<h3>Example</h3>
+
+<div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
+<span class="nv">$validator</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Validate</span><span class="p">([</span>
+    <span class="s1">'name'</span> <span class="o">=&gt;</span> <span class="p">[</span><span class="s1">'not_empty'</span><span class="p">,</span> <span class="s1">'alphanumeric'</span><span class="p">],</span>
+    <span class="s1">'email'</span> <span class="o">=&gt;</span> <span class="p">[</span><span class="s1">'not_empty'</span><span class="p">,</span> <span class="s1">'email'</span><span class="p">]</span>
+<span class="p">]);</span>
+<span class="nv">$validator</span><span class="o">-&gt;</span><span class="na">set</span><span class="p">(</span><span class="s1">'password'</span><span class="p">,</span> <span class="s1">'not_empty'</span><span class="p">);</span>
+
+<span class="nv">$validator</span><span class="o">-&gt;</span><span class="na">test</span><span class="p">([</span><span class="s1">'name'</span> <span class="o">=&gt;</span> <span class="s1">'Bob'</span><span class="p">,</span> <span class="s1">'email'</span> <span class="o">=&gt;</span> <span class="s1">'scaffold.is.awesome@gmail.com'</span><span class="p">,</span> <span class="s1">'password'</span> <span class="o">=&gt;</span> <span class="s1">'scaffold'</span><span class="p">]);</span>
+<span class="c1">// Returns true</span>
+
+<span class="nv">$validator</span><span class="o">-&gt;</span><span class="na">test</span><span class="p">([</span><span class="s1">'name'</span> <span class="o">=&gt;</span> <span class="s1">''</span><span class="p">,</span> <span class="s1">'email'</span> <span class="o">=&gt;</span> <span class="s1">'scaffold'</span><span class="p">]);</span>
+<span class="c1">// Raises ExceptionValidate</span>
+</pre></div>
+
+<h3>Global Rules</h3>
+
+<p>There are a few ways of setting global rules, but under the hood, they all equal the same thing: The field name equaling null.</p>
+
+<div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
+<span class="c1">// All of these are global rules</span>
+<span class="nv">$validator</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Validate</span><span class="p">(</span><span class="s1">'not_empty'</span><span class="p">);</span>
+<span class="nv">$validator</span><span class="o">-&gt;</span><span class="na">set</span><span class="p">(</span><span class="s1">'not_empty'</span><span class="p">);</span>
+<span class="nv">$validator</span><span class="o">-&gt;</span><span class="na">set</span><span class="p">([</span><span class="s1">'not_empty'</span><span class="p">]);</span>
+<span class="nv">$validator</span><span class="o">-&gt;</span><span class="na">set</span><span class="p">(</span><span class="k">null</span><span class="p">,</span> <span class="s1">'not_empty'</span><span class="p">);</span>
+<span class="nv">$validator</span><span class="o">-&gt;</span><span class="na">set</span><span class="p">([</span><span class="k">null</span> <span class="o">=&gt;</span> <span class="s1">'not_empty'</span><span class="p">]);</span>
+</pre></div>
+
+<h3>List of Rules</h3>
+
+<h4>empty</h4>
+
+<p><code>empty</code> tests for if a value is <code>'' || false</code>. In addition, it will also return true if you haven't passed a value for this rule. However, you're unlikely to use this rule yourself. You are more likely to use it in conjuction with the <code>not</code> modifier, to make <code>not_empty</code>. This can be used to make required fields.</p>
+
+<h4>email</h4>
+
+<p><code>email</code> uses PHP's built in email checking (<code>filter_var($val, FILTER_VALIDATE_EMAIL)</code>) systems in order to check if the value is a valid email address.</p>
+
+<h4>alphanumeric</h4>
+
+<p><code>alphanumeric</code> allows any character in the range <code>[a-zA-Z0-9]</code>. And character outside of that will make the rest fail.</p>
+
+<h4>Others</h4>
+
+<p>There are a few other rules that are used <em>behind the scenes</em>. These are <code>regex</code>, <code>is_regex</code> and <code>equal</code>. There is no way that you can use <code>is_regex</code> in your checks, however, you can use <code>regex</code> and <code>equal</code>.</p>
+
+<p>If the rule name is a valid regex pattern, and doesn't match an existing rule name, then Validate will run a test for the value against that pattern. If it is not, then Validate will simply check if the value matches the rule name.</p>
+
+<h3>List of Modifiers</h3>
+
+<p>To use a modifier, you just prepend it's name, followed by an <code>_</code> to the rule name.</p>
+
+<h4>not</h4>
+
+<p><code>not</code> is simple modifier, it simply reverses the output of the rule.</p>
+
+<p>Take <code>not_empty</code> for example. Run <code>empty</code> against <code>''</code>, and you get <code>true</code>. Run <code>not_empty</code> against <code>''</code>, and you get <code>false</code>.</p>
+
+<h3>ExceptionValidate</h3>
+
+<p>When a validation error occours, <code>Validate</code> throws an <code>ExceptionValidate</code> exception. This is almost exactly the same as a normal <code>Exception</code>, but you can access the exception errors as <code>$e-&gt;errors</code>. This array contains all the information you could possibly need: Which tests failed, what tests were ran on what, etc. The following is one of the errors from the previous example.</p>
+
+<pre><code>array(4) {
+  ["name"]=&gt;
+    string(4) "name"
+  ["tests"]=&gt;
+    array(2) {
+      [0]=&gt;
+        string(9) "not_empty"
+      [1]=&gt;
+        string(12) "alphanumeric"
+    }
+  ["value"]=&gt;
+    string(0) ""
+  ["errors"]=&gt;
+    array(2) {
+      [0]=&gt;
+        array(4) {
+          ["result"]=&gt;
+            bool(false)
+          ["rule"]=&gt;
+            string(9) "not_empty"
+          ["value"]=&gt;
+            string(0) ""
+          ["type"]=&gt;
+            int(1)
+        }
+      [1]=&gt;
+        array(4) {
+          ["result"]=&gt;
+            bool(false)
+          ["rule"]=&gt;
+            string(12) "alphanumeric"
+          ["value"]=&gt;
+            string(0) ""
+          ["type"]=&gt;
+            int(1)
+        }
+  }
+}
+</code></pre>
+
+<p>The bit we care about is the errors property, which should be self explanatory, besides <code>type</code> and <code>result</code>.</p>
+
+<p><code>result</code> is the raw response from the <code>check</code> function called, after all the <code>modifier</code> functions are called. Check functions are your standard <code>email</code>, <code>alphanumeric</code> checks and <code>modifiers</code> are the bits prepended with an <code>_</code>, the only current one being <code>not</code>.</p>
+
+<p><code>type</code> represents the type of validation error that has occured. This can either be <code>Validate::TEST_FAILED</code>, for if a test actually fails, or <code>Validate::INVALID_DATA</code> for if you give test a numeric array instead of an associative array. </p>
+      </section>
+      <footer>
+        <p>Project maintained by <a href="https://github.com/nathggns">nathggns</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="http://twitter.com/#!/michigangraham">mattgraham</a></small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+              <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-35201099-1");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+  </body>
+</html>

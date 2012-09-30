@@ -13,11 +13,6 @@ class Validate {
     public $_rules = [];
 
     /**
-     * Holds required fields
-     */
-    public $required = [];
-
-    /**
      * Our default checks
      */
     private $checks = ['empty', 'email', 'alphanumeric', 'regex', 'is_regex', 'equal'];
@@ -32,7 +27,6 @@ class Validate {
      */
     const TEST_FAILED = 1;
     const INVALID_DATA = 2;
-    const MISSING_FIELDS = 3;
 
     /**
      * Global rule
@@ -92,16 +86,6 @@ class Validate {
         return $rules;
     }
 
-    /**
-     * Set required fields
-     */
-    public function required($fields) {
-        if (!is_array($fields)) $fields = [$fields];
-        $this->required = array_merge($this->required, $fields);
-
-        return $this;
-    }
-
 
     /**
      * Test data against our rules
@@ -111,31 +95,24 @@ class Validate {
     public function test($data) {
         $errors = [];
 
-        foreach ($this->required as $field) {
-            if (!isset($data)) {
-                $errors[] = ['errors' => [
-                    'type' => Validate::MISSING_FIELDS
-                ]];
-            }
-        }
-
         if (!is_hash($data)) {
             $errors[] = ['errors' => [
                 'type' => Validate::INVALID_DATA
             ]];
         } else {
 
-            $globals = isset($this->_rules[false]) ? $this->_rules[false] : false;
+            foreach ($this->_rules as $field => $rules) {
+                $c_data = [];
 
-            foreach ($data as $key => $value) {
-
-                if (isset($this->_rules[$key]) || $globals) {
-                    $rules = isset($this->_rules[$key]) ? $this->_rules[$key] : [];
-
-                    if ($globals) {
-                        $rules = array_merge($this->_rules[false], $rules);
+                if (!$field) {
+                    foreach ($data as $key => $val) {
+                        $c_data[$key] = $val;
                     }
+                } else {
+                    $c_data[$field] = isset($data[$field]) ? $data[$field] : false;
+                }
 
+                foreach ($c_data as $key => $value) {
                     $info = [
                         'name' => $key,
                         'tests' => $rules,
@@ -154,7 +131,7 @@ class Validate {
                         } else if (is_string($rule)) {
                             if ($this->check_is_regex($rule)) {
                                 $rule = 'regex';
-                            } else if (strpos($rule, '_')) {
+                            } else if (strpos($rule, '_') !== false) {
                                 $parts = explode('_', $rule);
                                 $last = end($parts);
                                 reset($parts);
@@ -208,6 +185,7 @@ class Validate {
                     }
                 }
             }
+
         }
 
         if (count($errors) > 0) {
@@ -215,6 +193,13 @@ class Validate {
         }
 
         return true;
+    }
+
+    /**
+     * Test a value against a rule
+     */
+    public function test_rule($data, $rule) {
+        var_dump($value, $rule);
     }
 
     /**

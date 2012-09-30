@@ -10,7 +10,7 @@ class Validate {
     /**
      * Holds the rules that we are to validate against.
      */
-    public $_rules;
+    public $_rules = [];
 
     /**
      * Our default checks
@@ -97,21 +97,22 @@ class Validate {
 
         if (!is_hash($data)) {
             $errors[] = ['errors' => [
-                'type' => VALIDATE::INVALID_DATA
+                'type' => Validate::INVALID_DATA
             ]];
         } else {
 
-            $globals = isset($this->_rules[false]) ? $this->_rules[false] : false;
+            foreach ($this->_rules as $field => $rules) {
+                $c_data = [];
 
-            foreach ($data as $key => $value) {
-
-                if (isset($this->_rules[$key]) || $globals) {
-                    $rules = isset($this->_rules[$key]) ? $this->_rules[$key] : [];
-
-                    if ($globals) {
-                        $rules = array_merge($this->_rules[false], $rules);
+                if (!$field) {
+                    foreach ($data as $key => $val) {
+                        $c_data[$key] = $val;
                     }
+                } else {
+                    $c_data[$field] = isset($data[$field]) ? $data[$field] : false;
+                }
 
+                foreach ($c_data as $key => $value) {
                     $info = [
                         'name' => $key,
                         'tests' => $rules,
@@ -130,7 +131,7 @@ class Validate {
                         } else if (is_string($rule)) {
                             if ($this->check_is_regex($rule)) {
                                 $rule = 'regex';
-                            } else if (strpos($rule, '_')) {
+                            } else if (strpos($rule, '_') !== false) {
                                 $parts = explode('_', $rule);
                                 $last = end($parts);
                                 reset($parts);
@@ -184,6 +185,7 @@ class Validate {
                     }
                 }
             }
+
         }
 
         if (count($errors) > 0) {

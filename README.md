@@ -50,6 +50,47 @@ You saw a little sneak peek at our validator in the previous section. Scaffold's
     $validator->test(['name' => '', 'email' => 'scaffold']);
     // Raises ExceptionValidate
 
+### Global Rules
+
+There are a few ways of setting global rules, but under the hood, they all equal the same thing: The field name equaling null.
+
+    <?php
+    // All of these are global rules
+    $validator = new Validate('not_empty');
+    $validator->set('not_empty');
+    $validator->set(['not_empty']);
+    $validator->set(null, 'not_empty');
+    $validator->set([null => 'not_empty']);
+
+### List of Rules
+
+#### empty
+
+`empty` tests for if a value is `'' || false`. In addition, it will also return true if you haven't passed a value for this rule. However, you're unlikely to use this rule yourself. You are more likely to use it in conjuction with the `not` modifier, to make `not_empty`. This can be used to make required fields.
+
+#### email
+
+`email` uses PHP's built in email checking (`filter_var($val, FILTER_VALIDATE_EMAIL)`) systems in order to check if the value is a valid email address.
+
+#### alphanumeric
+
+`alphanumeric` allows any character in the range `[a-zA-Z0-9]`. And character outside of that will make the rest fail.
+
+#### Others
+
+There are a few other rules that are used *behind the scenes*. These are `regex`, `is_regex` and `equal`. There is no way that you can use `is_regex` in your checks, however, you can use `regex` and `equal`.
+
+If the rule name is a valid regex pattern, and doesn't match an existing rule name, then Validate will run a test for the value against that pattern. If it is not, then Validate will simply check if the value matches the rule name.
+
+### List of Modifiers
+
+To use a modifier, you just prepend it's name, followed by an `_` to the rule name.
+
+### not
+
+`not` is simple modifier, it simply reverses the output of the rule.
+
+Take `not_empty` for example. Run `empty` against `''`, and you get `true`. Run `not_empty` against `''`, and you get `false`.
 
 ### ExceptionValidate
 
@@ -99,4 +140,4 @@ The bit we care about is the errors property, which should be self explanatory, 
 
 `result` is the raw response from the `check` function called, after all the `modifier` functions are called. Check functions are your standard `email`, `alphanumeric` checks and `modifiers` are the bits prepended with an `_`, the only current one being `not`.
 
-`type`, at the moment, is always going to be `1`, which represents `Validate::TEST_FAILED`. In the future, there may be other types of errors, which is why it is included.
+`type` represents the type of validation error that has occured. This can either be `Validate::TEST_FAILED`, for if a test actually fails, or `Validate::INVALID_DATA` for if you give test a numeric array instead of an associative array. 

@@ -5,25 +5,6 @@ Lightweight PHP API Framework
 
 **Note:** This is not a usable state yet.
 
-Contents
-=======
-
- - [Scaffold](#scaffold)
- - [Requirements](#requirements)
- - [Features](#features)
-  - [Autoloader](#autoloader)
-  - [Validator](#validator)
-    - [Example](#example)
-    - [Global Rules](#global-rules)
-    - [List of Rules](#list-of-rules)
-      - [empty](#empty)
-      - [email](#email)
-      - [alphanumeric](#alphanumeric)
-      - [Others](#others)
-    - [List of Modifiers](#list-of-modifiers)
-      - [not](#not)
-    - [ExceptionValidate](#exceptionvalidate)
-
 Requirements
 ============
 

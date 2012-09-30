@@ -196,13 +196,6 @@ class Validate {
     }
 
     /**
-     * Test a value against a rule
-     */
-    public function test_rule($data, $rule) {
-        var_dump($value, $rule);
-    }
-
-    /**
      * Empty Test
      */
     public function check_empty($value) {

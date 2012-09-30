@@ -23,140 +23,152 @@ class Validate {
     private $modifiers = ['not'];
 
     const TEST_FAILED = 1;
+    const INVALID_DATA = 2;
 
     /**
      * Set rules from instantiation
      */
-    public function __construct($name = false, $value = null) {
+    public function __construct($name = null, $value = null) {
+        if ($name) $this->set($name, $value);
+    }
+
+    /**
+     * Set rules
+     */
+    public function set($name, $value = null) {
         $rules = $this->args($name, $value);
 
-        // Apply the rules if they exist
-        if (is_array($rules)) {
-            foreach ($rules as $key => $value) {
-                $this->set($key, $value);
-            }
-        }
-
-    }
-
-    /**
-     * Argument shuffling
-     */
-    public function args($name, $value) {
-        // Argument shuffling
-        if (is_array($name) && is_array($value)) {
-            $rules = array_combine($name, $value);
-        } else if (is_string($name) && !is_null($value)) {
-            $rules = [$name => $value];
-        } else if (is_array($name) && is_null($value)) {
-            $rules = $name;
-        } else {
-            $rules = false;
-        }
-
-        return $rules;
-    }
-
-    /**
-     * Set a single rule
-     */
-    public function set($name = false, $value = null) {
-        if (is_array($name) || !$value) {
-            foreach ($this->args($name) as $key => $value) {
-                $this->set($key, $value);
-            }
-        } else {
-            if (!is_array($value)) $value = [$value];
-
-            $this->_rules[$name] = $value;
+        foreach ($rules as $k => $v) {
+            if (!isset($this->_rules[$k])) $this->_rules[$k] = [];
+            $this->_rules[$k] = array_merge($this->_rules[$k], $v);
         }
 
         return $this;
     }
 
     /**
+     * Argument shuffling
+     */
+    public function args($name, $value = null) {
+        $rules = [];
+        if (is_null($value) && (is_string($name) || !is_hash($name))) {
+            $value = is_string($name) ? [$name] : $name;
+            $name = false;
+            $rules[$name] = $value;
+        }
+
+        if ((is_null($name) || is_string($name)) && (is_string($value) || !is_hash($value))) {
+            $value = is_string($value) ? [$value] : $value;
+            if (is_null($name)) $name = false;
+            $rules[$name] = $value;
+        } else if (is_array($name) && is_null($value)) {
+            foreach ($name as $k => $v) {
+                if ($k === '') $k = null;
+                $rules = array_merge($rules, $this->args($k, $v));
+            }
+        }
+
+        return $rules;
+    }
+
+
+    /**
      * Test data against our rules
+     *
+     * Will only test on a hash.
      */
     public function test($data) {
-
         $errors = [];
 
-        foreach ($data as $key => $value) {
+        if (!is_hash($data)) {
+            $errors[] = ['errors' => [
+                'type' => VALIDATE::INVALID_DATA
+            ]];
+        } else {
 
-            if (isset($this->_rules[$key])) {
-                $rules = $this->_rules[$key];
-                $info = [
-                    'name' => $key,
-                    'tests' => $rules,
-                    'value' => $value,
-                    'errors' => []
-                ];
-                $results = [];
+            $globals = isset($this->_rules[false]) ? $this->_rules[false] : false;
 
-                foreach ($rules as $original_rule) {
-                    $rule = $original_rule;
-                    $mods = [];
+            foreach ($data as $key => $value) {
 
-                    if (is_callable($rule)) {
-                        $result = $rule($value);
-                        $rule = 'custom';
-                    } else if (is_string($rule)) {
-                        if ($this->check_is_regex($rule)) {
-                            $rule = 'regex';
-                        } else if (strpos($rule, '_')) {
-                            $parts = explode('_', $rule);
-                            $last = end($parts);
-                            reset($parts);
+                if (isset($this->_rules[$key]) || $globals) {
+                    $rules = isset($this->_rules[$key]) ? $this->_rules[$key] : [];
 
-                            foreach ($parts as $part) {
-                                if ($last === $part || !in_array($part, $this->modifiers)) break;
-                                $mods[] = $part;
+                    if ($globals) {
+                        $rules = array_merge($this->_rules[false], $rules);
+                    }
+
+                    $info = [
+                        'name' => $key,
+                        'tests' => $rules,
+                        'value' => $value,
+                        'errors' => []
+                    ];
+                    $results = [];
+
+                    foreach ($rules as $original_rule) {
+                        $rule = $original_rule;
+                        $mods = [];
+
+                        if (is_callable($rule)) {
+                            $result = $rule($value);
+                            $rule = 'custom';
+                        } else if (is_string($rule)) {
+                            if ($this->check_is_regex($rule)) {
+                                $rule = 'regex';
+                            } else if (strpos($rule, '_')) {
+                                $parts = explode('_', $rule);
+                                $last = end($parts);
+                                reset($parts);
+
+                                foreach ($parts as $part) {
+                                    if ($last === $part || !in_array($part, $this->modifiers)) break;
+                                    $mods[] = $part;
+                                }
+
+                                if (count($mods) > 0) {
+                                    $rule = $last;
+                                }
                             }
+                        }
 
-                            if (count($mods) > 0) {
-                                $rule = $last;
-                            }
+                        if (in_array($rule, $this->checks)) {
+                            $funcname = 'check_' . $rule;
+                            $result = $this->$funcname($value, $original_rule);
+                        }
+
+                        if (!isset($result)) {
+                            $result = $this->check_equal($value, $rule);
+                            $rule = 'equal';
+                        }
+
+                        foreach ($mods as $mod) {
+                            $funcname = 'modifier_' . $mod;
+                            $result = $this->$funcname($result, $original_rule);
+                        }
+
+                        $rule_pref = implode('_', $mods);
+                        if ($rule_pref != '') $rule_pref .= '_';
+                        $rule = $rule_pref . $rule;
+
+                        $results[] = [
+                            'result' => $result,
+                            'rule' => $rule,
+                            'value' => $value
+                        ];
+                    }
+
+                    foreach ($results as $result) {
+                        if (!$result['result']) {
+                            $result['type'] = Validate::TEST_FAILED;
+                            $info['errors'][] = $result;
                         }
                     }
 
-                    if (in_array($rule, $this->checks)) {
-                        $funcname = 'check_' . $rule;
-                        $result = $this->$funcname($value, $original_rule);
+                    if (count($info['errors']) > 0) {
+                        $errors[] = $info;
                     }
-
-                    if (!isset($result)) {
-                        $result = $this->check_equal($value, $rule);
-                        $rule = 'equal';
-                    }
-
-                    foreach ($mods as $mod) {
-                        $funcname = 'modifier_' . $mod;
-                        $result = $this->$funcname($result, $original_rule);
-                    }
-
-                    $rule_pref = implode('_', $mods);
-                    if ($rule_pref != '') $rule_pref .= '_';
-                    $rule = $rule_pref . $rule;
-
-                    $results[] = [
-                        'result' => $result,
-                        'rule' => $rule,
-                        'value' => $value
-                    ];
-                }
-
-                foreach ($results as $result) {
-                    if (!$result['result']) {
-                        $result['type'] = Validate::TEST_FAILED;
-                        $info['errors'][] = $result;
-                    }
-                }
-
-                if (count($info['errors']) > 0) {
-                    $errors[] = $info;
                 }
             }
-
         }
 
         if (count($errors) > 0) {

@@ -119,7 +119,7 @@ To use a modifier, you just prepend it's name, followed by an `_` to the rule na
 
 `not` is simple modifier, it simply reverses the output of the rule.
 
-Take `not_empty` for example. Run `empty` against `''`, and you get `true`. Run `not_empty` against `'', and you get `false`.
+Take `not_empty` for example. Run `empty` against `''`, and you get `true`. Run `not_empty` against `''`, and you get `false`.
 
 ### ExceptionValidate
 

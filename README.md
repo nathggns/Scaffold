@@ -1,7 +1,26 @@
 Scaffold
 ========
 
-Light Weight PHP API Framework
+Lightweight PHP API Framework
+
+Contents
+=======
+
+ - [Scaffold](#scaffold)
+ - [Requirements](#requirements)
+ - [Features][#features]
+  - [Autoloader](#autoloader)
+  - [Validator](#validator)
+    - [Example](#example)
+    - [Global Rules](#global-rules)
+    - [List of Rules](#list-of-rules)
+      - [empty](#empty)
+      - [email](#email)
+      - [alphanumeric](#alphanumeric)
+      - [Others](#others)
+    - [List of Modifiers](#list-of-modifiers)
+      - [not](#not)
+    - [ExceptionValidate](#exceptionvalidate)
 
 Requirements
 ============
@@ -19,17 +38,21 @@ At the heart of Scaffold, is it's Autoloader. No longer do you need to care abou
 
 In order to use a class, you just use it:
 
-    <?php
-    $validator = new Validate();
-    $validator->set('name', 'not_empty');
-    $validator->test($data);
+```php
+<?php
+$validator = new Validate();
+$validator->set('name', 'not_empty');
+$validator->test($data);
+```
 
 But that doesn't mean that's the only way to do things, Scaffold provides a method for manually loading a class.
 
-    <?php
-    Autoload::load('Validate');
-    Autoload::load('Router');
-    // etc
+```php
+<?php
+Autoload::load('Validate');
+Autoload::load('Router');
+// etc
+```
 
 ## Validator
 
@@ -37,30 +60,33 @@ You saw a little sneak peek at our validator in the previous section. Scaffold's
 
 ### Example
 
-    <?php
-    $validator = new Validate([
-        'name' => ['not_empty', 'alphanumeric'],
-        'email' => ['not_empty', 'email']
-    ]);
-    $validator->set('password', 'not_empty');
-    
-    $validator->test(['name' => 'Bob', 'email' => 'scaffold.is.awesome@gmail.com', 'password' => 'scaffold']);
-    // Returns true
-    
-    $validator->test(['name' => '', 'email' => 'scaffold']);
-    // Raises ExceptionValidate
+```php
+<?php
+$validator = new Validate([
+    'name' => ['not_empty', 'alphanumeric'],
+    'email' => ['not_empty', 'email']
+]);
+$validator->set('password', 'not_empty');
+
+$validator->test(['name' => 'Bob', 'email' => 'scaffold.is.awesome@gmail.com', 'password' => 'scaffold']);
+// Returns true
+
+$validator->test(['name' => '', 'email' => 'scaffold']);
+// Raises ExceptionValidate
+```
 
 ### Global Rules
 
 There are a few ways of setting global rules, but under the hood, they all equal the same thing: The field name equaling null.
 
-    <?php
-    // All of these are global rules
-    $validator = new Validate('not_empty');
-    $validator->set('not_empty');
-    $validator->set(['not_empty']);
-    $validator->set(null, 'not_empty');
-    $validator->set([null => 'not_empty']);
+```php
+<?php
+// All of these are global rules
+$validator = new Validate('not_empty');
+$validator->set('not_empty');
+$validator->set(['not_empty']);
+$validator->set(null, 'not_empty');
+$validator->set([null => 'not_empty']);
 
 ### List of Rules
 
@@ -86,11 +112,11 @@ If the rule name is a valid regex pattern, and doesn't match an existing rule na
 
 To use a modifier, you just prepend it's name, followed by an `_` to the rule name.
 
-### not
+#### not
 
 `not` is simple modifier, it simply reverses the output of the rule.
 
-Take `not_empty` for example. Run `empty` against `''`, and you get `true`. Run `not_empty` against `''`, and you get `false`.
+Take `not_empty` for example. Run `empty` against `''`, and you get `true`. Run `not_empty` against `'', and you get `false`.
 
 ### ExceptionValidate
 

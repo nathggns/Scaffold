@@ -7,9 +7,9 @@
  */
 class ExceptionValidate extends Exception {
 
-	public $errors;
+    public $errors;
 
-	public function __construct(array $errors) {
-		$this->errors = $errors;
-	}
+    public function __construct(array $errors) {
+        $this->errors = $errors;
+    }
 }

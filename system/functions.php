@@ -49,3 +49,20 @@ function recursive_scan_dir($dir, $filetype = false) {
 
     return $files;
 }
+
+/**
+ * Is an array a hash?
+ */
+function is_hash($arr) {
+    if (!is_array($arr)) return false;
+
+    $keys = range(0, count($arr) - 1);
+
+    foreach ($keys as $key) {
+        if (!isset($arr[$key])) {
+            return true;
+        }
+    }
+
+    return false;
+}

@@ -8,7 +8,7 @@ Contents
 
  - [Scaffold](#scaffold)
  - [Requirements](#requirements)
- - [Features][#features]
+ - [Features](#features)
   - [Autoloader](#autoloader)
   - [Validator](#validator)
     - [Example](#example)

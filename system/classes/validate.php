@@ -22,8 +22,16 @@ class Validate {
      */
     private $modifiers = ['not'];
 
+    /**
+     * Test statuses
+     */
     const TEST_FAILED = 1;
     const INVALID_DATA = 2;
+
+    /**
+     * Global rule
+     */
+    const GLOBAL_RULE = null;
 
     /**
      * Set rules from instantiation
@@ -44,6 +52,13 @@ class Validate {
         }
 
         return $this;
+    }
+
+    /**
+     * Set global rules
+     */
+    public function set_global($rules) {
+        return $this->set(Validate::GLOBAL_RULE, $rules);
     }
 
     /**

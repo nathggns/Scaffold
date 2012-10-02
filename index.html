@@ -18,7 +18,7 @@
 
       <header>
         <h1>Scaffold</h1>
-        <p>Light Weight PHP API Framework</p>
+        <p>Lightweight PHP API Framework</p>
       </header>
 
       <div id="banner">
@@ -50,13 +50,19 @@
 <ul>
 <li>PHP <strong>5.4+</strong>
 </li>
-</ul><h1>Features</h1>
+</ul><h1>Contributing</h1>
+
+<p>In order to contribute, please fork this repo. Every new feature must be made in a seperate branch. Each new feature
+must have a <strong>PHPUnit</strong> test written for it. You must follow the standard styleguide that is in place through
+Scaffold.</p>
+
+<h1>Features</h1>
 
 <p>Scaffold, despite it's ultimate speed and ease of use, is just jam-packed with features.</p>
 
 <h2>Autoloader</h2>
 
-<p>At the heart of Scaffold, is it's Autoloader. No longer do you need to care about loading different classes for use in your application. But that doesn't mean your application will be slowed down with useless resources it doesn't need: <strong>Scaffold operates on a <em>there when you need it, out of the way when you don't</em> basis</strong>. </p>
+<p>At the heart of Scaffold, is it's Autoloader. No longer do you need to care about loading different classes for use in your application. But that doesn't mean your application will be slowed down with useless resources it doesn't need: <strong>Scaffold operates on a <em>there when you need it, out of the way when you don't</em> basis</strong>.</p>
 
 <p>In order to use a class, you just use it:</p>
 
@@ -185,7 +191,95 @@
 
 <p><code>result</code> is the raw response from the <code>check</code> function called, after all the <code>modifier</code> functions are called. Check functions are your standard <code>email</code>, <code>alphanumeric</code> checks and <code>modifiers</code> are the bits prepended with an <code>_</code>, the only current one being <code>not</code>.</p>
 
-<p><code>type</code> represents the type of validation error that has occured. This can either be <code>Validate::TEST_FAILED</code>, for if a test actually fails, or <code>Validate::INVALID_DATA</code> for if you give test a numeric array instead of an associative array. </p>
+<p><code>type</code> represents the type of validation error that has occured. This can either be <code>Validate::TEST_FAILED</code>, for if a test actually fails, or <code>Validate::INVALID_DATA</code> for if you give test a numeric array instead of an associative array.</p>
+
+<h2>Inflector</h2>
+
+<p>Scaffold comes with an inflector based on that of <strong>Ruby on Rails</strong>. These Inflections are cached automatically, too!</p>
+
+<h3>Inflector::pluralize</h3>
+
+<div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
+<span class="nx">Inflector</span><span class="o">::</span><span class="na">pluralize</span><span class="p">(</span><span class="s1">'cat'</span><span class="p">);</span>
+<span class="c1">// cats</span>
+
+<span class="nx">Inflector</span><span class="o">::</span><span class="na">pluralize</span><span class="p">(</span><span class="s1">'man'</span><span class="p">);</span>
+<span class="c1">// men</span>
+</pre></div>
+
+<h2>Inflector::singularize</h2>
+
+<pre><code>&lt;?php
+Inflector::singularize('cats');
+// cat
+
+Inflector::singularize('men');
+// man
+</code></pre>
+
+<h2>Inflector::camelize</h2>
+
+<div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
+<span class="nx">Inflector</span><span class="o">::</span><span class="na">camelize</span><span class="p">(</span><span class="s1">'My name is bob'</span><span class="p">);</span>
+<span class="c1">// MyNameIsBob</span>
+</pre></div>
+
+<h2>Inflector::underscore</h2>
+
+<div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
+<span class="nx">Inflector</span><span class="o">::</span><span class="na">underscore</span><span class="p">(</span><span class="s1">'My name is bob'</span><span class="p">);</span>
+<span class="c1">// my_name_is_bob</span>
+</pre></div>
+
+<h2>Inflector::titleize</h2>
+
+<div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
+<span class="nx">Inflector</span><span class="o">::</span><span class="na">titleize</span><span class="p">(</span><span class="s1">'my_name_is_bob'</span><span class="p">);</span>
+<span class="c1">// My Name Is Bob</span>
+</pre></div>
+
+<h2>Inflector::humanize</h2>
+
+<div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
+<span class="nx">Inflector</span><span class="o">::</span><span class="na">humanize</span><span class="p">(</span><span class="s1">'my_name_is_bob'</span><span class="p">);</span>
+<span class="c1">// My name is bob</span>
+</pre></div>
+
+<h2>Inflector::tableize</h2>
+
+<div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
+<span class="nx">Inflector</span><span class="o">::</span><span class="na">tableize</span><span class="p">(</span><span class="s1">'User'</span><span class="p">);</span>
+<span class="c1">// users</span>
+
+<span class="nx">Inflector</span><span class="o">::</span><span class="na">tableize</span><span class="p">(</span><span class="s1">'UserFriend'</span><span class="p">);</span>
+<span class="c1">// user_friends</span>
+</pre></div>
+
+<h2>Inflector::classify</h2>
+
+<div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
+<span class="nx">Inflector</span><span class="o">::</span><span class="na">classify</span><span class="p">(</span><span class="s1">'users'</span><span class="p">);</span>
+<span class="c1">// User</span>
+
+<span class="nx">Inflector</span><span class="o">::</span><span class="na">classify</span><span class="p">(</span><span class="s1">'user_friends'</span><span class="p">);</span>
+<span class="c1">// UserFriend</span>
+</pre></div>
+
+<h2>Inflector::ordinalize</h2>
+
+<div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
+<span class="nx">Inflector</span><span class="o">::</span><span class="na">ordinalize</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="c1">// 1st</span>
+
+<span class="nx">Inflector</span><span class="o">::</span><span class="na">ordinalize</span><span class="p">(</span><span class="mi">22</span><span class="p">);</span>
+<span class="c1">// 22nd</span>
+
+<span class="nx">Inflector</span><span class="o">::</span><span class="na">ordinalize</span><span class="p">(</span><span class="mi">333</span><span class="p">);</span>
+<span class="c1">// 333rd</span>
+
+<span class="nx">Inflector</span><span class="o">::</span><span class="na">ordinalize</span><span class="p">(</span><span class="mi">4444</span><span class="p">);</span>
+<span class="c1">// 4444th</span>
+</pre></div>
       </section>
       <footer>
         <p>Project maintained by <a href="https://github.com/nathggns">nathggns</a></p>

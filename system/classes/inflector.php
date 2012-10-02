@@ -34,9 +34,9 @@ class Inflector {
 			'sex' => 'sexes',
 			'move' => 'moves'
 		);
-		
+
 		$uncountable = array('equipment', 'information', 'rice', 'money', 'species', 'series', 'fish', 'sheep');
-		
+
 		$lowercase = strtolower($string);
 
 		foreach ($uncountable as $word) {

@@ -10,6 +10,13 @@ Requirements
 
  - PHP **5.4+**
 
+Contributing
+============
+
+In order to contribute, please fork this repo. Every new feature must be made in a seperate branch. Each new feature
+must have a **PHPUnit** test written for it. You must follow the standard styleguide that is in place through
+Scaffold.
+
 Features
 ========
 
@@ -17,7 +24,7 @@ Scaffold, despite it's ultimate speed and ease of use, is just jam-packed with f
 
 ## Autoloader
 
-At the heart of Scaffold, is it's Autoloader. No longer do you need to care about loading different classes for use in your application. But that doesn't mean your application will be slowed down with useless resources it doesn't need: **Scaffold operates on a *there when you need it, out of the way when you don't* basis**. 
+At the heart of Scaffold, is it's Autoloader. No longer do you need to care about loading different classes for use in your application. But that doesn't mean your application will be slowed down with useless resources it doesn't need: **Scaffold operates on a *there when you need it, out of the way when you don't* basis**.
 
 In order to use a class, you just use it:
 
@@ -144,10 +151,101 @@ When a validation error occours, `Validate` throws an `ExceptionValidate` except
             }
       }
     }
-    
-    
+
+
 The bit we care about is the errors property, which should be self explanatory, besides `type` and `result`.
 
 `result` is the raw response from the `check` function called, after all the `modifier` functions are called. Check functions are your standard `email`, `alphanumeric` checks and `modifiers` are the bits prepended with an `_`, the only current one being `not`.
 
-`type` represents the type of validation error that has occured. This can either be `Validate::TEST_FAILED`, for if a test actually fails, or `Validate::INVALID_DATA` for if you give test a numeric array instead of an associative array. 
+`type` represents the type of validation error that has occured. This can either be `Validate::TEST_FAILED`, for if a test actually fails, or `Validate::INVALID_DATA` for if you give test a numeric array instead of an associative array.
+
+## Inflector
+
+Scaffold comes with an inflector based on that of **Ruby on Rails**. These Inflections are cached automatically, too!
+
+### Inflector::pluralize
+
+```php
+<?php
+Inflector::pluralize('cat');
+// cats
+
+Inflector::pluralize('man');
+// men
+```
+
+## Inflector::singularize
+
+```
+<?php
+Inflector::singularize('cats');
+// cat
+
+Inflector::singularize('men');
+// man
+```
+
+## Inflector::camelize
+
+```php
+<?php
+Inflector::camelize('My name is bob');
+// MyNameIsBob
+```
+
+## Inflector::underscore
+```php
+<?php
+Inflector::underscore('My name is bob');
+// my_name_is_bob
+```
+
+## Inflector::titleize
+```php
+<?php
+Inflector::titleize('my_name_is_bob');
+// My Name Is Bob
+```
+
+## Inflector::humanize
+```php
+<?php
+Inflector::humanize('my_name_is_bob');
+// My name is bob
+```
+
+## Inflector::tableize
+```php
+<?php
+Inflector::tableize('User');
+// users
+
+Inflector::tableize('UserFriend');
+// user_friends
+```
+
+## Inflector::classify
+```php
+<?php
+Inflector::classify('users');
+// User
+
+Inflector::classify('user_friends');
+// UserFriend
+```
+
+## Inflector::ordinalize
+```php
+<?php
+Inflector::ordinalize(1);
+// 1st
+
+Inflector::ordinalize(22);
+// 22nd
+
+Inflector::ordinalize(333);
+// 333rd
+
+Inflector::ordinalize(4444);
+// 4444th
+```

@@ -174,7 +174,7 @@ Inflector::pluralize('man');
 // men
 ```
 
-## Inflector::singularize
+### Inflector::singularize
 
 ```
 <?php
@@ -185,7 +185,7 @@ Inflector::singularize('men');
 // man
 ```
 
-## Inflector::camelize
+### Inflector::camelize
 
 ```php
 <?php
@@ -193,28 +193,28 @@ Inflector::camelize('My name is bob');
 // MyNameIsBob
 ```
 
-## Inflector::underscore
+### Inflector::underscore
 ```php
 <?php
 Inflector::underscore('My name is bob');
 // my_name_is_bob
 ```
 
-## Inflector::titleize
+### Inflector::titleize
 ```php
 <?php
 Inflector::titleize('my_name_is_bob');
 // My Name Is Bob
 ```
 
-## Inflector::humanize
+### Inflector::humanize
 ```php
 <?php
 Inflector::humanize('my_name_is_bob');
 // My name is bob
 ```
 
-## Inflector::tableize
+### Inflector::tableize
 ```php
 <?php
 Inflector::tableize('User');
@@ -224,7 +224,7 @@ Inflector::tableize('UserFriend');
 // user_friends
 ```
 
-## Inflector::classify
+### Inflector::classify
 ```php
 <?php
 Inflector::classify('users');
@@ -234,7 +234,7 @@ Inflector::classify('user_friends');
 // UserFriend
 ```
 
-## Inflector::ordinalize
+### Inflector::ordinalize
 ```php
 <?php
 Inflector::ordinalize(1);

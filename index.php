@@ -16,36 +16,36 @@
 /**
  * Determine how long a particular request takes to compute.
  */
-define('START', microtime(true));
+defined('START') or define('START', microtime(true));
 
 /**
  * Determine if a file in the framework is being requested directly or
  * via the framework.
  */
-define('SCAFFOLD', true);
+defined('SCAFFOLD') or define('SCAFFOLD', true);
 
 /**
  * Standard directory seperator.
  */
-define('DS', DIRECTORY_SEPARATOR);
+defined('DS') or define('DS', DIRECTORY_SEPARATOR);
 
 /**
  * Access to the root folder, independent of the
  * location of the file using it.
  */
-define('ROOT', pathinfo(__FILE__, PATHINFO_DIRNAME) . DS);
+defined('ROOT') or define('ROOT', pathinfo(__FILE__, PATHINFO_DIRNAME) . DS);
 
 /**
  * Access to the system folder, independent of the
  * location of the file using it.
  */
-define('SYSTEM', ROOT . 'system' . DS);
+defined('SYSTEM') or define('SYSTEM', ROOT . 'system' . DS);
 
 /**
  * Access to the application folder, independent
  * of the location of the file using it.
  */
-define('APPLICATION', ROOT . 'application' . DS);
+defined('APPLICATION') or define('APPLICATION', ROOT . 'application' . DS);
 
 /**
  * Boot Scaffold

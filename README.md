@@ -249,3 +249,57 @@ Inflector::ordinalize(333);
 Inflector::ordinalize(4444);
 // 4444th
 ```
+
+## Service
+
+Scaffold comes with a Service Builder that allows you to manage your objects and singletons, named `Service`.
+
+`Service` will automatically detect if you are setting a singleton, or a 'creator function'. (More on this later).
+
+```php
+<?php
+$object = new Object(); // Random object?
+Service::set('object', $object); // Singleton
+
+Service::set('object', function() {
+    // Creator function
+});
+```
+
+### Singletons
+
+Singletons are objects that are only created once through your whole application. `Service` allows you to store
+your Singletons in a globally accessible area.
+
+```php
+<?php
+$object = new Object();
+Service::set('object', $object);
+
+// Later on
+$object = Service::get('object');
+```
+
+### Creator functions
+
+`Service` allows you to set creator functions for other types of objects. You can pass these arguments as well.
+A creator function is intended to return an object.
+
+```php
+<?php
+Service::set('object', function($name) {
+    $object = new Object();
+    $object->name = $name;
+
+    return $object;
+});
+
+$object = Service::get('object', 'Foo');
+$object2 = Service::get('object', 'Bar');
+
+echo $object->name;
+// Foo
+
+echo $object2->name;
+// Bar
+```

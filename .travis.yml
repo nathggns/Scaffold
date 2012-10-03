@@ -1,1 +1,4 @@
 script: "phpunit tests"
+language: php
+php:
+ - 5.4

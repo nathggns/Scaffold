@@ -8,10 +8,21 @@
 class Autoload {
 
     /**
+     * Array of parents
+     */
+    private static $parents = [];
+
+    /**
      * Register with PHP's spl_autoload
      */
     public static function run() {
         spl_autoload_register(['Autoload', 'load']);
+
+        static::$parents = glob(SYSTEM . 'classes' . DS . '*s', GLOB_ONLYDIR);
+
+        foreach (static::$parents as $key => $parent) {
+            static::$parents[$key] = rtrim(pathinfo($parent, PATHINFO_BASENAME), 's');
+        }
     }
 
     /**
@@ -37,7 +48,7 @@ class Autoload {
 
         $parts = array_map('strtolower', $parts);
 
-        if (count($parts) > 1 && in_array($parts[0], ['controller', 'model', 'exception'])) {
+        if (count($parts) > 1 && in_array($parts[0], static::$parents)) {
             $parts[0] = $parts[0] . 's';
         }
 

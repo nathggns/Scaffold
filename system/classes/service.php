@@ -81,9 +81,7 @@ class Service {
 
         list($name, $arguments) = call_user_func_array(['Service', 'args'], func_get_args());
 
-        if ($name === 'dummy') {
-            return new ServiceDummy();
-        } else if (isset(static::$instances[$name])) {
+        if (isset(static::$instances[$name])) {
             return static::$instances[$name];
         } else if ($result = call_user_func_array(['Service', 'build'], func_get_args()) or $result !== false) {
             return $result;
@@ -102,27 +100,19 @@ class Service {
     public static function build() {
         list($name, $arguments) = call_user_func_array(['Service', 'args'], func_get_args());
 
-        if ($name === 'dummy') {
-            return new ServiceDummy();
-        }
-
         $func = false;
-        $singleton = true;
 
-        if (isset(static::$functions[$name])) {
+        if (isset(static::$instances[$name])) {
+            return clone static::$inatances[$name];
+        } else if (isset(static::$functions[$name])) {
             $func = static::$functions[$name];
         } else if (isset(static::$singletons[$name])) {
             $func = static::$singletons[$name];
-            $singleton = true;
         } else {
             return static::exception($name);
         }
 
         $result = call_user_func_array($func, $arguments);
-
-        if ($singleton) {
-            static::$instances[$name] = $result;
-        }
 
         return $result;
     }

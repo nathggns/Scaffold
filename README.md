@@ -266,6 +266,8 @@ Service::instance('object', $object);
 $object = Service::get('object');
 ```
 
+You can clone these instances with `Service::build('name');`
+
 ### Creator functions
 
 `Service` allows you to set creator functions for other types of objects. You can pass these arguments as well.

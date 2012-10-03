@@ -17,9 +17,9 @@ class ServiceTest extends PHPUnit_Framework_Testcase {
         });
 
         $object = Service::get('test');
-        // $object2 = Service::get('test');
+        $object2 = Service::get('test');
 
-        // $this->assertEquals($object, $object2);
+        $this->assertEquals($object, $object2);
     }
 
     public function testDummy() {

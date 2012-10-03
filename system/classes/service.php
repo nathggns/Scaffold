@@ -10,7 +10,12 @@ class Service {
     /**
      * Cache to store singleton objects.
      */
-    private static $cache = [];
+    private static $singletons = [];
+
+    /**
+     * Cache to store instances objects.
+     */
+    private static $instances = [];
 
     /**
      * Cache to store constructor functions
@@ -18,26 +23,51 @@ class Service {
     private static $functions = [];
 
     /**
-     * Set a resource.
+     * Register an object creator
      *
      * @param string $name Name of the resource
      * @param object|function $resource the resource
      *
-     * If you pass it a callable, it assumes your passing it an object creator,
-     * otherwise, it will asume that you're passing it a singleton.
      */
-    public static function set($name, $resource) {
-        if (isset(static::$cache[$name])) {
-            unset(static::$cache[$name]);
-        } else if (isset(static::$functions[$name])) {
-            unset(static::$functions[$name]);
-        }
-
+    public static function register($name, $resource) {
         if (is_callable($resource)) {
             static::$functions[$name] = $resource;
-        } else {
-            static::$cache[$name] = $resource;
+            return true;
         }
+
+        return false;
+    }
+
+    /**
+     * Register an instance
+     *
+     * @param string $name Name of the resource
+     * @param object $resource the resource
+     *
+     */
+    public static function instance($name, $resource) {
+        if (is_object($resource)) {
+            static::$instances[$name] = $resource;
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Register aa singleton creator
+     *
+     * @param string $name Name of the resource
+     * @param function $resource the resource
+     *
+     */
+    public static function singleton($name, $resource) {
+        if (is_callable($resource)) {
+            static::$singletons[$name] = $resource;
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -49,29 +79,66 @@ class Service {
      */
     public static function get() {
 
-        $args = func_get_args();
-        $name = $args[0];
-        $arguments = count($args) > 1 ? array_slice($args, 1) : [];
+        list($name, $arguments) = call_user_func_array(['Service', 'args'], func_get_args());
 
         if ($name === 'dummy') {
             return new ServiceDummy();
-        } else if (isset(static::$functions[$name])) {
-            return static::create($name, $arguments);
-        } else if (isset(static::$cache[$name])) {
-            return static::$cache[$name];
+        } else if (isset(static::$instances[$name])) {
+            return static::$instances[$name];
+        } else if ($result = call_user_func_array(['Service', 'build'], func_get_args()) or $result !== false) {
+            return $result;
         }
 
-        throw new ExceptionService('Service ' . $name . ' not found');
+        return static::exception($name);
     }
 
     /**
-     * Create an object
+     * Build an object, even if it's a singleton
      *
      * @param string $name The name of the resource
      * @param mixed $arguments arguments to pass the creator
      * @return object The resource
      */
-    private static function create($name, $arguments = []) {
-        return call_user_func_array(static::$functions[$name], $arguments);
+    public static function build() {
+        list($name, $arguments) = call_user_func_array(['Service', 'args'], func_get_args());
+
+        if ($name === 'dummy') {
+            return new ServiceDummy();
+        }
+
+        $func = false;
+        $singleton = true;
+
+        if (isset(static::$functions[$name])) {
+            $func = static::$functions[$name];
+        } else if (isset(static::$singletons[$name])) {
+            $func = static::$singletons[$name];
+            $singleton = true;
+        } else {
+            return static::exception($name);
+        }
+
+        $result = call_user_func_array($func, $arguments);
+
+        if ($singleton) {
+            static::$instances[$name] = $result;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Get args
+     */
+    private static function args() {
+        $args = func_get_args();
+        $name = $args[0];
+        $arguments = count($args) > 1 ? array_slice($args, 1) : [];
+
+        return [$name, $arguments];
+    }
+
+    private static function exception($name) {
+        throw new ExceptionService('Service ' . $name . ' not found');
     }
 }

@@ -2,10 +2,24 @@
 
 class ServiceTest extends PHPUnit_Framework_Testcase {
 
-    public function testSingleton() {
+    public function testInstance() {
         $validator = new Validate();
-        Service::set('validator', $validator);
+        Service::instance('validator', $validator);
         $this->assertEquals($validator, Service::get('validator'));
+    }
+
+    public function testSingleton() {
+        $first = true;
+        $test = $this;
+        Service::singleton('test', function() use ($first, $test) {
+            $test->assertTrue($first);
+            $first = false;
+        });
+
+        $object = Service::get('test');
+        // $object2 = Service::get('test');
+
+        // $this->assertEquals($object, $object2);
     }
 
     public function testDummy() {
@@ -25,7 +39,7 @@ class ServiceTest extends PHPUnit_Framework_Testcase {
 
         $test = $this;
 
-        Service::set('validator', function($argument = false, $argument2 = true) use($test) {
+        Service::register('validator', function($argument = false, $argument2 = true) use($test) {
             $test->assertTrue($argument);
             $test->assertFalse($argument2);
         });

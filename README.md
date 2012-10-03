@@ -249,3 +249,84 @@ Inflector::ordinalize(333);
 Inflector::ordinalize(4444);
 // 4444th
 ```
+
+## Service
+
+Scaffold comes with a Service Builder that allows you to manage your objects and singletons, named `Service`.
+
+There as four different types of services.
+
+### Instances
+```php
+<?php
+$object = new Object();
+Service::instance('object', $object);
+
+// Later on
+$object = Service::get('object');
+```
+
+You can clone these instances with `Service::build('name');`
+
+### Creator functions
+
+`Service` allows you to set creator functions for other types of objects. You can pass these arguments as well.
+A creator function is intended to return an object.
+
+```php
+<?php
+Service::set('object', function($name) {
+    $object = new Object();
+    $object->name = $name;
+
+    return $object;
+});
+
+$object = Service::get('object', 'Foo');
+$object2 = Service::get('object', 'Bar');
+
+echo $object->name;
+// Foo
+
+echo $object2->name;
+// Bar
+```
+
+### Singletons
+
+Singletons are objects that are only created once through your whole application. `Service` allows you to store
+your Singletons in a globally accessible area. You can also pass these arguments.
+
+The difference between singletons and creator functions are, singletons are only called once. The next time the
+singleton is called, it will return it from a cache.
+
+```php
+<?php
+Service::singleton('object', function() {
+    return new object();
+});
+
+// Later on
+$object = Service::get('object');
+```
+
+You can rebuild a singleton by calling `Service::build('name');`. **Warning:** This will replace the currently cached
+singleton.
+
+
+### Dummy Objects
+
+`Service` provides you with a way to get a dummy object. This dummy object responds to pretty much anything
+without error.
+
+For example, say you had an object that needed a logger. By default, there is no logger. If you set this logger
+to a `Service` dummy object, you don't need to check if the logger exists each time you call it.
+
+```php
+<?php
+$dummy = Service::get('dummy');
+
+echo $dummy->blah
+// null
+```
+

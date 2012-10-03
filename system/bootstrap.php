@@ -15,12 +15,6 @@
 require(SYSTEM . 'functions.php');
 
 /**
- * Check if a custom bootstrap exists. If it does,
- * use that, and not the system one.
- */
-if (load_file('bootstrap.php', false)) die();
-
-/**
  * Include our Autoloader
  *
  * This is the only class we should be including manually.
@@ -34,3 +28,10 @@ load_file('classes' . DS . 'autoload.php');
  * to manually include them everytime.
  */
 Autoload::run();
+
+/**
+ * Register the dummy service
+ */
+Service::register('dummy', function() {
+    return new ServiceDummy();
+});

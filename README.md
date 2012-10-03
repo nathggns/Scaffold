@@ -1,4 +1,4 @@
-Scaffold
+Scaffold [![Build Status](https://travis-ci.org/nathggns/Scaffold.png)](https://travis-ci.org/nathggns/Scaffold])
 ========
 
 Lightweight PHP API Framework

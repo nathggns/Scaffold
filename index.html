@@ -39,7 +39,8 @@
         <ul></ul>
       </nav>
       <section>
-        <h1>Scaffold</h1>
+        <h1>Scaffold <a href="https://travis-ci.org/nathggns/Scaffold%5D"><img src="https://travis-ci.org/nathggns/Scaffold.png?branch=development" alt="Build Status"></a>
+</h1>
 
 <p>Lightweight PHP API Framework</p>
 
@@ -279,6 +280,82 @@ Inflector::singularize('men');
 
 <span class="nx">Inflector</span><span class="o">::</span><span class="na">ordinalize</span><span class="p">(</span><span class="mi">4444</span><span class="p">);</span>
 <span class="c1">// 4444th</span>
+</pre></div>
+
+<h2>Service</h2>
+
+<p>Scaffold comes with a Service Builder that allows you to manage your objects and singletons, named <code>Service</code>.</p>
+
+<p>There as four different types of services.</p>
+
+<h3>Instances</h3>
+
+<div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
+<span class="nv">$object</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Object</span><span class="p">();</span>
+<span class="nx">Service</span><span class="o">::</span><span class="na">instance</span><span class="p">(</span><span class="s1">'object'</span><span class="p">,</span> <span class="nv">$object</span><span class="p">);</span>
+
+<span class="c1">// Later on</span>
+<span class="nv">$object</span> <span class="o">=</span> <span class="nx">Service</span><span class="o">::</span><span class="na">get</span><span class="p">(</span><span class="s1">'object'</span><span class="p">);</span>
+</pre></div>
+
+<p>You can clone these instances with <code>Service::build('name');</code></p>
+
+<h3>Creator functions</h3>
+
+<p><code>Service</code> allows you to set creator functions for other types of objects. You can pass these arguments as well.
+A creator function is intended to return an object.</p>
+
+<div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
+<span class="nx">Service</span><span class="o">::</span><span class="na">set</span><span class="p">(</span><span class="s1">'object'</span><span class="p">,</span> <span class="k">function</span><span class="p">(</span><span class="nv">$name</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nv">$object</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Object</span><span class="p">();</span>
+    <span class="nv">$object</span><span class="o">-&gt;</span><span class="na">name</span> <span class="o">=</span> <span class="nv">$name</span><span class="p">;</span>
+
+    <span class="k">return</span> <span class="nv">$object</span><span class="p">;</span>
+<span class="p">});</span>
+
+<span class="nv">$object</span> <span class="o">=</span> <span class="nx">Service</span><span class="o">::</span><span class="na">get</span><span class="p">(</span><span class="s1">'object'</span><span class="p">,</span> <span class="s1">'Foo'</span><span class="p">);</span>
+<span class="nv">$object2</span> <span class="o">=</span> <span class="nx">Service</span><span class="o">::</span><span class="na">get</span><span class="p">(</span><span class="s1">'object'</span><span class="p">,</span> <span class="s1">'Bar'</span><span class="p">);</span>
+
+<span class="k">echo</span> <span class="nv">$object</span><span class="o">-&gt;</span><span class="na">name</span><span class="p">;</span>
+<span class="c1">// Foo</span>
+
+<span class="k">echo</span> <span class="nv">$object2</span><span class="o">-&gt;</span><span class="na">name</span><span class="p">;</span>
+<span class="c1">// Bar</span>
+</pre></div>
+
+<h3>Singletons</h3>
+
+<p>Singletons are objects that are only created once through your whole application. <code>Service</code> allows you to store
+your Singletons in a globally accessible area. You can also pass these arguments.</p>
+
+<p>The difference between singletons and creator functions are, singletons are only called once. The next time the
+singleton is called, it will return it from a cache.</p>
+
+<div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
+<span class="nx">Service</span><span class="o">::</span><span class="na">singleton</span><span class="p">(</span><span class="s1">'object'</span><span class="p">,</span> <span class="k">function</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="nx">object</span><span class="p">();</span>
+<span class="p">});</span>
+
+<span class="c1">// Later on</span>
+<span class="nv">$object</span> <span class="o">=</span> <span class="nx">Service</span><span class="o">::</span><span class="na">get</span><span class="p">(</span><span class="s1">'object'</span><span class="p">);</span>
+</pre></div>
+
+<p>You can rebuild a singleton by calling <code>Service::build('name');</code>. <strong>Warning:</strong> This will replace the currently cached
+singleton.</p>
+
+<h3>Dummy Objects</h3>
+
+<p><code>Service</code> provides you with a way to get a dummy object. This dummy object responds to pretty much anything
+without error.</p>
+
+<p>For example, say you had an object that needed a logger. By default, there is no logger. If you set this logger
+to a <code>Service</code> dummy object, you don't need to check if the logger exists each time you call it.</p>
+
+<div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
+<span class="nv">$dummy</span> <span class="o">=</span> <span class="nx">Service</span><span class="o">::</span><span class="na">get</span><span class="p">(</span><span class="s1">'dummy'</span><span class="p">);</span>
+
+<span class="k">echo</span> <span class="nv">$dummy</span><span class="o">-&gt;</span><span class="na">blah</span>
+<span class="c1">// null</span>
 </pre></div>
       </section>
       <footer>

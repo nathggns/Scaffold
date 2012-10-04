@@ -1,175 +1,248 @@
 <?php defined('SCAFFOLD') or die();
 
+/**
+ * Handles routes
+ *
+ * @author Claudio Albertin <claudio.albertin@me.com>
+ */
 class Router {
 
+    /**
+     * Array of defined routes
+     *
+     * @var array
+     */
     protected $routes  = [];
-    protected $request = null;
 
     /**
      * Add a custom GET route
      *
-     * @param string $path           path
-     * @param mixed  $target         target
-     * @param array  $values         values for params
-     * @param bool   $case_sensitive case sensitive?
-     * @return object this
+     * @param  string $path     path
+     * @param  mixed  $target   target
+     * @param  array  $defaults defaults
+     * @return Router           this
      */
-    public function get($path, $target, array $values = [], $case_sensitive = false) {
-        return $this->add_route($path, $target, $values, Request::GET, $case_sensitive);
+    public function get($path, $target = null, array $defaults = []) {
+        return $this->add_route($path, $target, $defaults, Request::GET);
     }
 
     /**
      * Add a custom POST route
      *
-     * @param string $path           path
-     * @param mixed  $target         target
-     * @param array  $values         values for params
-     * @param bool   $case_sensitive case sensitive?
-     * @return object this
+     * @param  string $path     path
+     * @param  mixed  $target   target
+     * @param  array  $defaults defaults
+     * @return Router           this
      */
-    public function post($path, $target, array $values = [], $case_sensitive = false) {
-        return $this->add_route($path, $target, $values, Request::POST, $case_sensitive);
+    public function post($path, $target = null, array $defaults = []) {
+        return $this->add_route($path, $target, $defaults, Request::POST);
     }
 
     /**
      * Add a custom PUT route
      *
-     * @param string $path           path
-     * @param mixed  $target         target
-     * @param array  $values         values for params
-     * @param bool   $case_sensitive case sensitive?
-     * @return object this
+     * @param  string $path     path
+     * @param  mixed  $target   target
+     * @param  array  $defaults defaults
+     * @return Router           this
      */
-    public function put($path, $target, array $values = [], $case_sensitive = false) {
-        return $this->add_route($path, $target, $values, Request::PUT, $case_sensitive);
+    public function put($path, $target = null, array $defaults = []) {
+        return $this->add_route($path, $target, $defaults, Request::PUT);
     }
 
     /**
      * Add a custom DELETE route
      *
-     * @param string $path           path
-     * @param mixed  $target         target
-     * @param array  $values         values for params
-     * @param bool   $case_sensitive case sensitive?
-     * @return object this
+     * @param  string $path     path
+     * @param  mixed  $target   target
+     * @param  array  $defaults defaults
+     * @return Router           this
      */
-    public function delete($path, $target, array $values = [], $case_sensitive = false) {
-        return $this->add_route($path, $target, $values, Request::DELETE, $case_sensitive);
+    public function delete($path, $target = null, array $defaults = []) {
+        return $this->add_route($path, $target, $defaults, Request::DELETE);
     }
 
     /**
      * Add a custom HEAD route
      *
-     * @param string $path           path
-     * @param mixed  $target         target
-     * @param array  $values         values for params
-     * @param bool   $case_sensitive case sensitive?
-     * @return object this
+     * @param  string $path     path
+     * @param  mixed  $target   target
+     * @param  array  $defaults defaults
+     * @return Router           this
      */
-    public function head($path, $target, array $values = [], $case_sensitive = false) {
-        return $this->add_route($path, $target, $values, Request::HEAD, $case_sensitive);
+    public function head($path, $target = null, array $defaults = []) {
+        return $this->add_route($path, $target, $defaults, Request::HEAD);
+    }
+
+    /**
+     * Add a custom route for all methods
+     *
+     * @param  string $path     path
+     * @param  mixed  $target   target
+     * @param  array  $defaults defaults
+     * @return Router           this
+     */
+    public function all($path, $target = null, array $defaults = []) {
+        foreach (Request::$supported_methods as $method) {
+            $this->add_route($path, $target, $defaults, $method);
+        }
+
+        return $this;
     }
 
     /**
      * Add a custom route
      *
-     * @param string $path           path
-     * @param mixed  $target         target
-     * @param array  $values         values for params
-     * @param string $method         http method
-     * @param bool   $case_sensitive case sensitive?
-     * @return object this
+     * @param  string $method   HTTP method
+     * @param  string $path     path
+     * @param  mixed  $target   target
+     * @param  array  $defaults defaults
+     * @return Router           this
      */
-    public function add_route($path, $target, $values, $method, $case_sensitive) {
+    public function add_route($method, $path, $target = null, array $defaults = []) {
         $this->routes[$path] = [
-            'path'   => $path,
-            'target' => $target,
-            'values' => $values,
-            'method' => $method,
-            'case_sensitive' => $case_sensitive
+            'method'   => $method,
+            'path'     => $path,
+            'target'   => $target,
+            'defaults' => $defaults
         ];
 
-        return this;
+        return $this;
     }
 
     /**
-     * Finds custom route
+     * Turns a route into a regex
      *
-     * @return array Route
+     * @param  string $route route
+     * @return string        regex
      */
-    public function find_custom_route() {
-        // TODO: implement custom routes
+    public static function prepare_route($route) {
+        $regex = preg_replace('\\:([a-z]+)', '(\w+)', preg_quote($route));
+        $regex = '/^' . $regex . '$/';
+
+        return $regex;
+    }
+
+    /**
+     * Finds a route that matches the given URI
+     * @param  string $uri    URI
+     * @param  string $method HTTP method
+     * @return array          route
+     */
+    public function find_route($uri, $method = null) {
+        if ($method === null) {
+            // $uri is a request object
+            $method = $uri->method;
+            $uri    = $uri->uri;
+        }
+
+        // last matching route takes priority
+        $routes = array_reverse($this->routes);
+
+        foreach ($routes as $route) {
+            // skip route if method doesn't match
+            if ($route['method'] !== $method) continue;
+
+            // get regex of route
+            $regex = static::prepare_route($route['path']);
+
+            // return route if it matches
+            if (preg_match($regex, $uri)) return $route;
+        }
+
         return false;
+    }
+
+    /**
+     * Parses a URI with a given route
+     * @param  string $uri   URI
+     * @param  string $route route
+     * @return array         params
+     */
+    public static function parse_uri($uri, $route) {
+        // get regex of route
+        $regex = static::prepare_route($route);
+
+        // search for matches
+        preg_match_all($regex, $uri, $values);
+        preg_match_all(':([a-z]+)', $route, $names);
+
+        // remove full matches
+        array_shift($values);
+        array_shift($names);
+
+        return array_combine($names, $values);
     }
 
     /**
      * Calls the corresponding controller
      *
-     * @param Request $request Request object
-     * @return object this
+     * @param  Request $request Request
+     * @return Router           this
      */
     public function run(Request $request = null, Response $response = null) {
-        $this->request = ($request !== null) ? $request : new Request;
+        $request  = ($request !== null) ? $request : new Request();
+        $response = ($response !== null) ? $response : new Response();
 
-        $response = ($response !== null) ? $response : new Response;
-        $method   = $this->request->method;
+        $route = $this->find_route($request->uri);
 
-        if ($route = $this->find_custom_route()) {
-            if (is_callable($route['target'], false, $function)) {
-                // Target is callable
-                call_user_func($route['target'], $this->request, $response);
-            } else {
-                // Target is dot notated
-                $segments   = explode('.', $route['target']);
-                $controller = new $segments[0]($this->request, $response);
+        if (!$route) static::throw_error($request->method, $request->uri);
 
-                // Call before event
-                $controller->before();
+        // parse URI and add defaults
+        $params = static::parse_uri($request->uri, $route['path']);
+        $params = array_merge($route['defaults'], $params);
 
-                if (is_numeric($this->request->segments[1])) {
-                    // Call resource loader
-                    $controller->resource();
-                }
+        $request->params = $params;
 
-                if (count($segments) > 1) {
-                    // Method name is given
-                    $callable  = [$controller, $segments[1]];
-                    $arguments = array_slice($segments, 2);
-
-                    call_user_func_array($callable, $arguments);
-                } else {
-                    // Method name is http method
-                    $controller->$method();
-                }
-
-                // Call after event
-                $controller->after();
-            }
+        if (is_callable($route['target'], false, $callable)) {
+            // target is callable
+            call_user_func($callable, $request, $response);
         } else {
-            if (!empty($this->request->segments[1])) {
-                $this->request->params['id'] = $this->request->segments[1];
+            if ($route['target'] === null) {
+                if (isset($request->params['controller'])) {
+                    $controller = $request->params['controller'];
+                    $action     = $request->method;
+                } else {
+                    static::throw_error($request->method, $request->method);
+                }
+            } else {
+                // target is dot notated
+                $segments = explode('.', $route['target']);
+
+                $controller = $segments[0];
+                $action     = (isset($segments[1])) ? $segments[1] : $request->method;
             }
 
-            $name       = 'Controller' . $this->request->resource;
-            $controller = new $name;
-            $method     = $this->request->method;
+            // invoke controller
+            $instance = new $controller($request, $response);
 
-            // Call before event
-            $controller->before();
+            // call `before` event
+            $instance->before();
 
-            if (!empty($this->request->params['id'])) {
-                // Call resource loader
-                $controller->resource();
+            if (isset($request->params['id'])) {
+                // call resource loader
+                $resource = $instance->resource($request->params['id']);
+                if ($resource) $instance->$resource = $resource;
             }
 
-            // Call action
-            $controller->$method();
+            // call action
+            $instance->$action();
 
-            // Call after event
-            $controller->after();
+            // call `after` event
+            $instance->after();
         }
 
         return $this;
+    }
+
+    /**
+     * Throw routing error
+     * @param  string $method HTTP method
+     * @param  string $uri    URI
+     * @throws Exception
+     */
+    public static function throw_error($method, $uri) {
+        throw new Exception('Cannot ' + strtoupper($method) + ' ' + $uri);
     }
 
 }

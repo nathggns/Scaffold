@@ -1,5 +1,10 @@
 <?php defined('SCAFFOLD') or die();
 
+/**
+ * Represents an HTTP request
+ *
+ * @author Claudio Albertin <claudio.albertin@me.com>
+ */
 class Request {
 
     const GET    = 'get';
@@ -8,14 +13,59 @@ class Request {
     const DELETE = 'delete';
     const HEAD   = 'head';
 
-    public $uri      = null;
-    public $segments = [];
+    /**
+     * HTTP methods supported by this class
+     *
+     * @var array
+     */
+    public static $supported_methods = [
+        static::GET,
+        static::POST,
+        static::PUT,
+        static::DELETE,
+        static::HEAD
+    ];
 
-    public $query   = [];
-    public $params  = [];
-    public $body    = [];
+    /**
+     * Request URI
+     *
+     * @var string
+     */
+    public $uri = null;
+
+    /**
+     * Query parameters
+     *
+     * @var array
+     */
+    public $query = [];
+
+    /**
+     * Route parameters
+     *
+     * @var array
+     */
+    public $params = [];
+
+    /**
+     * HTTP request body
+     *
+     * @var array
+     */
+    public $body = [];
+
+    /**
+     * HTTP request headers
+     *
+     * @var array
+     */
     public $headers = [];
 
+    /**
+     * HTTP method
+     *
+     * @var string
+     */
     protected $method = null;
 
     /**
@@ -24,53 +74,44 @@ class Request {
      * @param string URI
      */
     public function __construct($uri = null) {
-        $this->uri = ($uri !== null) ? $uri : self::detect_uri();
-
-        $this->segments = self::parse_uri($this->uri);
-        $this->method   = self::detect_request_method();
-
-        $this->params['resource'] = $this->segments[0];
-
-        $this->query   = $_GET;
-        $this->body    = self::detect_body();
-        $this->headers = self::detect_headers();
+        $this->uri      = ($uri !== null) ? $uri : static::detect_uri();
+        $this->method   = static::detect_request_method();
+        $this->query    = static::detect_query();
+        $this->body     = static::detect_body();
+        $this->headers  = static::detect_headers();
     }
 
     /**
      * Syntactic sugar to get data or a default value
      *
-     * @param string $method property name
-     * @param array  $arguments array with key and eventually a default value
-     * @return mixed data
+     * @param  string $method    property name
+     * @param  array  $arguments array with key and eventually a default value
+     * @return mixed             data
      */
     public function __call($method, array $arguments) {
         switch (count($arguments)) {
             case 0:
                 // Return property
-                $value = $this->$method;
-                break;
+                return $this->$method;
 
             case 2:
-                // Return key or default
+                // Return key or default (also see next case)
                 if (empty($this->$method[$arguments[0]])) return $arguments[1];
 
             case 1:
                 // Return key
-                $value = $this->$method[$arguments[0]];
-                break;
+                return $this->$method[$arguments[0]];
 
             default:
-                $value = null;
+                return null;
         }
-
-        return $value;
     }
 
     /**
      * Getter for resource, id and method
      *
-     * @param string $key property to get
-     * @return mixed value
+     * @param  string $key property to get
+     * @return mixed       value
      */
     public function __get($key) {
         switch ($key) {
@@ -96,9 +137,18 @@ class Request {
     }
 
     /**
+     * Detect query
+     *
+     * @return array query
+     */
+    public static function detect_query() {
+        return $_GET;
+    }
+
+    /**
      * Detect headers of request
      *
-     * @return array Headers
+     * @return array headers
      */
     public static function detect_headers() {
         if (function_exists('apache_request_headers')) return apache_request_headers();
@@ -127,16 +177,17 @@ class Request {
     /**
      * Detect body of request
      *
-     * @return array Body
+     * @return array body
      */
     public static function detect_body() {
-        $method = self::detect_request_method();
+        $method = static::detect_request_method();
 
         switch ($method) {
             case 'post':
                 return $_POST;
 
             case 'get':
+                // GET requests don't have a body
                 return [];
 
             case 'post':

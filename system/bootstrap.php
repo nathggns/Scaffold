@@ -35,3 +35,10 @@ Autoload::run();
 Service::register('dummy', function() {
     return new ServiceDummy();
 });
+
+/**
+ * Register standard route and run router
+ */
+$router = new Router();
+$router->all('/:controller/:id');
+$router->run();

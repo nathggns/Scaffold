@@ -57,7 +57,7 @@ class RouterTest extends PHPUnit_Framework_Testcase {
 
     /**
      * @covers                   Router::throw_error
-     * @expectedException        Exception
+     * @expectedException        ExceptionRouting
      * @expectedExceptionMessage Cannot GET /
      */
     public function testThrowError() {

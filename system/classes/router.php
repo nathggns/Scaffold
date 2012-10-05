@@ -292,7 +292,7 @@ class Router {
      * @throws Exception
      */
     public static function throw_error($method, $uri) {
-        throw new Exception('Cannot ' . strtoupper($method) . ' ' . $uri);
+        throw new ExceptionRouting('Cannot ' . strtoupper($method) . ' ' . $uri);
     }
 
 }

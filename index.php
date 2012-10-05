@@ -51,3 +51,9 @@ defined('APPLICATION') or define('APPLICATION', ROOT . 'application' . DS);
  * Boot Scaffold
  */
 require(SYSTEM . 'bootstrap.php');
+
+/**
+ * Register standard route and run router
+ */
+$router = Service::get('router.default');
+$router->run();

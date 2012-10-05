@@ -70,9 +70,3 @@ Service::register('router.default', function() {
 
     return $router;
 });
-
-/**
- * Register standard route and run router
- */
-$router = Service::get('router.default');
-$router->run();

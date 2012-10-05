@@ -43,7 +43,7 @@ class ResponseTest extends PHPUnit_Framework_Testcase {
     }
 
     /**
-     * @covers Response::encode
+     * @covers  Response::encode
      * @depends testEncoder
      * @depends testData
      */

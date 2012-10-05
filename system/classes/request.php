@@ -151,7 +151,8 @@ class Request {
      * @return string Request method
      */
     public static function detect_request_method() {
-        return strtolower($_SERVER['REQUEST_METHOD']);
+        $method = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'get';
+        return strtolower($method);
     }
 
     /**

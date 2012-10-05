@@ -186,7 +186,7 @@ class Router {
         $request  = ($request !== null) ? $request : Service::get('request');
         $response = ($response !== null) ? $response : Service::get('response');
 
-        $route = $this->find_route($request->uri);
+        $route = $this->find_route($request);
 
         if (!$route) static::throw_error($request->method, $request->uri);
 

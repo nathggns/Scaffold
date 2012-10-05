@@ -160,6 +160,8 @@ class Response {
         // only encode data if no body is set
         if ($this->body === null) $this->encode();
 
+        $this->header('Content-Type', 'application/json', false);
+
         $this->send_headers();
         echo $this->body;
 
@@ -171,12 +173,15 @@ class Response {
     /**
      * Set header
      *
-     * @param  string   $key   name
-     * @param  string   $value value
-     * @return Response        this
+     * @param  string   $key      name
+     * @param  string   $value    value
+     * @param  bool     $override override?
+     * @return Response           this
      */
-    public function header($key, $value) {
-        $this->headers[$key] = $value;
+    public function header($key, $value, $override = true) {
+        if ($override || !array_key_exists($key, $this->headers)) {
+            $this->headers[$key] = $value;
+        }
 
         return $this;
     }

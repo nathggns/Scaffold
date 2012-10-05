@@ -73,9 +73,9 @@ class Request {
      *
      * @param string URI
      */
-    public function __construct($uri = null) {
+    public function __construct($uri = null, $method = null) {
         $this->uri      = ($uri !== null) ? $uri : static::detect_uri();
-        $this->method   = static::detect_request_method();
+        $this->method   = ($method !== null) ? $method : static::detect_request_method();
         $this->query    = static::detect_query();
         $this->body     = static::detect_body();
         $this->headers  = static::detect_headers();
@@ -96,7 +96,7 @@ class Request {
 
             case 2:
                 // return element or default (also see next case)
-                if (empty($this->$method[$arguments[0]])) return $arguments[1];
+                if (!array_key_exists($arguments[0], $this->$method)) return $arguments[1];
 
             case 1:
                 // return element
@@ -151,8 +151,7 @@ class Request {
      * @return string Request method
      */
     public static function detect_request_method() {
-        $method = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'get';
-        return strtolower($method);
+        return isset($_SERVER['REQUEST_METHOD']) ? strtolower($_SERVER['REQUEST_METHOD']) : 'get';
     }
 
     /**

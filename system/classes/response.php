@@ -12,21 +12,21 @@ class Response {
      *
      * @var array
      */
-    protected $headers = [];
+    public $headers = [];
 
     /**
      * HTTP response body
      *
      * @var string
      */
-    protected $body = null;
+    public $body = null;
 
     /**
      * Data to send
      *
      * @var mixed
      */
-    protected $data = null;
+    public $data = null;
 
     /**
      * HTTP status code
@@ -40,7 +40,7 @@ class Response {
      *
      * @var callable
      */
-    protected $encoder = 'json_encode';
+    public $encoder = 'json_encode';
 
     /**
      * HTTP status codes and their names
@@ -111,7 +111,12 @@ class Response {
      * @return Response    this
      */
     public function data($data) {
+        if (is_array($this->data) && is_array($data)) {
+            $data = array_merge($this->data, $data);
+        }
+
         $this->data = $data;
+
         return $this;
     }
 
@@ -172,6 +177,7 @@ class Response {
      */
     public function header($key, $value) {
         $this->headers[$key] = $value;
+
         return $this;
     }
 
@@ -185,7 +191,7 @@ class Response {
         if ($this->headers_sent || headers_sent()) return;
 
         foreach ($this->headers as $key => $value) {
-            header ($key . ': ' . $value);
+            header($key . ': ' . $value);
         }
 
         header('HTTP/1.1 ' . $this->code . ' ' . self::$codes[$this->code]);

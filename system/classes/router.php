@@ -30,7 +30,7 @@ class Router {
      * @return Router           this
      */
     public function get($path, $target = null, array $defaults = []) {
-        return $this->add_route($path, $target, $defaults, Request::GET);
+        return $this->add_route(Request::GET, $path, $target, $defaults);
     }
 
     /**
@@ -42,7 +42,7 @@ class Router {
      * @return Router           this
      */
     public function post($path, $target = null, array $defaults = []) {
-        return $this->add_route($path, $target, $defaults, Request::POST);
+        return $this->add_route(Request::POST, $path, $target, $defaults);
     }
 
     /**
@@ -54,7 +54,7 @@ class Router {
      * @return Router           this
      */
     public function put($path, $target = null, array $defaults = []) {
-        return $this->add_route($path, $target, $defaults, Request::PUT);
+        return $this->add_route(Request::PUT, $path, $target, $defaults);
     }
 
     /**
@@ -66,7 +66,7 @@ class Router {
      * @return Router           this
      */
     public function delete($path, $target = null, array $defaults = []) {
-        return $this->add_route($path, $target, $defaults, Request::DELETE);
+        return $this->add_route(Request::DELETE, $path, $target, $defaults);
     }
 
     /**
@@ -78,7 +78,7 @@ class Router {
      * @return Router           this
      */
     public function head($path, $target = null, array $defaults = []) {
-        return $this->add_route($path, $target, $defaults, Request::HEAD);
+        return $this->add_route(Request::HEAD, $path, $target, $defaults);
     }
 
     /**
@@ -239,9 +239,9 @@ class Router {
 
         $request->params = $params;
 
-        if (is_callable($route['target'], false, $callable)) {
+        if (is_callable($route['target'], false)) {
             // target is callable
-            $controller = call_user_func($callable, $request, $response);
+            $controller = call_user_func($route['target'], $request, $response);
 
             $this->run_hooks($controller);
             return $controller;

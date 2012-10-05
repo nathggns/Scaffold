@@ -9,8 +9,8 @@
  * Editing this file could lead to unexpected results.
  *
  * @author  Nathaniel Higgins http://nath.is
- * @author  Claudio Albertin http://twitter.com/ClaudioAlbertin
- * @license GPL http://www.gnu.org/copyleft/gpl.html
+ * @author  Claudio Albertin  http://twitter.com/ClaudioAlbertin
+ * @license GPL               http://www.gnu.org/copyleft/gpl.html
  */
 
 /**

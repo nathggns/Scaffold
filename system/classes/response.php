@@ -1,15 +1,52 @@
 <?php defined('SCAFFOLD') or die();
 
+/**
+ * Represents an HTTP response
+ *
+ * @author Claudio Albertin <claudio.albertin@me.com>
+ */
 class Response {
 
-    protected $headers = [];
-    protected $body    = null;
-    protected $data    = null;
+    /**
+     * HTTP headers to send
+     *
+     * @var array
+     */
+    public $headers = [];
 
+    /**
+     * HTTP response body
+     *
+     * @var string
+     */
+    public $body = null;
+
+    /**
+     * Data to send
+     *
+     * @var mixed
+     */
+    public $data = null;
+
+    /**
+     * HTTP status code
+     *
+     * @var integer
+     */
     public $code = 200;
 
-    protected $encoder = 'json_encode';
+    /**
+     * Encoder used to build response body from data
+     *
+     * @var callable
+     */
+    public $encoder = 'json_encode';
 
+    /**
+     * HTTP status codes and their names
+     *
+     * @var array
+     */
     public static $codes = [
         100 => 'Continue',
         101 => 'Switching Protocols',
@@ -53,25 +90,41 @@ class Response {
         505 => 'HTTP Version Not Supported'
     ];
 
-    protected $sent         = false;
+    /**
+     * Response sent or not
+     *
+     * @var boolean
+     */
+    protected $sent = false;
+
+    /**
+     * HTTP headers sent or not
+     *
+     * @var boolean
+     */
     protected $headers_sent = false;
 
     /**
      * Add data to the response
      *
-     * @param mixed $data data
-     * @return object this
+     * @param  mixed $data data
+     * @return Response    this
      */
     public function data($data) {
+        if (is_array($this->data) && is_array($data)) {
+            $data = array_merge($this->data, $data);
+        }
+
         $this->data = $data;
+
         return $this;
     }
 
     /**
      * Set data encoder
      *
-     * @param mixed $encoder encoder
-     * @return object this
+     * @param  callable $encoder encoder
+     * @return Response          this
      */
     public function encoder($encoder) {
         $this->encoder = $encoder;
@@ -81,63 +134,83 @@ class Response {
     /**
      * Run encoding
      *
-     * @param bool $set set body
-     * @return string encoded data
+     * @param  bool   $set set body
+     * @return string      encoded data
      */
     public function encode($set = true) {
         $body = call_user_func($this->encoder, $this->data);
 
-        if ($set) $this->body = $body;
-
-        return $body;
+        if ($set) {
+            $this->body = $body;
+            return $this;
+        } else {
+            return $body;
+        }
     }
 
     /**
      * Send response
+     *
+     * @return Response this
      */
     public function send() {
+        // send only once
         if ($this->sent) return;
 
-        $this->encode();
+        // only encode data if no body is set
+        if ($this->body === null) $this->encode();
+
+        $this->header('Content-Type', 'application/json', false);
 
         $this->send_headers();
         echo $this->body;
 
         $this->sent = true;
+
+        return $this;
     }
 
     /**
      * Set header
      *
-     * @param string $key   name
-     * @param string $value value
-     * @return object this
+     * @param  string   $key      name
+     * @param  string   $value    value
+     * @param  bool     $override override?
+     * @return Response           this
      */
-    public function header($key, $value) {
-        $this->headers[$key] = $value;
+    public function header($key, $value, $override = true) {
+        if ($override || !array_key_exists($key, $this->headers)) {
+            $this->headers[$key] = $value;
+        }
+
         return $this;
     }
 
     /**
      * Send headers
+     *
+     * @return Response this
      */
     public function send_headers() {
-        if ($this->headers_sent) return;
+        // send only once
+        if ($this->headers_sent || headers_sent()) return;
 
         foreach ($this->headers as $key => $value) {
-            header ($key . ': ' . $value);
+            header($key . ': ' . $value);
         }
 
         header('HTTP/1.1 ' . $this->code . ' ' . self::$codes[$this->code]);
 
         $this->headers_sent = true;
+
+        return $this;
     }
 
     /**
      * Redirect and exit script
      *
      * @param string  $location location
-     * @param integer $code     http status code
+     * @param integer $code     HTTP status code
      */
     public function redirect($location, $code = 302) {
         header('Location: ' . $location, $code);

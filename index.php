@@ -8,9 +8,9 @@
  * bootstrap.php file in the application folder.
  * Editing this file could lead to unexpected results.
  *
- * @author Nathaniel Higgins http://nath.is
- * @author Claudio Albertin http://twitter.com/ClaudioAlbertin
- * @license GPL http://www.gnu.org/copyleft/gpl.html
+ * @author  Nathaniel Higgins http://nath.is
+ * @author  Claudio Albertin  http://twitter.com/ClaudioAlbertin
+ * @license GPL               http://www.gnu.org/copyleft/gpl.html
  */
 
 /**
@@ -51,3 +51,9 @@ defined('APPLICATION') or define('APPLICATION', ROOT . 'application' . DS);
  * Boot Scaffold
  */
 require(SYSTEM . 'bootstrap.php');
+
+/**
+ * Register standard route and run router
+ */
+$router = Service::get('router.default');
+$router->run();

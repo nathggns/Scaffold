@@ -13,11 +13,13 @@
  * @return bool File loaded?
  */
 function load_file($file, $system = true) {
-    if (file_exists(APPLICATION . $file) || ($system && file_exists(SYSTEM . $file))) {
-        return require_once($file);
-    } else {
-        return false;
+    if (file_exists(APPLICATION . $file)) {
+        return require_once(APPLICATION . $file);
+    } elseif ($system && file_exists(SYSTEM . $file)) {
+        return require_once(SYSTEM . $file);
     }
+
+    return false;
 }
 
 /**

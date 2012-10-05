@@ -18,7 +18,7 @@ class Request {
      *
      * @var array
      */
-    public static $supported_methods = [
+    protected static $supported_methods = [
         self::GET,
         self::POST,
         self::PUT,
@@ -31,14 +31,14 @@ class Request {
      *
      * @var string
      */
-    public $uri = null;
+    protected $uri = null;
 
     /**
      * Query parameters
      *
      * @var array
      */
-    public $query = [];
+    protected $query = [];
 
     /**
      * Route parameters
@@ -52,14 +52,14 @@ class Request {
      *
      * @var array
      */
-    public $body = [];
+    protected $body = [];
 
     /**
      * HTTP request headers
      *
      * @var array
      */
-    public $headers = [];
+    protected $headers = [];
 
     /**
      * HTTP method
@@ -179,6 +179,16 @@ class Request {
                 parse_str($input, $body);
                 return $body;
         }
+    }
+
+    /**
+     * Read-only access to properties
+     *
+     * @param  string $property property
+     * @return mixed            value
+     */
+    public function __get($property) {
+        return $this->$property;
     }
 
 }

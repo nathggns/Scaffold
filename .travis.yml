@@ -3,9 +3,9 @@ language: php
 php:
  - 5.4
 notifications:
-  email:
-    recipients:
-    	- nat@nath.is
-    	- claudio.albertin@me.com
-    on_success: change
-    on_failure: change
+ email:
+  on_success: change
+  on_failure: change
+  recipients:
+   - nat@nath.is
+   - claudio.albertin@me.com

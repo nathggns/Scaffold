@@ -84,7 +84,7 @@ class Router {
      */
     public function all($path, $target = null, array $defaults = []) {
         foreach (Request::$supported_methods as $method) {
-            $this->add_route($path, $target, $defaults, $method);
+            $this->add_route($method, $path, $target, $defaults);
         }
 
         return $this;

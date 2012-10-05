@@ -2,8 +2,8 @@
 
 abstract class Controller {
 
-    protected $request  = null;
-    protected $response = null;
+    public $request  = null;
+    public $response = null;
 
     public function __construct($request, $response) {
         $this->request  = $request;
@@ -16,8 +16,6 @@ abstract class Controller {
         return false;
     }
 
-    public function after() {
-        $this->response->send();
-    }
+    public function after() {}
 
 }

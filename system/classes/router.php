@@ -208,7 +208,7 @@ class Router {
 
         if (is_callable($route['target'], false, $callable)) {
             // target is callable
-            call_user_func($callable, $request, $response);
+            return call_user_func($callable, $request, $response);
         } else {
             if ($route['target'] === null) {
                 if (isset($request->params['controller'])) {
@@ -242,9 +242,9 @@ class Router {
 
             // call `after` event
             $instance->after();
-        }
 
-        return $this;
+            return $instance;
+        }
     }
 
     /**

@@ -152,7 +152,9 @@ class Response {
         // send only once
         if ($this->sent) return;
 
-        $this->encode();
+        // only encode data if no body is set
+        if ($this->body === null) $this->encode();
+
         $this->send_headers();
         echo $this->body;
 
@@ -180,7 +182,7 @@ class Response {
      */
     public function send_headers() {
         // send only once
-        if ($this->headers_sent) return;
+        if ($this->headers_sent || headers_sent()) return;
 
         foreach ($this->headers as $key => $value) {
             header ($key . ': ' . $value);

@@ -69,4 +69,7 @@ Service::register('router.default', function() {
  * Register standard route and run router
  */
 $router = Service::get('router.default');
-$router->run();
+$controller = $router->run();
+
+// send response
+if ($controller instanceOf Controller) $controller->response->send();

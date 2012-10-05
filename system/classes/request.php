@@ -18,7 +18,7 @@ class Request {
      *
      * @var array
      */
-    protected static $supported_methods = [
+    public static $supported_methods = [
         self::GET,
         self::POST,
         self::PUT,

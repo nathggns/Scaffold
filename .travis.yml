@@ -2,3 +2,10 @@ script: "phpunit tests"
 language: php
 php:
  - 5.4
+notifications:
+  email:
+    recipients:
+    	- nat@nath.is
+    	- claudio.albertin@me.com
+    on_success: change
+    on_failure: change

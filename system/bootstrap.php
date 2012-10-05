@@ -30,15 +30,40 @@ load_file('classes' . DS . 'autoload.php');
 Autoload::run();
 
 /**
- * Register the dummy service
+ * Register framework services
  */
 Service::register('dummy', function() {
     return new ServiceDummy();
 });
 
+Service::register('request', function($uri = null) {
+    return new Request($uri);
+});
+
+Service::register('response', function() {
+    return new Response();
+});
+
+Service::register('controller', function($controller, Request $request = null, Response $response = null) {
+    $request  = ($request !== null) ? $request : Service::get('request');
+    $response = ($response !== null) ? $response : Service::get('response');
+
+    return new $controller($request, $response);
+});
+
+Service::register('router', function() {
+    return new Router();
+});
+
+Service::register('router.default', function() {
+    $router = Service::get('router');
+    $router->all('/:controller/:id');
+
+    return $router;
+});
+
 /**
  * Register standard route and run router
  */
-$router = new Router();
-$router->all('/:controller/:id');
+$router = Service::get('router.default');
 $router->run();

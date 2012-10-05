@@ -19,11 +19,11 @@ class Request {
      * @var array
      */
     public static $supported_methods = [
-        static::GET,
-        static::POST,
-        static::PUT,
-        static::DELETE,
-        static::HEAD
+        self::GET,
+        self::POST,
+        self::PUT,
+        self::DELETE,
+        self::HEAD
     ];
 
     /**
@@ -91,36 +91,16 @@ class Request {
     public function __call($method, array $arguments) {
         switch (count($arguments)) {
             case 0:
-                // Return property
+                // return property
                 return $this->$method;
 
             case 2:
-                // Return key or default (also see next case)
+                // return element or default (also see next case)
                 if (empty($this->$method[$arguments[0]])) return $arguments[1];
 
             case 1:
-                // Return key
+                // return element
                 return $this->$method[$arguments[0]];
-
-            default:
-                return null;
-        }
-    }
-
-    /**
-     * Getter for resource, id and method
-     *
-     * @param  string $key property to get
-     * @return mixed       value
-     */
-    public function __get($key) {
-        switch ($key) {
-            case 'resource':
-            case 'id':
-                return $this->params[$key];
-
-            case 'method':
-                return $this->method;
 
             default:
                 return null;
@@ -194,7 +174,6 @@ class Request {
             case 'put':
             case 'delete':
             default:
-                $body  = [];
                 $input = file_get_contents('php://input');
                 parse_str($input, $body);
                 return $body;

@@ -125,6 +125,7 @@ class Router {
 
     /**
      * Finds a route that matches the given URI
+     *
      * @param  string $uri    URI
      * @param  string $method HTTP method
      * @return array          route
@@ -155,6 +156,7 @@ class Router {
 
     /**
      * Parses a URI with a given route
+     *
      * @param  string $uri   URI
      * @param  string $route route
      * @return array         params
@@ -181,8 +183,8 @@ class Router {
      * @return Router           this
      */
     public function run(Request $request = null, Response $response = null) {
-        $request  = ($request !== null) ? $request : new Request();
-        $response = ($response !== null) ? $response : new Response();
+        $request  = ($request !== null) ? $request : Service::get('request');
+        $response = ($response !== null) ? $response : Service::get('response');
 
         $route = $this->find_route($request->uri);
 
@@ -214,7 +216,7 @@ class Router {
             }
 
             // invoke controller
-            $instance = new $controller($request, $response);
+            $instance = Service::get('controller', $controller, $request, $response);
 
             // call `before` event
             $instance->before();
@@ -222,7 +224,7 @@ class Router {
             if (isset($request->params['id'])) {
                 // call resource loader
                 $resource = $instance->resource($request->params['id']);
-                if ($resource) $instance->$resource = $resource;
+                if ($resource) $instance->$controller = $resource;
             }
 
             // call action
@@ -237,8 +239,9 @@ class Router {
 
     /**
      * Throw routing error
-     * @param  string $method HTTP method
-     * @param  string $uri    URI
+     *
+     * @param  string    $method HTTP method
+     * @param  string    $uri    URI
      * @throws Exception
      */
     public static function throw_error($method, $uri) {

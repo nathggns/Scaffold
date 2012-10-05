@@ -27,7 +27,7 @@ load_file('classes' . DS . 'autoload.php');
  * This will enable us to use classes without having
  * to manually include them everytime.
  */
-Autoload::run();$d = new ServiceDummy;
+Autoload::run();
 
 /**
  * Register framework services

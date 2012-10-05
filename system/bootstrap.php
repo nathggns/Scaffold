@@ -76,6 +76,3 @@ Service::register('router.default', function() {
  */
 $router = Service::get('router.default');
 $router->run();
-
-// fix bug with PHPUnit, needs further investigation
-unset($router);

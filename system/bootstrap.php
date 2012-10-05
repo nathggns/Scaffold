@@ -59,6 +59,12 @@ Service::register('router', function() {
 
 Service::register('router.default', function() {
     $router = Service::get('router');
+
+    // automatically send response
+    $router->add_hook(function($controller) {
+        if ($controller instanceof Controller) $controller->response->send();
+    });
+
     $router->all('/', 'index');
     $router->all('/:controller/:id');
 
@@ -69,7 +75,7 @@ Service::register('router.default', function() {
  * Register standard route and run router
  */
 $router = Service::get('router.default');
-$controller = $router->run();
+$router->run();
 
-// send response
-if ($controller instanceOf Controller) $controller->response->send();
+// fix bug with PHPUnit, needs further investigation
+unset($router);

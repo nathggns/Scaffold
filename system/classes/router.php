@@ -15,6 +15,13 @@ class Router {
     protected $routes  = [];
 
     /**
+     * Array of hooks executed at the end of Router::run()
+     *
+     * @var array
+     */
+    protected $hooks = [];
+
+    /**
      * Add a custom GET route
      *
      * @param  string $path     path
@@ -108,6 +115,32 @@ class Router {
             'target'   => $target,
             'defaults' => $defaults
         ];
+
+        return $this;
+    }
+
+    /**
+     * Add hook executed at the end of Router::run()
+     *
+     * @param  callable $hook hook
+     * @return Router        this
+     */
+    public function add_hook($hook) {
+        if (is_callable($hook)) $this->hooks[] = $hook;
+
+        return $this;
+    }
+
+    /**
+     * Run hooks
+     *
+     * @param  mixed  $controller controller
+     * @return Router             this
+     */
+    public function run_hooks($controller) {
+        foreach ($this->hooks as $hook) {
+            call_user_func($hook, $controller);
+        }
 
         return $this;
     }
@@ -208,7 +241,10 @@ class Router {
 
         if (is_callable($route['target'], false, $callable)) {
             // target is callable
-            return call_user_func($callable, $request, $response);
+            $controller = call_user_func($callable, $request, $response);
+
+            $this->run_hooks($controller);
+            return $controller;
         } else {
             if ($route['target'] === null) {
                 if (isset($request->params['controller'])) {
@@ -243,6 +279,7 @@ class Router {
             // call `after` event
             $instance->after();
 
+            $this->run_hooks($instance);
             return $instance;
         }
     }

@@ -83,7 +83,9 @@ class Router {
      * @return Router           this
      */
     public function all($path, $target = null, array $defaults = []) {
-        foreach (Request::$supported_methods as $method) {
+        $supported_methods = array_reverse(Request::$supported_methods);
+
+        foreach ($supported_methods as $method) {
             $this->add_route($method, $path, $target, $defaults);
         }
 
@@ -100,7 +102,7 @@ class Router {
      * @return Router           this
      */
     public function add_route($method, $path, $target = null, array $defaults = []) {
-        $this->routes[$path] = [
+        $this->routes[strtoupper($method) . ' ' . $path] = [
             'method'   => $method,
             'path'     => $path,
             'target'   => $target,
@@ -117,7 +119,10 @@ class Router {
      * @return string        regex
      */
     public static function prepare_route($route) {
-        $regex = preg_replace('\\:([a-z]+)', '(\w+)', preg_quote($route));
+        $escaped_route = preg_quote($route, '/');
+        $escaped_route = str_replace('\:', ':', $escaped_route);
+
+        $regex = preg_replace('/:([a-z]+)/', '(\w+)', $escaped_route);
         $regex = '/^' . $regex . '$/';
 
         return $regex;
@@ -167,11 +172,16 @@ class Router {
 
         // search for matches
         preg_match_all($regex, $uri, $values);
-        preg_match_all(':([a-z]+)', $route, $names);
+        preg_match_all('/:([a-z]+)/', $route, $names);
 
         // remove full matches
         array_shift($values);
-        array_shift($names);
+        $names = $names[1];
+
+        // extract values and cast numbers to integers
+        $values = array_map(function($item) {
+            return is_numeric($item[0]) ? (int) $item[0] : $item[0];
+        }, $values);
 
         return array_combine($names, $values);
     }
@@ -245,7 +255,7 @@ class Router {
      * @throws Exception
      */
     public static function throw_error($method, $uri) {
-        throw new Exception('Cannot ' + strtoupper($method) + ' ' + $uri);
+        throw new Exception('Cannot ' . strtoupper($method) . ' ' . $uri);
     }
 
 }

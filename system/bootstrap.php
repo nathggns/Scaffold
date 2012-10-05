@@ -27,7 +27,7 @@ load_file('classes' . DS . 'autoload.php');
  * This will enable us to use classes without having
  * to manually include them everytime.
  */
-Autoload::run();
+Autoload::run();$d = new ServiceDummy;
 
 /**
  * Register framework services
@@ -48,6 +48,8 @@ Service::register('controller', function($controller, Request $request = null, R
     $request  = ($request !== null) ? $request : Service::get('request');
     $response = ($response !== null) ? $response : Service::get('response');
 
+    $controller = 'Controller' . ucfirst(Inflector::singularize($controller));
+
     return new $controller($request, $response);
 });
 
@@ -57,6 +59,7 @@ Service::register('router', function() {
 
 Service::register('router.default', function() {
     $router = Service::get('router');
+    $router->all('/', 'index');
     $router->all('/:controller/:id');
 
     return $router;

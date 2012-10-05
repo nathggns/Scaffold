@@ -11,7 +11,10 @@ abstract class Controller {
     }
 
     public function before() {}
-    public function resource() {}
+
+    public function resource($id) {
+        return false;
+    }
 
     public function after() {
         $this->response->send();

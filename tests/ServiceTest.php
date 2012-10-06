@@ -2,63 +2,97 @@
 
 class ServiceTest extends PHPUnit_Framework_Testcase {
 
-    public function testInstance() {
-        $validator = new Validate();
-        Service::instance('validator', $validator);
-        $this->assertEquals($validator, Service::get('validator'));
-    }
-
-    public function testSingleton() {
-        $first = true;
-        $test = $this;
-        Service::singleton('test', function() use ($first, $test) {
-            $test->assertTrue($first);
-            $first = false;
-        });
-
-        $object = Service::get('test');
-        $other_object = Service::get('test');
-
-        $this->assertEquals($object, $other_object);
-    }
-
-    public function testDummy() {
-        $dummy = Service::get('dummy');
-
-        $this->assertNull($dummy->undefinedFunc());
-        $this->assertNull($dummy::undefinedStaticFunc());
-        $this->assertNull($dummy->undefinedProperty);
-        $this->assertFalse(isset($dummy->undefinedProperty));
-
-        $dummy->property = 'Hello';
-        $this->assertEquals('Hello', $dummy->property);
-        $this->assertTrue(isset($dummy->property));
-    }
-
-    public function testCreate() {
-
-        $test = $this;
-
-        Service::register('validator', function($argument = false, $argument2 = true) use($test) {
-            $test->assertTrue($argument);
-            $test->assertFalse($argument2);
-        });
-
-        $object = Service::get('validator', true, false);
+    public function tearDown() {
+        Service::reset();
     }
 
     /**
-     * @expectedException ExceptionService
+     * @cover Service::instance
+     * @cover Service::get
+     */
+    public function testInstance() {
+        $object = new stdClass();
+
+        Service::instance('test', $object);
+        $this->assertEquals($object, Service::get('test'));
+    }
+
+    /**
+     * @cover Service::singleton
+     * @cover Service::get
+     */
+    public function testSingleton() {
+        $calls = 0;
+
+        Service::singleton('test', function() use (&$calls) {
+            $calls++;
+
+            $object = new stdClass();
+            $object->foo = rand();
+
+            return $object;
+        });
+
+        $this->assertSame(Service::get('test'), Service::get('test'));
+        $this->assertEquals(1, $calls);
+    }
+
+    /**
+     * @cover Service::register
+     * @cover Service::get
+     */
+    public function testRegister() {
+        $calls = 0;
+
+        Service::register('test', function($foo = false, $bar = true) use (&$calls) {
+            $calls++;
+
+            $this->assertTrue($foo);
+            $this->assertFalse($bar);
+
+            $object = new stdClass();
+            $object->foo = rand();
+
+            return $object;
+        });
+
+        $this->assertNotSame(
+            Service::get('test', true, false),
+            Service::get('test', true, false)
+        );
+
+        $this->assertEquals(2, $calls);
+    }
+
+    /**
+     * @cover Service::default
+     */
+    public function testDefault() {
+        Service::register('test', function() {
+            return 'test';
+        });
+
+        Service::register('test.alternative', function() {
+           return 'test.alternative';
+        });
+
+        $this->assertEquals('test', Service::get('test'));
+
+        Service::set_default('test.alternative');
+        $this->assertEquals('test.alternative', Service::get('test'));
+
+        Service::register('test.default', function() {
+            return 'test.default';
+        }, true);
+
+        $this->assertEquals('test.default', Service::get('test'));
+    }
+
+    /**
+     * @expectedException       ExceptionService
+     * @expectedExceptioMessage Service __NonExistentService not found
      */
     public function testException() {
         Service::get('__NonExistentService');
-    }
-
-    public function testExceptionMessage() {
-        try {
-            Service::get('__NonExistentService');
-        } catch (ExceptionService $e) {
-            $this->assertEquals('Service __NonExistentService not found', $e->getMessage());
-        }
     }
 }

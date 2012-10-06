@@ -40,9 +40,9 @@ Service::register('request', function($uri = null) {
     return new Request($uri);
 });
 
-Service::register('response', function() {
+Service::register('response.json', function() {
     return new Response();
-});
+}, true);
 
 Service::register('controller', function($controller, Request $request = null, Response $response = null) {
     $request  = ($request !== null) ? $request : Service::get('request');
@@ -53,9 +53,9 @@ Service::register('controller', function($controller, Request $request = null, R
     return new $controller($request, $response);
 });
 
-Service::register('router', function() {
+Service::register('router.blank', function() {
     return new Router();
-});
+}, true);
 
 Service::register('router.default', function() {
     $router = Service::get('router');

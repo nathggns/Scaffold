@@ -8,119 +8,181 @@
 class Service {
 
     /**
-     * Cache to store singleton objects.
+     * Array of singleton constructors
+     *
+     * @var array
      */
-    private static $singletons = [];
+    protected static $singletons = [];
 
     /**
-     * Cache to store instances objects.
+     * Array of instance objects.
+     *
+     * @var array
      */
-    private static $instances = [];
+    protected static $instances = [];
 
     /**
-     * Cache to store constructor functions
+     * Array of constructors
+     *
+     * @var array
      */
-    private static $functions = [];
+    protected static $functions = [];
+
+    /**
+     * Cache to store built singleton instances
+     */
+    protected static $builds = [];
+
+    /**
+     * Defaults
+     *
+     * @var array
+     */
+    protected static $defaults = [];
 
     /**
      * Register an object creator
      *
-     * @param string $name Name of the resource
-     * @param object|function $resource the resource
-     *
+     * @param  string   $name      name of service
+     * @param  callable $resource  resource
+     * @param  boolean  $default   set as default
+     * @return boolean             success
      */
-    public static function register($name, $resource) {
-        if (is_callable($resource)) {
-            static::$functions[$name] = $resource;
-            return true;
-        }
+    public static function register($name, $resource, $default = false) {
+        if (!is_callable($resource)) return false;
 
-        return false;
+        static::$functions[$name] = $resource;
+        if ($default) static::set_default($name);
+
+        return true;
     }
 
     /**
      * Register an instance
      *
-     * @param string $name Name of the resource
-     * @param object $resource the resource
-     *
+     * @param  string  $name     name of service
+     * @param  object  $resource resource
+     * @param  boolean $default set as default
+     * @return boolean           success
      */
-    public static function instance($name, $resource) {
-        if (is_object($resource)) {
-            static::$instances[$name] = $resource;
-            return true;
-        }
+    public static function instance($name, $resource, $default = false) {
+        if (!is_object($resource)) return false;
 
-        return false;
+        static::$instances[$name] = $resource;
+        if ($default) static::set_default($name);
+
+        return true;
     }
 
     /**
-     * Register aa singleton creator
+     * Register a singleton creator
      *
-     * @param string $name Name of the resource
-     * @param function $resource the resource
-     *
+     * @param  string   $name     name of service
+     * @param  function $resource resource
+     * @param  boolean  $default  set as default
+     * @return boolean            success
      */
-    public static function singleton($name, $resource) {
-        if (is_callable($resource)) {
-            static::$singletons[$name] = $resource;
-            return true;
+    public static function singleton($name, $resource, $default = false) {
+        if (!is_callable($resource)) return false;
+
+        static::$singletons[$name] = $resource;
+        if ($default) static::set_default($name);
+
+        return true;
+    }
+
+    /**
+     * Set default for service
+     *
+     * @param  string  $name name of service
+     * @return boolean       success
+     */
+    public static function set_default($name) {
+        $parts = explode('.', $name);
+        $name  = array_shift($parts);
+
+        if (count($parts) > 0) {
+            $default = implode('.', $parts);
+            static::$defaults[$name] = $default;
+        } else {
+            var_dump($name);
+            unset(static::$defaults[$name]);
         }
 
-        return false;
+        return true;
+    }
+
+    /**
+     * Get default for service
+     *
+     * @param string $name name of service
+     */
+    public static function get_default($name) {
+        if (isset(static::$defaults[$name])) $name .= '.' . static::$defaults[$name];
+
+        return $name;
     }
 
     /**
      * Get a resource.
      *
-     * @param string $name The name of the resource
-     * @param mixed $arguments arguments to pass the creator
-     * @return object The resource
+     * @param  string $name      name of service
+     * @param  mixed  $arguments arguments to pass the creator
+     * @return object            resource
      */
     public static function get() {
-
         list($name, $arguments) = call_user_func_array(['Service', 'args'], func_get_args());
+
+        $name = static::get_default($name);
 
         if (isset(static::$instances[$name])) {
             return static::$instances[$name];
-        } else if ($result = call_user_func_array(['Service', 'build'], func_get_args()) or $result !== false) {
-            return $result;
+        } elseif (isset(static::$singletons[$name])) {
+            if (!isset(static::$builds[$name])) {
+                static::$builds[$name] = call_user_func_array(static::$singletons[$name], $arguments);
+            }
+
+            return static::$builds[$name];
+        } elseif (isset(static::$functions[$name])) {
+            return call_user_func_array(static::$functions[$name], $arguments);
         }
 
-        return static::exception($name);
+        static::throw_error($name);
     }
 
     /**
      * Build an object, even if it's a singleton
      *
-     * @param string $name The name of the resource
-     * @param mixed $arguments arguments to pass the creator
-     * @return object The resource
+     * @param  string $name      name of service
+     * @param  mixed  $arguments arguments to pass the creator
+     * @return object            resource
      */
     public static function build() {
         list($name, $arguments) = call_user_func_array(['Service', 'args'], func_get_args());
 
-        $func = false;
+        $name = static::get_default($name);
 
         if (isset(static::$instances[$name])) {
-            return clone static::$inatances[$name];
-        } else if (isset(static::$functions[$name])) {
-            $func = static::$functions[$name];
-        } else if (isset(static::$singletons[$name])) {
-            $func = static::$singletons[$name];
+            return clone static::$instances[$name];
         } else {
-            return static::exception($name);
+            if (isset(static::$singletons[$name])) {
+                $resource = static::$singletons[$name];
+            } elseif (isset(static::$functions[$name])) {
+                $resource = static::$functions[$name];
+            } else {
+                return static::throw_error($name);
+            }
+
+            return call_user_func_array($func, $arguments);
         }
-
-        $result = call_user_func_array($func, $arguments);
-
-        return $result;
     }
 
     /**
      * Get args
+     *
+     * @return array name and arguments
      */
-    private static function args() {
+    protected static function args() {
         $args = func_get_args();
         $name = $args[0];
         $arguments = count($args) > 1 ? array_slice($args, 1) : [];
@@ -128,7 +190,23 @@ class Service {
         return [$name, $arguments];
     }
 
-    private static function exception($name) {
+    /**
+     * Remove all services
+     */
+    public static function reset() {
+        static::$instances  = [];
+        static::$singletons = [];
+        static::$functions  = [];
+        static::$builds     = [];
+    }
+
+    /**
+     * Throw service error
+     *
+     * @param  string           $name name
+     * @throws ExceptionService
+     */
+    protected static function throw_error($name) {
         throw new ExceptionService('Service ' . $name . ' not found');
     }
 }

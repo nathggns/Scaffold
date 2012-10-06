@@ -1,11 +1,11 @@
 <?php defined('SCAFFOLD') or die();
 
 /**
- * A 'dummy' service returned by Service when a service doesn't exist
+ * A dummy class
  *
  * @author Nathaniel Higgins
  */
-class ServiceDummy {
+class Dummy {
 
     private $__data = [];
 

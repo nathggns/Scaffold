@@ -146,7 +146,7 @@ class Router {
     }
 
     /**
-     * Turns a route into a regex
+     * Turn a route into a regex
      *
      * @param  string $route route
      * @return string        regex
@@ -162,7 +162,7 @@ class Router {
     }
 
     /**
-     * Finds a route that matches the given URI
+     * Find a route that matches the given URI
      *
      * @param  string $uri    URI
      * @param  string $method HTTP method
@@ -193,7 +193,7 @@ class Router {
     }
 
     /**
-     * Parses a URI with a given route
+     * Parse a URI with a given route
      *
      * @param  string $uri   URI
      * @param  string $route route
@@ -220,7 +220,7 @@ class Router {
     }
 
     /**
-     * Calls the corresponding controller
+     * Call the corresponding controller
      *
      * @param  Request $request Request
      * @return Router           this
@@ -289,7 +289,7 @@ class Router {
      *
      * @param  string    $method HTTP method
      * @param  string    $uri    URI
-     * @throws Exception
+     * @throws ExceptionRouting
      */
     public static function throw_error($method, $uri) {
         throw new ExceptionRouting('Cannot ' . strtoupper($method) . ' ' . $uri);

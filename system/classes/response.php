@@ -134,8 +134,8 @@ class Response {
     /**
      * Run encoding
      *
-     * @param  bool   $set set body
-     * @return string      encoded data
+     * @param  boolean $set set body
+     * @return string       encoded data
      */
     public function encode($set = true) {
         $body = call_user_func($this->encoder, $this->data);
@@ -175,7 +175,7 @@ class Response {
      *
      * @param  string   $key      name
      * @param  string   $value    value
-     * @param  bool     $override override?
+     * @param  boolean  $override override
      * @return Response           this
      */
     public function header($key, $value, $override = true) {

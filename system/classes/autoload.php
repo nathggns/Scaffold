@@ -22,8 +22,8 @@ class Autoload {
         load_file('classes' . DS . 'inflector.php');
 
         // search for pluralized directories
-        $system_directories      = glob(SYSTEM . 'classes' . DS . '*', GLOB_ONLYDIR);
-        $application_directories = glob(APPLICATION . 'classes' . DS . '*', GLOB_ONLYDIR);
+        $system_directories      = recursive_glob(SYSTEM . 'classes' . DS . '*', GLOB_ONLYDIR);
+        $application_directories = recursive_glob(APPLICATION . 'classes' . DS . '*', GLOB_ONLYDIR);
         $directories             = array_merge($system_directories, $application_directories);
 
         $directories = array_filter($directories, function($directory) {
@@ -50,23 +50,25 @@ class Autoload {
      */
     public static function load($class) {
         $parts = preg_split('/([[:upper:]][[:lower:]]+)/', $class, null, PREG_SPLIT_DELIM_CAPTURE|PREG_SPLIT_NO_EMPTY);
+        $parts = array_map('strtolower', $parts);
 
-        for ($i = 1, $l = count($parts); $i < $l; $i++) {
-            $part = $parts[$i];
+        if ($result = static::load_file($parts)) return $result;
 
-            if (strtoupper($part) === $part) {
-                $parts[$i - 1] .= $part;
-                unset($parts[$i]);
+        foreach($parts as $key => $part) {
+            $plural_directory = Inflector::pluralize($part);
+
+            if (in_array($plural_directory, static::$parents)) {
+                $parts[$key] = $plural_directory;
             }
         }
 
-        $parts = array_map('strtolower', $parts);
-        $plural_directory = Inflector::pluralize($parts[0]);
+        if ($result = static::load_file($parts)) return $result;
+    }
 
-        if (count($parts) > 1 && in_array($plural_directory, static::$parents)) {
-            $parts[0] = $plural_directory;
-        }
-
+    /**
+     * Gets the file name from a parts list
+     */
+    private static function load_file($parts) {
         return load_file('classes' . DS . implode(DS, $parts) . '.php');
     }
 }

@@ -15,7 +15,7 @@ class Validate {
     /**
      * Our default checks
      */
-    private $checks = ['empty', 'email', 'alphanumeric', 'regex', 'is_regex', 'equal'];
+    private $checks = ['empty', 'email', 'alphanumeric', 'regex', 'is_regex', 'equal', 'numeric'];
 
     /**
      * Checks can be prepended with some of these modifiers
@@ -207,6 +207,13 @@ class Validate {
      */
     public function check_alphanumeric($value) {
         return ctype_alnum($value);
+    }
+
+    /**
+     * Numeric test
+     */
+    public function check_numeric($value) {
+        return is_numeric($value);
     }
 
     /**

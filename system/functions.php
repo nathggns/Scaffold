@@ -53,6 +53,22 @@ function recursive_scan_dir($dir, $filetype = false) {
 }
 
 /**
+ * Recursive glob
+ */
+function recursive_glob($pattern, $flags = 0) {
+    $files = glob($pattern, $flags);
+
+    foreach (glob(dirname($pattern) . DS . '*', GLOB_ONLYDIR|GLOB_NOSORT) as $dir) {
+        $files = array_merge(
+            $files,
+            recursive_glob($dir . DS . basename($pattern), $flags)
+        );
+    }
+
+    return $files;
+}
+
+/**
  * Is an array a hash?
  */
 function is_hash($arr) {
@@ -67,4 +83,29 @@ function is_hash($arr) {
     }
 
     return false;
+}
+
+/**
+ * Check arguments
+ */
+function arguments($keys, $args) {
+    $missing = [];
+    $vals = [];
+
+    foreach ($keys as $arg) {
+        if (!isset($args[$arg])) {
+            $missing[] = $arg;
+        } else {
+            $vals[$arg] = $args[$arg];
+        }
+    }
+
+    if (count($missing) > 0) {
+        $args = implode(',', $missing);
+        throw new InvalidArgumentException('Missing arguments: ' . $args);
+
+        return false;
+    }
+
+    return $vals;
 }

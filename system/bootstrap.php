@@ -70,3 +70,44 @@ Service::register('router.default', function() {
 
     return $router;
 });
+
+Service::register('driver', function($config) {
+    $parent = 'DatabaseDriver';
+    $type = $config['type'];
+    $class = $parent . $type;
+
+    if (!Autoload::load($class)) {
+        $class = $parent . 'PDO';
+    }
+
+    // @TODO: decide what type of builder to use
+    $builder = new DatabaseQueryBuilderSQL();
+
+    return new $class($builder, $config);
+});
+
+
+Service::register('driver', function($config) {
+    $parent = 'DatabaseDriver';
+    $type = $config['type'];
+    $class = $parent . $type;
+
+    if (!Autoload::load($class)) {
+        $class = $parent . 'PDO';
+    }
+
+    // @TODO: decide what type of builder to use
+    $builder = new DatabaseQueryBuilderSQL();
+
+    return new $class($builder, $config);
+});
+
+$driver = Service::get('driver', [
+    'type' => 'MySQL',
+    'host' => 'localhost',
+    'username' => 'root',
+    'password' => 'root',
+    'database' => 'Scaffold'
+]);
+
+var_dump($driver->connect()->find('blah', 1)->fetch_one());

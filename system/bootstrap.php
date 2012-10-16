@@ -85,19 +85,3 @@ Service::register('driver', function($config) {
 
     return new $class($builder, $config);
 });
-
-
-Service::register('driver', function($config) {
-    $parent = 'DatabaseDriver';
-    $type = $config['type'];
-    $class = $parent . $type;
-
-    if (!Autoload::load($class)) {
-        $class = $parent . 'PDO';
-    }
-
-    // @TODO: decide what type of builder to use
-    $builder = new DatabaseQueryBuilderSQL();
-
-    return new $class($builder, $config);
-});

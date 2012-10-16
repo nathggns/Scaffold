@@ -7,4 +7,5 @@
  */
 interface DatabaseQueryBuilderInterface {
     public function select($table, $vals = ['*'], $conds = [], $group = [], $order = []);
+    public function insert($table, $data);
 }

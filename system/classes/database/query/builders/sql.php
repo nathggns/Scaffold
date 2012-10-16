@@ -29,6 +29,26 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         if (count($having) > 0) $query .= ' ' . $this->having($order);
         if (count($limit) > 0) $query .= ' ' . $this->limit($limit);
 
+        $query .= ';';
+
+        return $query;
+    }
+
+    public function insert($table, $data) {
+        $table = $this->backtick($table);
+        $values = $this->escape($data);
+        $values = implode(', ', $values);
+
+        $query = 'INSERT INTO ' . $table . ' ';
+
+        if (is_hash($data)) {
+            $keys = $this->backtick(array_keys($data));
+            $keys = implode(', ', $keys);
+            $query .= '(' . $keys . ') ';
+        }
+
+        $query .= 'VALUES (' . $values . ');';
+
         return $query;
     }
 

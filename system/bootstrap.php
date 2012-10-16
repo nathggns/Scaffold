@@ -101,13 +101,3 @@ Service::register('driver', function($config) {
 
     return new $class($builder, $config);
 });
-
-$driver = Service::get('driver', [
-    'type' => 'MySQL',
-    'host' => 'localhost',
-    'username' => 'root',
-    'password' => 'root',
-    'database' => 'Scaffold'
-]);
-
-var_dump($driver->connect()->find('blah', 1)->fetch_one());

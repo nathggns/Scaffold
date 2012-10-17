@@ -14,7 +14,7 @@ class DatabaseDriverPDO extends DatabaseDriver {
         extract($vals);
 
         $connstring = strtolower($type) . ':host=' . $host .';dbname=' . $database;
-        $this->conn = new PDO($connstring, $username, $password);
+        $this->connection = new PDO($connstring, $username, $password);
 
         return $this;
     }
@@ -75,8 +75,8 @@ class DatabaseDriverPDO extends DatabaseDriver {
      * @param string $sql sql to run
      */
     private function query($sql) {
-        if ($this->conn) {
-            $this->query = $this->conn->query($sql);
+        if ($this->connection) {
+            $this->query = $this->connection->query($sql);
 
             return $this;
         }

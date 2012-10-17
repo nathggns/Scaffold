@@ -8,7 +8,6 @@ class DatabaseDriverPDO extends DatabaseDriver {
      * Connect to the database via PDO
      */
     public function connect() {
-        $args = func_get_args();
         $exports = array('type', 'host', 'username', 'password', 'database');
         $vals = arguments($exports, $this->config);
         extract($vals);

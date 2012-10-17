@@ -15,7 +15,6 @@ class Database {
 
     public function __construct($config) {
         $this->driver = Service::get('database.driver', $config['driver']);
-        $this->driver->connect($config['connection']);
     }
 
 

@@ -10,5 +10,6 @@ abstract class DatabaseDriver implements DatabaseDriverInterface {
     public function __construct(DatabaseQueryBuilder $builder, $config) {
         $this->builder = $builder;
         $this->config = $config;
+        $this->connect();
     }
 }

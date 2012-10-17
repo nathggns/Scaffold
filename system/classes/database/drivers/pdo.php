@@ -23,6 +23,9 @@ class DatabaseDriverPDO extends DatabaseDriver {
      * Find a row
      *
      * @param string $table Table to search
+     * @param array $options Options for the find
+     *
+     * @return DatabaseDriverPDO $this DatabaseDriverPDO instance
      */
     public function find($table, $options) {
 

@@ -71,13 +71,12 @@ Service::register('router.default', function() {
     return $router;
 });
 
-Service::register('driver', function($config) {
+Service::register('database.driver', function($config) {
     $parent = 'DatabaseDriver';
     $type = $config['type'];
     $class = $parent . $type;
     $driver = strtolower($type);
 
-    if (!Autoload::load($class)) {
     if (!Autoload::load($class) && in_array($driver, PDO::getAvailableDrivers())) {
         $class = $parent . 'PDO';
     }

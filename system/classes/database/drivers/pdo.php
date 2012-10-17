@@ -3,6 +3,7 @@
 class DatabaseDriverPDO extends DatabaseDriver {
 
     private $conn = false;
+    private $query = false;
 
     /**
      * Connect to the database via PDO
@@ -55,7 +56,9 @@ class DatabaseDriverPDO extends DatabaseDriver {
      *
      * @return array Associative array of data
      */
-    public function fetch() {
+    public function fetch($table = null, $options = null) {
+        if (!is_null($table) && !is_null($options)) $this->find($table, $options);
+
         return $this->query->fetch(PDO::FETCH_ASSOC);
     }
 
@@ -64,7 +67,9 @@ class DatabaseDriverPDO extends DatabaseDriver {
      *
      * @return array Array of associative arrays of data
      */
-    public function fetch_all() {
+    public function fetch_all($table = null, $options = null) {
+        if (!is_null($table) && !is_null($options)) $this->find($table, $options);
+
         return $this->query->fetch_all(PDO::FETCH_ASSOC);
     }
 

@@ -52,6 +52,37 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         return $query;
     }
 
+    public function update($table, $data, $where = []) {
+        $table = $this->backtick($table);
+        $keys = $this->backtick(array_keys($data));
+        $data = $this->escape($data);
+        $query = 'UPDATE ' . $table . ' SET ' . $this->pairs($keys, $data);
+
+        if (count($where) > 0) $query .= ' ' . $this->where($where);
+
+        $query .= ';';
+
+        return $query;
+    }
+
+    private function pairs($keys, $data = false) {
+        if (!$data) {
+            $data = $keys;
+            $keys = array_keys($data);
+        }
+
+        $data = array_values($data);
+        $parts = [];
+
+        foreach (range(0, count($keys) - 1) as $i) {
+            $key = $keys[$i];
+            $part = $data[$i];
+            $parts[] = $key . ' = ' . $part;
+        }
+
+        return implode(', ', $parts);
+    }
+
     private function conds($conds, $query) {
         $vals = [];
 
@@ -73,9 +104,6 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         return $this->conds($conds, 'HAVING');
     }
 
-    /**
-     * @todo Support SQL HAVING
-     */
     private function group($group) {
         $query = 'GROUP BY ';
         if (!is_array($group)) $group = [$group];

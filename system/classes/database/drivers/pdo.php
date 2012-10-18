@@ -4,6 +4,9 @@ class DatabaseDriverPDO extends DatabaseDriver {
 
     private $conn = false;
     private $query = false;
+    private $type = false;
+
+    const SELECT = 1;
 
     /**
      * Connect to the database via PDO
@@ -27,9 +30,12 @@ class DatabaseDriverPDO extends DatabaseDriver {
      *
      * @return DatabaseDriverPDO $this DatabaseDriverPDO instance
      */
-    public function find($table, $options) {
+    public function find($table, $options = false) {
+        $this->type = static::SELECT;
 
-        if (!is_array($options)) {
+        if (!$options) {
+            $options = [];
+        } else if (!is_array($options)) {
             $options = ['where' => ['id' => $options]];
         }
 
@@ -54,6 +60,12 @@ class DatabaseDriverPDO extends DatabaseDriver {
         return $this->query($query);
     }
 
+    public function insert($table, $data) {
+        $query = $this->builder->insert($table, $data);
+
+        return $this->query($query);
+    }
+
     /**
      * Fetch one row.
      *
@@ -73,7 +85,38 @@ class DatabaseDriverPDO extends DatabaseDriver {
     public function fetch_all($table = null, $options = null) {
         if (!is_null($table) && !is_null($options)) $this->find($table, $options);
 
-        return $this->query->fetch_all(PDO::FETCH_ASSOC);
+        return $this->query->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Get the count from the last query ran.
+     * Simply an alias for select_count, if used on a select statement.
+     *
+     * @return int|bool Count of affected rows from the last query, or false.
+     */
+    public function count() {
+        if (!$this->query) return false;
+        if ($this->type === static::SELECT) {
+            return $this->select_count();
+        }
+
+        return $this->query->rowCount();
+    }
+
+    /**
+     * Get the count from the last select statement ran.
+     * Does not use PDOStatement::rowCount
+     * SEE: http://stackoverflow.com/questions/883365/count-with-pdo
+     *
+     * @return int|bool Count of rows in last select statement, or false
+     */
+    public function select_count() {
+        if (!$this->query || $this->type !== static::SELECT) return false;
+
+        $count = 0;
+        while ($this->fetch()) $count++;
+
+        return $count;
     }
 
     /**
@@ -90,5 +133,4 @@ class DatabaseDriverPDO extends DatabaseDriver {
 
         return false;
     }
-
 }

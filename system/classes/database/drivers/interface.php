@@ -6,7 +6,8 @@
 interface DatabaseDriverInterface {
     public function __construct(DatabaseQueryBuilder $builder, $config);
     public function connect();
-    public function find($table, $options);
+    public function find($table, $options = false);
     public function fetch($table = null, $options = null);
     public function fetch_all($table = null, $options = null);
+    public function count();
 }

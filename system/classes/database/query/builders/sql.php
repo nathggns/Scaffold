@@ -83,21 +83,89 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         return implode(', ', $parts);
     }
 
-    private function conds($conds, $query) {
-        $vals = [];
-
-        foreach ($conds as $key => $val) {
-            $part = $this->where_part($key, $val, $vals);
-            $vals = array_merge($vals, $part);
-        }
-
-        $query .= ' ' . implode(' ', $vals);
-
-        return $query;
+    private function conds($conds, $query = '') {
+        return $query . $this->where_part(0, $conds);
     }
 
-    private function where($conds) {
+    public function where($conds) {
         return $this->conds($conds, 'WHERE');
+    }
+
+    private function where_part($key, $val, $first = false, $level = 0) {
+        $sql = '';
+
+        if (is_int($key) && is_array($val) && is_hash($val)) {
+
+            if ($level > 0) {
+
+                if (is_hash($val) || !in_array($val[0], $this->joins)) {
+                    $val = ['AND', $val];
+                }
+
+                list($val, $join) = array_reverse($val);
+                $sql = $join . ' (';
+            }
+
+            $vals = [];
+
+            foreach ($val as $key => $val) {
+                if ($part = $this->where_part($key, $val, count($vals) < 1, $level + 1)) $vals[] = $part;
+            }
+
+            if ($level < 1) $sql .= ' ';
+            $sql .= implode(' ', $vals);
+            if ($level > 0) $sql .= ')';
+
+            return $sql;
+        }
+
+        if (!is_array($val) || (is_array($val) && count($val) < 3)) {
+            $val = [$key, $val];
+        }
+
+        if (($count = count($val)) < 4) {
+            $value = $val[$count - 1];
+            $join = 'AND';
+            $operator = '=';
+
+            if ($count === 2) {
+                $key = $val[0];
+            } else if ($count === 3) {
+                if (in_array($val[0], $this->joins)) {
+                    $join = $val[0];
+                    $key = $val[1];
+                } else if (in_array($val[1], $this->operators)) {
+                    $key = $val[0];
+                    $operator = $val[1];
+                } else {
+                    $value = $val;
+                }
+            } else {
+                return false;
+            }
+
+            $val = [$join, $key, $operator, $value];
+
+        } else if ($count > 4) {
+            return false;
+        }
+
+        list($val, $operator, $key, $join) = array_reverse($val);
+
+        if (!$first) $sql .= $join . ' ';
+        $sql .= $this->backtick($key);
+        $val = $this->escape($val);
+
+        if (is_array($val)) {
+            $val = 'IN (' . implode(', ', $val) . ')';
+            $sql .= ' ';
+        } else {
+            $sql .= ' ' . $operator . ' ';
+        }
+
+        $sql .= $val;
+
+        return $sql;
     }
 
     private function having($conds) {
@@ -140,72 +208,7 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         return $query;
     }
 
-    private function where_part($key, $val, $vals, $get_arr = false) {
-        if (is_int($key)) {
-            $parts = [];
-            $firstKey = key($val);
-            $firstVal = $val[$firstKey];
-            $join = 'AND';
-
-            if (!is_array($firstVal) || !is_string(key($firstVal))) {
-                $val[$firstKey] = $this->where_part($firstKey, $firstVal, $parts, true);
-                $join = $val[$firstKey][1];
-            }
-
-            foreach ($val as $k => $part) {
-                $parts = array_merge($parts, $this->where_part($k, $part, $parts));
-            }
-
-            $parts[0] = '(' . $parts[0];
-
-            if (count($vals) > 0) {
-                $parts[0] = $join . ' ' . $parts[0];
-            }
-
-            $parts[count($parts)-1] .= ')';
-
-            return $parts;
-        }
-
-        if (!is_array($val)) {
-            $val = ['=', 'AND', $val];
-        }
-
-        if (count($val) < 3) {
-            $first = $val[0];
-
-            if (in_array($first, $this->joins)) {
-                $val = array_merge(['='], $val);
-            } else if (in_array($first, $this->operators)) {
-                $val = [$first, 'AND', $val[1]];
-            } else {
-                $val = ['=', 'AND', $val];
-            }
-        }
-
-        if ($get_arr) return $val;
-
-        // @SEE: http://php.net/list - Notes
-        list($val, $join, $op) = array_reverse($val);
-
-        $key = $this->backtick($key);
-        $val = $this->escape($val);
-        $op = ' ' . $op . ' ';
-
-        if (is_array($val)) {
-            $part = $key . ' IN (' . implode(', ', $val) . ')';
-        } else {
-            $part = $key . $op . $val;
-        }
-
-        if (count($vals) > 0) {
-            $part = $join . ' ' . $part;
-        }
-
-        return [$part];
-    }
-
-    public function backtick($value) {
+    private function backtick($value) {
         if (is_array($value)) return array_map([$this, 'backtick'], $value);
         if ($value === '*') return $value;
 
@@ -259,7 +262,7 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         return $parts;
     }
 
-    public function escape($value) {
+    private function escape($value) {
         if (is_array($value)) {
             return array_map([$this, 'escape'], $value);
         }

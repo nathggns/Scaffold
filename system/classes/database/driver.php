@@ -7,6 +7,10 @@
  */
 abstract class DatabaseDriver implements DatabaseDriverInterface {
 
+	const SELECT = 1;
+	const INSERT = 2;
+	const UPDATE = 3;
+
     public function __construct(DatabaseQueryBuilder $builder, $config) {
         $this->builder = $builder;
         $this->config = $config;

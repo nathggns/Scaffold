@@ -3,22 +3,27 @@
 class DatabaseDriverPDO extends DatabaseDriver {
 
     private $conn = false;
-    private $query = false;
+    public $query = false;
     private $type = false;
-
-    const SELECT = 1;
 
     /**
      * Connect to the database via PDO
+     *
+     * @return DatabaseDriverPDO this
      */
     public function connect() {
+        // Extract arguments from the config into our scope.
         $exports = array('type', 'host', 'username', 'password', 'database');
         $vals = arguments($exports, $this->config);
         extract($vals);
 
+        // Set the driver connection string for PDO
         $connstring = strtolower($type) . ':host=' . $host .';dbname=' . $database;
+
+        // Create our connection
         $this->connection = new PDO($connstring, $username, $password);
 
+        // Return ourself to allow chaining.
         return $this;
     }
 
@@ -31,14 +36,17 @@ class DatabaseDriverPDO extends DatabaseDriver {
      * @return DatabaseDriverPDO $this DatabaseDriverPDO instance
      */
     public function find($table, $options = false) {
+        // Inform the object that the last query was a SELECT query.
         $this->type = static::SELECT;
 
+        // If we don't have actually options, imitate them.
         if (!$options) {
             $options = [];
         } else if (!is_array($options)) {
             $options = ['where' => ['id' => $options]];
         }
 
+        // Set a default param array
         $values = [
             'from' => $table,
             'vals' => ['*'],
@@ -49,20 +57,70 @@ class DatabaseDriverPDO extends DatabaseDriver {
             'limit' => []
         ];
 
+        // Add our options to the param array
         foreach ($options as $key => $val) {
             if (isset($values[$key])) {
                 $values[$key] = $val;
             }
         }
 
+        // Call the builder select function
         $query = call_user_func_array([$this->builder, 'select'], $values);
 
+        // Return the query
         return $this->query($query);
     }
 
+    /**
+     * Insert a row
+     *
+     * @param string $table Table to insert into
+     * @param array $data Data to insert
+     */
     public function insert($table, $data) {
+        // Store the query type in the object.
+        $this->type = static::INSERT;
+
+        // Ask the builder for the query.
         $query = $this->builder->insert($table, $data);
 
+        // Execute the query
+        return $this->query($query);
+    }
+
+    /**
+     * Update a row
+     * If you have previously selected a item, you can simple pass
+     * the values to update instead of any where or table values.
+     *
+     * @param string $table Table to update
+     * @param array $data Data to set
+     * @param array $where Limit the update
+     */
+    public function update($table, $data = false, $where = []) {
+        // Check if we can generate table & where data from a previous select statement, if it's missing.
+        if ($this->query && $this->type === static::SELECT && is_array($table) && !$data && $used = $this->table()) {
+            // Swap the data and table around
+            $data = $table;
+            $table = $used;
+
+            // Generate the where for the tables selecte
+            $ids = [];
+            while ($row = $this->fetch()) $ids[] = $row['id'];
+            $where = ['id' => $ids];
+
+        } else if (!$data) {
+            // If we only have a table, we can't do anything
+            return false;
+        }
+
+        // Set the type to update
+        $this->type = static::UPDATE;
+
+        // Generate the query
+        $query = $this->builder->update($table, $data, $where);
+
+        // Execute the query
         return $this->query($query);
     }
 
@@ -72,8 +130,10 @@ class DatabaseDriverPDO extends DatabaseDriver {
      * @return array Associative array of data
      */
     public function fetch($table = null, $options = null) {
+        // If we're using it as a shortcut for find, call find
         if (!is_null($table) && !is_null($options)) $this->find($table, $options);
 
+        // Fetch a row from the query
         return $this->query->fetch(PDO::FETCH_ASSOC);
     }
 
@@ -83,8 +143,10 @@ class DatabaseDriverPDO extends DatabaseDriver {
      * @return array Array of associative arrays of data
      */
     public function fetch_all($table = null, $options = null) {
+        // If we're using it as a shortcut for find, call find
         if (!is_null($table) && !is_null($options)) $this->find($table, $options);
 
+        // Fetch all the rows from the query
         return $this->query->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -95,11 +157,15 @@ class DatabaseDriverPDO extends DatabaseDriver {
      * @return int|bool Count of affected rows from the last query, or false.
      */
     public function count() {
+        // If we don't have a query to operate from, die.
         if (!$this->query) return false;
+
+        // If we're trying to get the count for a select statement, call the dedicated function
         if ($this->type === static::SELECT) {
             return $this->select_count();
         }
 
+        // Return the count
         return $this->query->rowCount();
     }
 
@@ -111,11 +177,14 @@ class DatabaseDriverPDO extends DatabaseDriver {
      * @return int|bool Count of rows in last select statement, or false
      */
     public function select_count() {
+        // If we don't have a query, or it isn't a select query, die.
         if (!$this->query || $this->type !== static::SELECT) return false;
 
+        // Loop through all the rows, adding to the count
         $count = 0;
         while ($this->fetch()) $count++;
 
+        // Return the count
         return $count;
     }
 
@@ -125,12 +194,24 @@ class DatabaseDriverPDO extends DatabaseDriver {
      * @param string $sql sql to run
      */
     private function query($sql) {
-        if ($this->connection) {
-            $this->query = $this->connection->query($sql);
+        // Die if we're not connected
+        if (!$this->connection) return false;
 
-            return $this;
-        }
+        // Run the query, and save it.
+        $this->query = $this->connection->query($sql);
 
-        return false;
+        // Return ourself for chaining
+        return $this;
+    }
+
+    /**
+     * Get the table that the last query was ran on.
+     * This will have to be extended for different drivers that this isn't
+     * supported on.
+     *
+     * @return string Table the last query was ran on.
+     */
+    private function table() {
+        return $this->query->getColumnMeta(0)['table'];
     }
 }

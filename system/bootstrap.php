@@ -86,3 +86,7 @@ Service::register('database.driver', function($config) {
 
     return new $class($builder, $config);
 });
+
+Service::singleton('config', function() {
+    return new Config;
+});

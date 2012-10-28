@@ -86,13 +86,3 @@ Service::register('database.driver', function($config) {
 
     return new $class($builder, $config);
 });
-
-$db = new Database(['driver' => [
-    'type' => 'mysql',
-    'host' => 'localhost',
-    'username' => 'root',
-    'password' => 'root',
-    'database' => 'Scaffold'
-]]);
-
-var_dump($db->find('blah', 2)->update(['hash_1' => 'blah']));

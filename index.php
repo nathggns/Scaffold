@@ -33,7 +33,7 @@ defined('DS') or define('DS', DIRECTORY_SEPARATOR);
  * Access to the root folder, independent of the
  * location of the file using it.
  */
-defined('ROOT') or define('ROOT', pathinfo(__FILE__, PATHINFO_DIRNAME) . DS);
+defined('ROOT') or define('ROOT', dirname(__FILE__) . DS);
 
 /**
  * Access to the system folder, independent of the

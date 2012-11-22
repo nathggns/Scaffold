@@ -71,7 +71,12 @@ Service::register('router.default', function() {
     return $router;
 });
 
-Service::register('database.driver', function($config) {
+Service::register('database.driver', function($config = false) {
+
+    if (!$config) {
+        $config = Service::get('config')->get('database');
+    }
+
     $parent = 'DatabaseDriver';
     $type = $config['type'];
     $class = $parent . $type;
@@ -85,6 +90,10 @@ Service::register('database.driver', function($config) {
     $builder = new DatabaseQueryBuilderSQL();
 
     return new $class($builder, $config);
+});
+
+Service::singleton('database', function() {
+    return new Database(Service::get('config'));
 });
 
 Service::singleton('config', function() {

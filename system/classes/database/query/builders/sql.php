@@ -11,7 +11,24 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
     private $joins = ['AND', 'OR'];
 
     public function select($table, $vals = ['*'], $conds = [], $group = [], $order = [], $having = [], $limit = []) {
-        $table = $this->backtick($table);
+
+        if (!is_array($table)) {
+            $table = [$table];
+        }
+
+        $parts = [];
+        foreach ($table as $key => $val) {
+            $col = $this->backtick(is_int($key) ? $val : $key);
+
+            if (!is_int($key)) {
+                $col .= ' AS ' . $this->backtick($val);
+            }
+
+            $parts[] = $col;
+        }
+
+        $table = implode(',', $parts);
+
         $vals = $this->backtick($vals);
 
         foreach ($vals as $key => $val) {
@@ -30,6 +47,8 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         if (count($limit) > 0) $query .= ' ' . $this->limit($limit);
 
         $query .= ';';
+
+        var_dump($query);
 
         return $query;
     }

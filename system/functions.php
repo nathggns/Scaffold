@@ -109,3 +109,41 @@ function arguments($keys, $args) {
 
     return $vals;
 }
+
+/**
+ * Find files both in the application and system folders
+ */
+function get_files($pattern, $recursive = true) {
+    $parts = ['system' => SYSTEM, 'application' => APPLICATION];
+    $files = [];
+    $function = $recursive ? 'recursive_glob' : 'glob';
+
+    foreach ($parts as $name => $path) {
+        $files[$name] = [];
+        $path = $path . $pattern;
+        $dir = dirname($path);
+        $filter = basename($path);
+
+        if (!file_exists($dir) || !is_dir($dir)) continue;
+
+        $files[$name] = call_user_func($function, $path);
+    }
+
+    return $files;
+}
+
+/**
+ * Overwrite one array with another, recursively.
+ */
+function recursive_overwrite($parent, $child) {
+
+    foreach ($child as $key => $val) {
+        if (is_array($parent[$key])) {
+            $val = recursive_overwrite($parent[$key], $val);
+        }
+
+        $parent[$key] = $val;
+    }
+
+    return $parent;
+}

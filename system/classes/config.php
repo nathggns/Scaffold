@@ -2,21 +2,34 @@
 
 class Config {
 	
-	private $config;
-	private $path;
+	private $config = [];
 
-	public function __construct($path = null) {
+	public function __construct() {
 
-		if (is_null($path)) $path = 'config.php';
-
-		if (is_array($path)) {
-			$config = $path;
-			$path = null;
-		} else {
-			$config = load_file($path);
+		$files = get_files('config/*.php');
+		
+		$config = [];
+		foreach ($files['system'] as $file) {
+			$name = pathinfo($file, PATHINFO_FILENAME);
+			$config[$name] = include($file);
 		}
 
-		$this->path = $path;
+		foreach ($files['application'] as $file) {
+			$name = pathinfo($file, PATHINFO_FILENAME);
+			if (!isset($config[$name])) $config[$name] = [];
+			$config[$name] = recursive_overwrite($config[$name], include($file));
+		}
+
+		foreach ($config as $name => $part) {
+			$real = $part['default'];
+
+			if (ENVIROMENT && isset($part[ENVIROMENT])) {
+				$real = recursive_overwrite($real, $part[ENVIROMENT]);
+			}
+
+			$config[$name] = $real;
+		}
+
 		$this->config = $config;
 	}
 

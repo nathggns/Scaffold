@@ -10,7 +10,8 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
     private $operators = ['=', '>', '<', '<>', '!='];
     private $joins = ['AND', 'OR'];
 
-    public function select($table, $vals = ['*'], $conds = [], $group = [], $order = [], $having = [], $limit = []) {
+    public function select($options) {
+        extract($this->extract($options));
 
         if (!is_array($table)) {
             $table = [$table];

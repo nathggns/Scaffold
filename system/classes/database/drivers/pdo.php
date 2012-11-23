@@ -65,7 +65,15 @@ class DatabaseDriverPDO extends DatabaseDriver {
         }
 
         // Call the builder select function
-        $query = call_user_func_array([$this->builder, 'select'], $values);
+        $query = $this->builder->select([
+            'table' => $values['from'],
+            'vals' => $values['vals'],
+            'conds' => $values['where'],
+            'order' => $values['order'],
+            'group' => $values['group'],
+            'having' => $values['having'],
+            'limit' => $values['limit']
+        ]);
 
         // Return the query
         return $this->query($query);

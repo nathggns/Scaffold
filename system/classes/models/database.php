@@ -35,7 +35,7 @@ class ModelDatabase {
 	 * Model class name prefix. Shouldn't need to change if the application
 	 * follows autoloader rules.
 	 */
-	protected $prefix = 'Model';
+	protected static $prefix = 'Model';
 
 	/**
 	 * Names of all properties, to avoid saving class data to a row.
@@ -87,7 +87,7 @@ class ModelDatabase {
 		// Initiate all of our models
 		foreach ($this->relationships as $type => $relationships) {
 			foreach ($relationships as $relationship) {
-				$className = $this->prefix . $relationship;
+				$className = static::$prefix . $relationship;
 				$this->models[$relationship] = [
 					'obj' => new $className,
 					'type' => $type
@@ -195,9 +195,9 @@ class ModelDatabase {
 	 * Guess the name of our model
 	 */
 	private function guess_name($class) {
-		$length = strlen($this->prefix);
+		$length = strlen(static::$prefix);
 
-		if (substr($class, 0, $length) === $this->prefix) {
+		if (substr($class, 0, $length) === static::$prefix) {
 			return substr($class, $length);
 		}
 

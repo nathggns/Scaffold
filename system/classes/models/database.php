@@ -1,5 +1,14 @@
 <?php defined('SCAFFOLD') or die;
 
+/**
+ * Basic Database Model.
+ *
+ * @todo Relationship Types
+ * @todo Validation
+ * @todo ORM
+ * @todo Writing
+ * @todo Initiate as a record
+ */
 class ModelDatabase {
 
 	/**

@@ -126,7 +126,7 @@ function get_files($pattern, $recursive = true) {
 
         if (!file_exists($dir) || !is_dir($dir)) continue;
 
-        $files[$name] = call_user_func($function, $path);
+        $files[$name] = $function($path);
     }
 
     return $files;

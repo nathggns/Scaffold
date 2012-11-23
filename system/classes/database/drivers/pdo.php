@@ -189,6 +189,13 @@ class DatabaseDriverPDO extends DatabaseDriver {
     }
 
     /**
+     * Get the structure of a table
+     */
+    public function structure($table) {
+        return $this->query($this->builder->structure($table));
+    }
+
+    /**
      * Run a query.
      *
      * @param string $sql sql to run

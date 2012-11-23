@@ -43,12 +43,10 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         if (count($conds) > 0) $query .= ' ' . $this->where($conds);
         if (count($group) > 0) $query .= ' ' . $this->group($group);
         if (count($order) > 0) $query .= ' ' . $this->order($order);
-        if (count($having) > 0) $query .= ' ' . $this->having($order);
+        if (count($having) > 0) $query .= ' ' . $this->having($having);
         if (count($limit) > 0) $query .= ' ' . $this->limit($limit);
 
         $query .= ';';
-
-        var_dump($query);
 
         return $query;
     }
@@ -84,6 +82,14 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         return $query;
     }
 
+    public function structure($table) {
+        return 'SHOW FULL COLUMNS FROM ' . $this->backtick($table) . ';';
+    }
+
+    private function where($conds) {
+        return $this->conds($conds, 'WHERE');
+    }
+
     private function pairs($keys, $data = false) {
         if (!$data) {
             $data = $keys;
@@ -104,10 +110,6 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
 
     private function conds($conds, $query = '') {
         return $query . $this->where_part(0, $conds);
-    }
-
-    public function where($conds) {
-        return $this->conds($conds, 'WHERE');
     }
 
     private function where_part($key, $val, $first = false, $level = 0) {
@@ -163,17 +165,25 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
                 return false;
             }
 
-            $val = [$join, $key, $operator, $value];
+            if ($special = is_numeric($key)) {
+                foreach ($this->operators as $operator) {
+                    if (strpos($value, $operator) !== false) break;
+                }
+
+                list($key, $value) = array_map('trim', explode($operator, $value));
+            }
+
+            $val = [$join, $key, $operator, $value, $special];
 
         } else if ($count > 4) {
             return false;
         }
 
-        list($val, $operator, $key, $join) = array_reverse($val);
+        list($special, $val, $operator, $key, $join) = array_reverse($val);
 
         if (!$first) $sql .= $join . ' ';
         $sql .= $this->backtick($key);
-        $val = $this->escape($val);
+        $val = $special ? $this->backtick($val) : $this->escape($val);
 
         if (is_array($val)) {
             $val = 'IN (' . implode(', ', $val) . ')';

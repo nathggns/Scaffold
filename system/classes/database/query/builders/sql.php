@@ -114,9 +114,10 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
     }
 
     private function where_part($key, $val, $first = false, $level = 0) {
+
         $sql = '';
 
-        if (is_int($key) && is_array($val) && is_hash($val)) {
+        if (is_int($key) && is_array($val) && (is_hash($val) || $level < 1)) {
 
             if ($level > 0) {
 
@@ -150,6 +151,7 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
             $join = 'AND';
             $operator = '=';
 
+
             if ($count === 2) {
                 $key = $val[0];
             } else if ($count === 3) {
@@ -167,7 +169,8 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
             }
 
             if ($special = is_numeric($key)) {
-                foreach ($this->operators as $operator) {
+
+                foreach ($this->operators as $operator) {   
                     if (strpos($value, $operator) !== false) break;
                 }
 

@@ -108,9 +108,7 @@ class ModelDatabase {
 	/**
 	 * Find a row, based on our row data.
 	 */
-	public function fetch($conditions) {
-		/* @TODO: Actaully fetch the data... */
-
+	public function fetch($conditions = []) {
 		$tables = [$this->table_name => $this->name];
 		$fields = [];
 
@@ -128,6 +126,7 @@ class ModelDatabase {
 		}
 
 		$having = [];
+
 		foreach ($conditions as $key => $val) {
 			if (strpos($val, '.') === false) {
 				$key = $this->name . '.' . $key;
@@ -153,23 +152,33 @@ class ModelDatabase {
 		}
 
 		$results = $this->driver->find($tables, array('having' => $conditions, 'vals' => $fields))->fetch_all();
-
 		$data = [];
-		$names = array_keys($this->models);
 
 		foreach ($results as $result) {
-			$pieces = $this->expand($result, $fields);
+			$data[] = $this->expand($result, $fields);
+		}
 
-			foreach ($pieces as $name => $piece) {
-				if (in_array($name, $names)) {
-					$data[$name][] = $piece;
-				} else if (!isset($data[$name])) {
-					$data[$name] = $piece;
-				}
+		$rows = [];
+
+		foreach ($data as $piece) {
+
+			$main = $piece[$this->name];
+			$id = $main['id'];
+
+			if (!isset($rows[$id])) {
+				$rows[$id] = [
+					$this->name => $main
+				];
+			}
+
+			foreach ($piece as $key => $row) {
+				if ($key === $this->name) continue;
+				
+				$rows[$id][$key][] = $row;
 			}
 		}
 
-		return $data;
+		return $rows;
 	}
 
 	private function expand($object, $fields) {

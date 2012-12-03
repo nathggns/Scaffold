@@ -107,97 +107,60 @@ class ModelDatabase {
 
 	/**
 	 * Find a row, based on our row data.
+	 *
+	 * @todo Use on query instead of many.
+	 *       I'm having trouble making this work with one query, so I am going to use multiple queries instead.
 	 */
 	public function fetch($conditions = []) {
-		$tables = [$this->table_name => $this->name];
-		$fields = [];
 
-		foreach ($this->schema as $field) {
-			$fields[$this->name . '.' . $field] = $this->name . '_' . $field;
-		}
-
-		foreach ($this->models as $name => $model) {
-			$tables[$model['obj']->table_name] = $model['obj']->name;
-
-			foreach ($model['obj']->schema as $field) {
-				$fields[$model['obj']->name . '.' . $field] = $model['obj']->name . '_' . $field;
-			}
-
-		}
-
-		$having = [];
+		$table_conditions = [];
 
 		foreach ($conditions as $key => $val) {
-			if (strpos($val, '.') === false) {
+			
+			if (strpos($key, '.') === false) {
 				$key = $this->name . '.' . $key;
 			}
 
-			$having[$key] = $val;
+			list($table, $key) = explode('.', $key);
+			
+			$table_conditions[$table][$key] = $val;
+
 		}
 
-		$conditions = $having;
+		$rows = $this->driver->find($this->table_name, [
+			'where' => $table_conditions[$this->name]
+		])->fetch_all();
 
-		foreach ($this->models as $name => $rel) {
-			$condition = [];
+		$real_rows = [];
 
-			switch ($rel['type']) {
-				case 'oneToMany':
-				case 'oneToOne':
-					$condition[] = $name . '.' . Inflector::singularize($this->table_name) . '_id' . ' = ' . $this->name . '.id';
+		foreach ($rows as $row) {
+			$real_row = [];
 
-				break;
+			$real_row[$this->name] = $row;
+			
+			$real_rows[] = $real_row;
+		}
+
+		$single = Inflector::singularize($this->table_name);
+
+		foreach ($real_rows as $key => $real_row) {
+
+			foreach ($this->models as $model) {
+
+				$real_row[$model['obj']->name] = $this->driver->find($model['obj']->table_name, [
+					'where' => [
+						$single . '_id' => $real_row[$this->name]['id']
+					]
+				])->fetch_all();
+
 			}
 
-			$conditions = array_merge($conditions, $condition);
+			$real_rows[$key] = $real_row;
+
 		}
+		
+		return $real_row;
 
-		$results = $this->driver->find($tables, array('having' => $conditions, 'vals' => $fields))->fetch_all();
-		$data = [];
-
-		foreach ($results as $result) {
-			$data[] = $this->expand($result, $fields);
-		}
-
-		$rows = [];
-
-		foreach ($data as $piece) {
-
-			$main = $piece[$this->name];
-			$id = $main['id'];
-
-			if (!isset($rows[$id])) {
-				$rows[$id] = [
-					$this->name => $main
-				];
-			}
-
-			foreach ($piece as $key => $row) {
-				if ($key === $this->name) continue;
-				
-				$rows[$id][$key][] = $row;
-			}
-		}
-
-		return $rows;
-	}
-
-	private function expand($object, $fields) {
-		$reverse = array_flip($fields);
-		$data = [];
-
-		foreach ($object as $key => $val) {
-			$realkey = $reverse[$key];
-			$parts = explode('.', $realkey);
-			$piece = $val;
-
-			while (!empty($parts)) {
-				$piece = [array_pop($parts) => $piece];
-			}
-
-			$data = array_merge_recursive($data, $piece);
-		}
-
-		return $data;
 	}
 
 	/**

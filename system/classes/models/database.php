@@ -147,12 +147,33 @@ class ModelDatabase {
 
 			foreach ($this->models as $model) {
 
-				$real_row[$model['obj']->name] = $this->driver->find($model['obj']->table_name, [
-					'where' => [
-						$single . '_id' => $real_row[$this->name]['id']
-					]
-				])->fetch_all();
+				$obj = $model['obj'];
 
+				$where = [
+					$single . '_id' => $real_row[$this->name]['id']
+				];
+
+				if (isset($table_conditions[$obj->name])) {
+					$where = array_merge($where, $table_conditions[$obj->name]);
+				}
+
+				$conditions = [
+					'where' => $where
+				];
+
+				if ($model['type'] === 'oneToOne') {
+					$conditions['limit'] = 1;
+				}
+
+				$this->driver->find($obj->table_name, $conditions);
+				
+				if ($model['type'] === 'oneToOne') {
+					$result = $this->driver->fetch();
+				} else {
+					$result = $this->driver->fetch_all();
+				}
+
+				$real_row[$obj->name] = $result;
 			}
 
 			$real_rows[$key] = $real_row;

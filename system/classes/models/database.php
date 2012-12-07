@@ -1,51 +1,11 @@
 <?php defined('SCAFFOLD') or die;
 
-/**
- * Basic Database Model.
- *
- * @todo Relationship Types
- * @todo Validation
- * @todo ORM
- * @todo Writing
- * @todo Initiate as a record
- */
-class ModelDatabase {
+class ModelDatabase implements ArrayAccess {
 
 	/**
-	 * Models name, used for relating it to a database table.
-	 * 
-	 * This can be set by the child class, or can be ripped from the class
-	 * name.
+	 * List of all default properties in the model
 	 */
-	protected $name;
-
-	/**
-	 * The database table this class is supposed to represent.
-	 *
-	 * If not provided, we can guess it using the Inflector.
-	 */
-	protected $table_name;
-
-	/**
-	 * Class name. Used for various calculations
-	 */
-	protected $class_name;
-
-	/**
-	 * Model class name prefix. Shouldn't need to change if the application
-	 * follows autoloader rules.
-	 */
-	protected static $prefix = 'Model';
-
-	/**
-	 * Names of all properties, to avoid saving class data to a row.
-	 */
-	protected $properties = [];
-
-	/**
-	 * Row data
-	 */
-	protected $row = [];
+	protected $properties;
 
 	/**
 	 * Database driver
@@ -53,135 +13,91 @@ class ModelDatabase {
 	protected $driver;
 
 	/**
-	 * All the models we have to request data from
+	 * What is the model prefixed with?
 	 */
-	protected $models = [];
+	protected static $prefix = 'Model';
 
 	/**
-	 * Our relationships
+	 * Schema for the table
 	 */
-	protected $relationships = [];
-
 	protected $schema = [];
+
+	/**
+	 * We need to know the class name in order to guess other properties if they're not provided.
+	 */
+	protected $class_name;
+
+	/**
+	 * The table the model represents
+	 */
+	protected $table_name;
+
+	/**
+	 * The model name
+	 */
+	protected $name;
+
+	/**
+	 * The conditions for the model
+	 */
+	protected $conditions = [];
+
+	/**
+	 * Rows of data
+	 */
+	protected $data = [];
+
+	protected $mode = 'multi';
+
+	protected $rows = [];
 
 	/**
 	 * Inital Setup
 	 */
 	public function __construct($id = null) {
-		// Set our base properties, so that we know which properties are 'data' properties.
+
 		$this->properties = array_keys(get_object_vars($this));
 
-		// Store the class name
-		$this->class_name = get_class($this);
+		// Store our database connection
+		$this->driver = Service::get('database');
 
-		// If we dont have a name, guess it.
+		// Set all of our properties
+		if (!$this->class_name) {
+			$this->class_name = get_class($this);
+		}
+
 		if (!$this->name) {
 			$this->name = $this->guess_name($this->class_name);
 		}
 
-		// If we don't have a table_name, guess it.
 		if (!$this->table_name) {
 			$this->table_name = $this->guess_table_name($this->name);
 		}
 
-		// Initiate all of our models
-		foreach ($this->relationships as $type => $relationships) {
-			foreach ($relationships as $relationship) {
-				$className = static::$prefix . $relationship;
-				$this->models[$relationship] = [
-					'obj' => new $className,
-					'type' => $type
-				];
-			}
+		$structure = $this->driver->structure($this->table_name)->fetch_all();
+
+		foreach ($structure as $row) {
+			$this->schema[$row['Field']] = $row;
 		}
 
-		// Store out database connection
-		$this->driver = Service::get('database');
-
-		$this->schema = $this->driver->structure($this->table_name)->fetch_all();
-
-		foreach ($this->schema as $k => $f) {
-			$this->schema[$k] = $f['Field'];
+		// If we have an id, 'become' it
+		if (!is_null($id)) {
+			$this->fetch(['id' => $id]);
 		}
 	}
 
-	/**
-	 * Find a row, based on our row data.
-	 *
-	 * @todo Use on query instead of many.
-	 *       I'm having trouble making this work with one query, so I am going to use multiple queries instead.
-	 */
 	public function fetch($conditions = []) {
+		$this->mode = 'single';
+		$this->conditions = $conditions;
 
-		$table_conditions = [];
+		return $this;
+	}
 
-		foreach ($conditions as $key => $val) {
-			
-			if (strpos($key, '.') === false) {
-				$key = $this->name . '.' . $key;
-			}
+	public function fetch_all($conditions = []) {
+		$this->mode = 'multi';
+		$this->conditions = $conditions;
 
-			list($table, $key) = explode('.', $key);
-			
-			$table_conditions[$table][$key] = $val;
-
-		}
-
-		$rows = $this->driver->find($this->table_name, [
-			'where' => $table_conditions[$this->name]
-		])->fetch_all();
-
-		$real_rows = [];
-
-		foreach ($rows as $row) {
-			$real_row = [];
-
-			$real_row[$this->name] = $row;
-			
-			$real_rows[] = $real_row;
-		}
-
-		$single = Inflector::singularize($this->table_name);
-
-		foreach ($real_rows as $key => $real_row) {
-
-			foreach ($this->models as $model) {
-
-				$obj = $model['obj'];
-
-				$where = [
-					$single . '_id' => $real_row[$this->name]['id']
-				];
-
-				if (isset($table_conditions[$obj->name])) {
-					$where = array_merge($where, $table_conditions[$obj->name]);
-				}
-
-				$conditions = [
-					'where' => $where
-				];
-
-				if ($model['type'] === 'oneToOne') {
-					$conditions['limit'] = 1;
-				}
-
-				$this->driver->find($obj->table_name, $conditions);
-				
-				if ($model['type'] === 'oneToOne') {
-					$result = $this->driver->fetch();
-				} else {
-					$result = $this->driver->fetch_all();
-				}
-
-				$real_row[$obj->name] = $result;
-			}
-
-			$real_rows[$key] = $real_row;
-
-		}
-		
-		return $real_row;
-
+		return $this;
 	}
 
 	/**
@@ -205,18 +121,72 @@ class ModelDatabase {
 	}
 
 	/**
-	 * Forward all property setting to the row property
+	 * Handle gets
 	 */
-	public function __set($name, $value) {
-		return $this->row[$name] = $value;
+	public function __get($key) {
+		if (!isset($this->schema[$key]) || $this->mode !== 'single') {
+			throw new Exception('Property ' . $key . ' does not exist on model ' . $this->name);
+		}
+
+		if (isset($this->data[$key])) {
+			return $this->data[$key];
+		}
+
+		if ($this->mode === 'single') {
+			$this->driver->find(
+				$this->table_name,
+				[
+					'where' => $this->conditions
+				]
+			);
+
+			$result = $this->driver->fetch();
+			$this->data = $result;
+
+			return $this->data[$key];	
+		}
 	}
 
-	/**
-	 * Forward all property getting to the row property
-	 */
-	public function __get($name) {
-		return $this->row[$name];
+	public function offsetExists($offset) {
+		return true;
 	}
 
+	public function offsetGet($offset) {
+		if ($this->mode != 'multi') {
+			throw new Exception('Cannot access row via index');
+		}
+
+		if (isset($this->rows[$offset])) {
+			return $this->rows[$offset];
+		}
+
+		$this->rows = [];
+
+		$this->driver->find(
+			$this->table_name,
+			[
+				'vals' => ['id'],
+				'where' => $this->conditions
+			]
+		);
+
+		$results = $this->driver->fetch_all();
+
+		$class = $this->class_name;
+
+		foreach ($results as $result) {
+			$this->rows[] = new $class($result['id']);
+		}
+
+		return $this->rows[$offset];
+	}
+
+	public function offsetSet($offset, $value) {
+		return null;
+	}
+
+	public function offsetUnset($offset) {
+		return null;
+	}
 
 }

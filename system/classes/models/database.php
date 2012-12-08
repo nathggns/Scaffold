@@ -1,5 +1,15 @@
 <?php defined('SCAFFOLD') or die;
 
+/**
+ * Lazy loaded Database Model
+ * 
+ * @todo Data Validation
+ * @todo HABTM
+ * @todo More advanced finding
+ * @todo Export data as array
+ * @todo Writing
+ * @todo Deleting
+ */
 class ModelDatabase implements ArrayAccess {
 
 	/**
@@ -51,6 +61,8 @@ class ModelDatabase implements ArrayAccess {
 
 	protected $rows = [];
 
+	protected $relationships = [];
+
 	/**
 	 * Inital Setup
 	 */
@@ -80,6 +92,9 @@ class ModelDatabase implements ArrayAccess {
 			$this->schema[$row['Field']] = $row;
 		}
 
+		// Load in our relationships...
+		$this->relationships();
+
 		// If we have an id, 'become' it
 		if (!is_null($id)) {
 			$this->fetch(['id' => $id]);
@@ -98,6 +113,30 @@ class ModelDatabase implements ArrayAccess {
 		$this->conditions = $conditions;
 
 		return $this;
+	}
+
+	protected function relationships() {
+		// We don't have any default relationships
+	}
+
+	protected function hasMany($model, $alias = null, $foreign_key = null) {
+		$this->relationship('hasMany', $model, $alias, $foreign_key);
+	}
+
+	protected function hasOne($model, $alias = null, $foreign_key = null) {
+		$this->relationship('hasOne', $model, $alias, $foreign_key);
+	}
+
+	protected function belongsTo($model, $alias = null, $foreign_key = null) {
+		$this->relationship('belongsTo', $model, $alias, $foreign_key);
+	}
+
+	protected function relationship($type, $model, $alias = null, $foreign_key = null) {
+		$this->relationships[$type][$model] = [
+			'model' => $model,
+			'alias' => $alias,
+			'foreign_key' => $foreign_key
+		];
 	}
 
 	/**
@@ -124,7 +163,8 @@ class ModelDatabase implements ArrayAccess {
 	 * Handle gets
 	 */
 	public function __get($key) {
-		if (!isset($this->schema[$key]) || $this->mode !== 'single') {
+
+		if ($this->mode !== 'single' || (count($this->data) > 0 && !isset($this->data[$key]))) {
 			throw new Exception('Property ' . $key . ' does not exist on model ' . $this->name);
 		}
 
@@ -141,6 +181,62 @@ class ModelDatabase implements ArrayAccess {
 			);
 
 			$result = $this->driver->fetch();
+
+			foreach ($this->relationships as $type => $relationships) {
+				foreach ($relationships as $model => $rel) {
+					$class_name = static::$prefix . $model;
+					$obj = new $class_name;
+
+					$foreign_key = $rel['foreign_key'];
+
+					if (!$foreign_key) {
+						switch ($type) {
+							case 'hasMany':
+							case 'hasOne':
+								$foreign_key = Inflector::singularize($this->table_name) . '_id';
+							break;
+
+							case 'belongsTo':
+								$foreign_key = Inflector::singularize($obj->table_name) . '_id';
+							break;
+						}
+					}
+
+					switch ($type) {
+						case 'hasMany':
+							$obj->fetch_all([
+								$foreign_key => $result['id']
+							]);
+						break;
+
+						case 'hasOne':
+							$obj->fetch([
+								$foreign_key => $result['id']
+							]);
+						break;
+
+						case 'belongsTo':
+							$obj->fetch([
+								'id' => $result[$foreign_key]
+							]);
+						break;
+					}
+
+					$alias = $rel['alias'];
+
+					if (!$alias) {
+						$alias = $obj->table_name;
+
+						if (in_array($type, ['hasOne', 'belongsTo'])) {
+							$alias = Inflector::singularize($alias);
+						}
+					}
+
+					$result[$alias] = $obj;
+
+				}
+			}
+
 			$this->data = $result;
 
 			return $this->data[$key];	

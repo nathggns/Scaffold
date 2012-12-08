@@ -53,15 +53,29 @@ class ModelDatabase implements ArrayAccess {
 	protected $conditions = [];
 
 	/**
-	 * Rows of data
+	 * The main row of data.
 	 */
 	protected $data = [];
 
-	protected $mode = 'multi';
-
+	/**
+	 * An array of model objects.
+	 */
 	protected $rows = [];
 
+	/**
+	 * Store the current fetch mode
+	 */
+	protected $mode;
+
+	/**
+	 * Our relationships
+	 */
 	protected $relationships = [];
+
+	/**
+	 * Updated values
+	 */
+	protected $updated = [];
 
 	/**
 	 * Inital Setup
@@ -111,6 +125,20 @@ class ModelDatabase implements ArrayAccess {
 	public function fetch_all($conditions = []) {
 		$this->mode = 'multi';
 		$this->conditions = $conditions;
+
+		return $this;
+	}
+
+	/**
+	 * Save data.
+	 */
+	public function save() {
+
+		if (count($this->updated) > 0 && $this->mode === 'single') {
+			$this->driver->update($this->table_name, $this->updated, [
+				'id' => $this->id
+			]);
+		}
 
 		return $this;
 	}
@@ -243,8 +271,21 @@ class ModelDatabase implements ArrayAccess {
 		}
 	}
 
+	public function __set($key, $value) {
+
+		if (isset($this->schema[$key])) {
+			$this->updated[$key] = $value;
+			
+			if (isset($this->data[$key])) {
+				$this->data[$key] = $value;
+			}
+
+		}
+
+	}
+
 	public function offsetExists($offset) {
-		return true;
+		return isset($this->rows[$offset]);
 	}
 
 	public function offsetGet($offset) {

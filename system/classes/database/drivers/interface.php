@@ -11,4 +11,6 @@ interface DatabaseDriverInterface {
     public function fetch_all($table = null, $options = null);
     public function count();
     public function structure($table);
+    public function insert($table, $data);
+    public function update($table, $data = false, $where = false);
 }

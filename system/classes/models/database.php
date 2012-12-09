@@ -113,8 +113,8 @@ class ModelDatabase implements ArrayAccess {
 			$this->schema[$row['Field']] = $row;
 		}
 
-		// Load in our relationships...
-		$this->relationships();
+		// Let the child class do custom stuff.
+		$this->init();
 
 		// If we have an id, 'become' it
 		if (!is_null($id)) {
@@ -150,8 +150,8 @@ class ModelDatabase implements ArrayAccess {
 		return $this;
 	}
 
-	protected function relationships() {
-		// We don't have any default relationships
+	protected function init() {
+		// Here to be overwritten
 	}
 
 	protected function has_many($model, $alias = null, $foreign_key = null) {

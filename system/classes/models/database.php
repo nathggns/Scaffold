@@ -98,27 +98,24 @@ class ModelDatabase extends Model {
 	}
 
 	public function fetch($conditions = []) {
+		$this->reset();
 		$this->mode = static::MODE_SINGLE;
 		$this->conditions = $conditions;
-		$this->data = [];
-		$this->rows = [];
 
 		return $this;
 	}
 
 	public function fetch_all($conditions = []) {
+		$this->reset();
 		$this->mode = static::MODE_MULT;
 		$this->conditions = $conditions;
-		$this->data = [];
-		$this->rows = [];
 
 		return $this;
 	}
 
 	public function create() {
+		$this->reset();
 		$this->mode = static::MODE_INSERT;
-		$this->data = [];
-		$this->rows = [];
 
 		return $this;
 	}
@@ -134,11 +131,32 @@ class ModelDatabase extends Model {
 
 		if ($this->mode === static::MODE_INSERT) {
 			$this->driver->insert($this->table_name, $this->data);
+			$this->reset();
+			$this->conditions = ['id' => $this->driver->id()];
 		} else if (count($this->updated) > 0 && $this->mode === static::MODE_SINGLE) {
 			$this->driver->update($this->table_name, $this->updated, [
 				'id' => $this->id
 			]);
 		}
+
+		return $this;
+	}
+
+	public function delete() {
+		if ($this->mode !== static::MODE_SINGLE) {
+			throw new Exception('Can\'t delete non-single row');
+		}
+
+		$id = $this->id;
+
+		$this->driver->delete($this->table_name, ['id' => $id]);
+		return $this->reset();
+
+	}
+
+	public function reset() {
+		parent::reset();
+		$this->conditions = [];
 
 		return $this;
 	}

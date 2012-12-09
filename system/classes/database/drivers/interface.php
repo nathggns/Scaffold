@@ -13,4 +13,6 @@ interface DatabaseDriverInterface {
     public function structure($table);
     public function insert($table, $data);
     public function update($table, $data = false, $where = false);
+    public function delete($table, $where = []);
+    public function id();
 }

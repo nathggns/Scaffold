@@ -9,4 +9,6 @@ interface ModelInterface extends ArrayAccess {
 	public function fetch($conditions);
 	public function fetch_all($conditions);
 	public function create();
+	public function delete();
+	public function reset();
 }

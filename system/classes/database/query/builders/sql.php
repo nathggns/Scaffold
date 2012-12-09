@@ -83,6 +83,17 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         return $query;
     }
 
+    public function delete($table, $where = []) {
+        $table = $this->backtick($table);
+        $query = 'DELETE FROM ' . $table;
+
+        if (count($where) > 0) $query .= ' ' . $this->where($where);
+
+        $query .= ';';
+
+        return $query;
+    }
+
     public function structure($table) {
         return 'SHOW FULL COLUMNS FROM ' . $this->backtick($table) . ';';
     }

@@ -204,6 +204,19 @@ class DatabaseDriverPDO extends DatabaseDriver {
     }
 
     /**
+     * Get the last insert id
+     */
+    public function id() {
+        return $this->connection->lastInsertId();
+    }
+
+    public function delete($table, $where = []) {
+        $query = $this->builder->delete($table, $where);
+
+        return $this->query($query);
+    }
+
+    /**
      * Run a query.
      *
      * @param string $sql sql to run

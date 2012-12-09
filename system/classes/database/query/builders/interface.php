@@ -10,4 +10,5 @@ interface DatabaseQueryBuilderInterface {
     public function insert($table, $data);
     public function update($table, $data, $where = []);
     public function structure($table);
+    public function delete($table);
 }

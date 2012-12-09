@@ -44,6 +44,13 @@ abstract class Model implements ModelInterface {
         return true;
     }
 
+    public function reset() {
+        $this->mode = null;
+        $this->data = [];
+        $this->rows = [];
+        $this->updated = [];
+    }
+
     public function offsetSet($offset, $value) {
         return null;
     }

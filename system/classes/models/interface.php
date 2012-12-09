@@ -11,4 +11,5 @@ interface ModelInterface extends ArrayAccess {
 	public function create();
 	public function delete();
 	public function reset();
+	public function find($conditions, $mode = null);
 }

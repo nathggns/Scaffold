@@ -3,10 +3,7 @@
 /**
  * Lazy loaded Database Model
  * @todo HABTM
- * @todo More advanced finding
  * @todo Export data as array
- * @todo Writing
- * @todo Deleting
  */
 class ModelDatabase extends Model {
 
@@ -100,7 +97,7 @@ class ModelDatabase extends Model {
 	public function fetch($conditions = []) {
 		$this->reset();
 		$this->mode = static::MODE_SINGLE;
-		$this->conditions = $conditions;
+		$this->conditions['where'] = $conditions;
 
 		return $this;
 	}
@@ -108,6 +105,20 @@ class ModelDatabase extends Model {
 	public function fetch_all($conditions = []) {
 		$this->reset();
 		$this->mode = static::MODE_MULT;
+		$this->conditions['where'] = $conditions;
+
+		return $this;
+	}
+
+	public function find($conditions, $mode = null) {
+
+		$this->reset();
+
+		if (is_null($mode)) {
+			$mode = static::MODE_MULT;
+		}
+
+		$this->mode = $mode;
 		$this->conditions = $conditions;
 
 		return $this;
@@ -220,9 +231,7 @@ class ModelDatabase extends Model {
 
 		$this->driver->find(
 			$this->table_name,
-			[
-				'where' => $this->conditions
-			]
+			$this->conditions
 		);
 
 		$result = $this->driver->fetch();

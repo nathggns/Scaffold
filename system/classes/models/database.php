@@ -12,6 +12,13 @@
  */
 class ModelDatabase implements ArrayAccess {
 
+	const HAS_ONE = 1;
+	const HAS_MANY = 2;
+	const BELONGS_TO = 3;
+
+	const MODE_SINGLE = 4;
+	const MODE_MULT = 5;
+
 	/**
 	 * List of all default properties in the model
 	 */
@@ -116,14 +123,14 @@ class ModelDatabase implements ArrayAccess {
 	}
 
 	public function fetch($conditions = []) {
-		$this->mode = 'single';
+		$this->mode = static::MODE_SINGLE;
 		$this->conditions = $conditions;
 
 		return $this;
 	}
 
 	public function fetch_all($conditions = []) {
-		$this->mode = 'multi';
+		$this->mode = static::MODE_MULT;
 		$this->conditions = $conditions;
 
 		return $this;
@@ -134,7 +141,7 @@ class ModelDatabase implements ArrayAccess {
 	 */
 	public function save() {
 
-		if (count($this->updated) > 0 && $this->mode === 'single') {
+		if (count($this->updated) > 0 && $this->mode === static::MODE_SINGLE) {
 			$this->driver->update($this->table_name, $this->updated, [
 				'id' => $this->id
 			]);
@@ -148,15 +155,15 @@ class ModelDatabase implements ArrayAccess {
 	}
 
 	protected function hasMany($model, $alias = null, $foreign_key = null) {
-		$this->relationship('hasMany', $model, $alias, $foreign_key);
+		$this->relationship(static::HAS_MANY, $model, $alias, $foreign_key);
 	}
 
 	protected function hasOne($model, $alias = null, $foreign_key = null) {
-		$this->relationship('hasOne', $model, $alias, $foreign_key);
+		$this->relationship(static::HAS_ONE, $model, $alias, $foreign_key);
 	}
 
 	protected function belongsTo($model, $alias = null, $foreign_key = null) {
-		$this->relationship('belongsTo', $model, $alias, $foreign_key);
+		$this->relationship(static::BELONGS_TO, $model, $alias, $foreign_key);
 	}
 
 	protected function relationship($type, $model, $alias = null, $foreign_key = null) {
@@ -192,7 +199,7 @@ class ModelDatabase implements ArrayAccess {
 	 */
 	public function __get($key) {
 
-		if ($this->mode !== 'single' || (count($this->data) > 0 && !isset($this->data[$key]))) {
+		if ($this->mode !== static::MODE_SINGLE || (count($this->data) > 0 && !isset($this->data[$key]))) {
 			throw new Exception('Property ' . $key . ' does not exist on model ' . $this->name);
 		}
 
@@ -200,75 +207,73 @@ class ModelDatabase implements ArrayAccess {
 			return $this->data[$key];
 		}
 
-		if ($this->mode === 'single') {
-			$this->driver->find(
-				$this->table_name,
-				[
-					'where' => $this->conditions
-				]
-			);
+		$this->driver->find(
+			$this->table_name,
+			[
+				'where' => $this->conditions
+			]
+		);
 
-			$result = $this->driver->fetch();
+		$result = $this->driver->fetch();
 
-			foreach ($this->relationships as $type => $relationships) {
-				foreach ($relationships as $model => $rel) {
-					$class_name = static::$prefix . $model;
-					$obj = new $class_name;
+		foreach ($this->relationships as $type => $relationships) {
+			foreach ($relationships as $model => $rel) {
+				$class_name = static::$prefix . $model;
+				$obj = new $class_name;
 
-					$foreign_key = $rel['foreign_key'];
+				$foreign_key = $rel['foreign_key'];
 
-					if (!$foreign_key) {
-						switch ($type) {
-							case 'hasMany':
-							case 'hasOne':
-								$foreign_key = Inflector::singularize($this->table_name) . '_id';
-							break;
-
-							case 'belongsTo':
-								$foreign_key = Inflector::singularize($obj->table_name) . '_id';
-							break;
-						}
-					}
-
+				if (!$foreign_key) {
 					switch ($type) {
-						case 'hasMany':
-							$obj->fetch_all([
-								$foreign_key => $result['id']
-							]);
+						case static::HAS_MANY:
+						case static::HAS_ONE:
+							$foreign_key = Inflector::singularize($this->table_name) . '_id';
 						break;
 
-						case 'hasOne':
-							$obj->fetch([
-								$foreign_key => $result['id']
-							]);
-						break;
-
-						case 'belongsTo':
-							$obj->fetch([
-								'id' => $result[$foreign_key]
-							]);
+						case static::BELONGS_TO:
+							$foreign_key = Inflector::singularize($obj->table_name) . '_id';
 						break;
 					}
-
-					$alias = $rel['alias'];
-
-					if (!$alias) {
-						$alias = $obj->table_name;
-
-						if (in_array($type, ['hasOne', 'belongsTo'])) {
-							$alias = Inflector::singularize($alias);
-						}
-					}
-
-					$result[$alias] = $obj;
-
 				}
+
+				switch ($type) {
+					case static::HAS_MANY:
+						$obj->fetch_all([
+							$foreign_key => $result['id']
+						]);
+					break;
+
+					case static::HAS_ONE:
+						$obj->fetch([
+							$foreign_key => $result['id']
+						]);
+					break;
+
+					case static::BELONGS_TO:
+						$obj->fetch([
+							'id' => $result[$foreign_key]
+						]);
+					break;
+				}
+
+				$alias = $rel['alias'];
+
+				if (!$alias) {
+					$alias = $obj->table_name;
+
+					if (in_array($type, [static::HAS_ONE, static::BELONGS_TO])) {
+						$alias = Inflector::singularize($alias);
+					}
+				}
+
+				$result[$alias] = $obj;
+
 			}
-
-			$this->data = $result;
-
-			return $this->data[$key];	
 		}
+
+		$this->data = $result;
+
+		return $this->data[$key];	
 	}
 
 	public function __set($key, $value) {
@@ -289,7 +294,7 @@ class ModelDatabase implements ArrayAccess {
 	}
 
 	public function offsetGet($offset) {
-		if ($this->mode != 'multi') {
+		if ($this->mode != static::MODE_MULT) {
 			throw new Exception('Cannot access row via index');
 		}
 

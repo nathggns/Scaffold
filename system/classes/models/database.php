@@ -176,23 +176,24 @@ class ModelDatabase extends Model {
 		// Here to be overwritten
 	}
 
-	protected function has_many($model, $alias = null, $foreign_key = null) {
-		$this->relationship(static::HAS_MANY, $model, $alias, $foreign_key);
+	protected function has_many($model, $alias = null, $foreign_key = null, $local_key = 'id') {
+		$this->relationship(static::HAS_MANY, $model, $alias, $foreign_key, $local_key);
 	}
 
-	protected function has_one($model, $alias = null, $foreign_key = null) {
-		$this->relationship(static::HAS_ONE, $model, $alias, $foreign_key);
+	protected function has_one($model, $alias = null, $foreign_key = null, $local_key = 'id') {
+		$this->relationship(static::HAS_ONE, $model, $alias, $foreign_key, $local_key);
 	}
 
-	protected function belongs_to($model, $alias = null, $foreign_key = null) {
-		$this->relationship(static::BELONGS_TO, $model, $alias, $foreign_key);
+	protected function belongs_to($model, $alias = null, $foreign_key = null, $local_key = 'id') {
+		$this->relationship(static::BELONGS_TO, $model, $alias, $foreign_key, $local_key);
 	}
 
-	protected function relationship($type, $model, $alias = null, $foreign_key = null) {
+	protected function relationship($type, $model, $alias = null, $foreign_key = null, $local_key = 'id') {
 		$this->relationships[$type][$model] = [
 			'model' => $model,
 			'alias' => $alias,
-			'foreign_key' => $foreign_key
+			'foreign_key' => $foreign_key,
+			'local_key' => $local_key
 		];
 	}
 
@@ -242,16 +243,17 @@ class ModelDatabase extends Model {
 				$obj = new $class_name;
 
 				$foreign_key = $rel['foreign_key'];
+				$local_key = $rel['local_key'];
 
 				if (!$foreign_key) {
 					switch ($type) {
 						case static::HAS_MANY:
 						case static::HAS_ONE:
-							$foreign_key = Inflector::singularize($this->table_name) . '_id';
+							$foreign_key = Inflector::singularize($this->table_name) . '_' . $local_key;
 						break;
 
 						case static::BELONGS_TO:
-							$foreign_key = Inflector::singularize($obj->table_name) . '_id';
+							$foreign_key = Inflector::singularize($obj->table_name) . '_' . $local_key;
 						break;
 					}
 				}
@@ -259,19 +261,19 @@ class ModelDatabase extends Model {
 				switch ($type) {
 					case static::HAS_MANY:
 						$obj->fetch_all([
-							$foreign_key => $result['id']
+							$foreign_key => $result[$local_key]
 						]);
 					break;
 
 					case static::HAS_ONE:
 						$obj->fetch([
-							$foreign_key => $result['id']
+							$foreign_key => $result[$local_key]
 						]);
 					break;
 
 					case static::BELONGS_TO:
 						$obj->fetch([
-							'id' => $result[$foreign_key]
+							$local_key => $result[$foreign_key]
 						]);
 					break;
 				}

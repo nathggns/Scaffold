@@ -154,15 +154,15 @@ class ModelDatabase implements ArrayAccess {
 		// We don't have any default relationships
 	}
 
-	protected function hasMany($model, $alias = null, $foreign_key = null) {
+	protected function has_many($model, $alias = null, $foreign_key = null) {
 		$this->relationship(static::HAS_MANY, $model, $alias, $foreign_key);
 	}
 
-	protected function hasOne($model, $alias = null, $foreign_key = null) {
+	protected function has_one($model, $alias = null, $foreign_key = null) {
 		$this->relationship(static::HAS_ONE, $model, $alias, $foreign_key);
 	}
 
-	protected function belongsTo($model, $alias = null, $foreign_key = null) {
+	protected function belongs_to($model, $alias = null, $foreign_key = null) {
 		$this->relationship(static::BELONGS_TO, $model, $alias, $foreign_key);
 	}
 

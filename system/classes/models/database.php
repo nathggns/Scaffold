@@ -2,22 +2,17 @@
 
 /**
  * Lazy loaded Database Model
- * 
- * @todo Data Validation
  * @todo HABTM
  * @todo More advanced finding
  * @todo Export data as array
  * @todo Writing
  * @todo Deleting
  */
-class ModelDatabase implements ArrayAccess {
+class ModelDatabase extends Model {
 
 	const HAS_ONE = 1;
 	const HAS_MANY = 2;
 	const BELONGS_TO = 3;
-
-	const MODE_SINGLE = 4;
-	const MODE_MULT = 5;
 
 	/**
 	 * List of all default properties in the model
@@ -60,29 +55,9 @@ class ModelDatabase implements ArrayAccess {
 	protected $conditions = [];
 
 	/**
-	 * The main row of data.
-	 */
-	protected $data = [];
-
-	/**
-	 * An array of model objects.
-	 */
-	protected $rows = [];
-
-	/**
-	 * Store the current fetch mode
-	 */
-	protected $mode;
-
-	/**
 	 * Our relationships
 	 */
 	protected $relationships = [];
-
-	/**
-	 * Updated values
-	 */
-	protected $updated = [];
 
 	/**
 	 * Inital Setup
@@ -125,6 +100,8 @@ class ModelDatabase implements ArrayAccess {
 	public function fetch($conditions = []) {
 		$this->mode = static::MODE_SINGLE;
 		$this->conditions = $conditions;
+		$this->data = [];
+		$this->rows = [];
 
 		return $this;
 	}
@@ -132,6 +109,16 @@ class ModelDatabase implements ArrayAccess {
 	public function fetch_all($conditions = []) {
 		$this->mode = static::MODE_MULT;
 		$this->conditions = $conditions;
+		$this->data = [];
+		$this->rows = [];
+
+		return $this;
+	}
+
+	public function create() {
+		$this->mode = static::MODE_INSERT;
+		$this->data = [];
+		$this->rows = [];
 
 		return $this;
 	}
@@ -141,7 +128,13 @@ class ModelDatabase implements ArrayAccess {
 	 */
 	public function save() {
 
-		if (count($this->updated) > 0 && $this->mode === static::MODE_SINGLE) {
+		if (!parent::save()) {
+			return false;
+		}
+
+		if ($this->mode === static::MODE_INSERT) {
+			$this->driver->insert($this->table_name, $this->data);
+		} else if (count($this->updated) > 0 && $this->mode === static::MODE_SINGLE) {
 			$this->driver->update($this->table_name, $this->updated, [
 				'id' => $this->id
 			]);
@@ -276,23 +269,6 @@ class ModelDatabase implements ArrayAccess {
 		return $this->data[$key];	
 	}
 
-	public function __set($key, $value) {
-
-		if (isset($this->schema[$key])) {
-			$this->updated[$key] = $value;
-			
-			if (isset($this->data[$key])) {
-				$this->data[$key] = $value;
-			}
-
-		}
-
-	}
-
-	public function offsetExists($offset) {
-		return isset($this->rows[$offset]);
-	}
-
 	public function offsetGet($offset) {
 		if ($this->mode != static::MODE_MULT) {
 			throw new Exception('Cannot access row via index');
@@ -321,14 +297,6 @@ class ModelDatabase implements ArrayAccess {
 		}
 
 		return $this->rows[$offset];
-	}
-
-	public function offsetSet($offset, $value) {
-		return null;
-	}
-
-	public function offsetUnset($offset) {
-		return null;
 	}
 
 }

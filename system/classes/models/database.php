@@ -10,6 +10,7 @@ class ModelDatabase extends Model {
 	const HAS_ONE = 1;
 	const HAS_MANY = 2;
 	const BELONGS_TO = 3;
+	const HABTM = 7;
 
 	/**
 	 * List of all default properties in the model
@@ -188,13 +189,17 @@ class ModelDatabase extends Model {
 		$this->relationship(static::BELONGS_TO, $model, $alias, $foreign_key, $local_key);
 	}
 
-	protected function relationship($type, $model, $alias = null, $foreign_key = null, $local_key = 'id') {
-		$this->relationships[$type][$model] = [
+	protected function habtm($model, $alias = null, $foreign_key, $local_key, $table_foreign_key, $table) {
+		$this->relationship(static::HABTM, $model, $alias, $foreign_key, $local_key, ['table' => $table, 'table_foreign_key' => $table_foreign_key]);
+	}
+
+	protected function relationship($type, $model, $alias = null, $foreign_key = null, $local_key = 'id', $other = []) {
+		$this->relationships[$type][$model] = array_merge([
 			'model' => $model,
 			'alias' => $alias,
 			'foreign_key' => $foreign_key,
 			'local_key' => $local_key
-		];
+		], $other);
 	}
 
 	/**
@@ -219,6 +224,8 @@ class ModelDatabase extends Model {
 
 	/**
 	 * Handle gets
+	 * 
+	 * @todo Lazy load all properties
 	 */
 	public function __get($key) {
 
@@ -240,20 +247,20 @@ class ModelDatabase extends Model {
 		foreach ($this->relationships as $type => $relationships) {
 			foreach ($relationships as $model => $rel) {
 				$class_name = static::$prefix . $model;
+
 				$obj = new $class_name;
 
 				$foreign_key = $rel['foreign_key'];
 				$local_key = $rel['local_key'];
 
+				$table_name = $obj->table_name;
+
 				if (!$foreign_key) {
 					switch ($type) {
 						case static::HAS_MANY:
 						case static::HAS_ONE:
-							$foreign_key = Inflector::singularize($this->table_name) . '_' . $local_key;
-						break;
-
 						case static::BELONGS_TO:
-							$foreign_key = Inflector::singularize($obj->table_name) . '_' . $local_key;
+							$foreign_key = Inflector::singularize($table_name) . '_' . $local_key;
 						break;
 					}
 				}
@@ -275,6 +282,27 @@ class ModelDatabase extends Model {
 						$obj->fetch([
 							$local_key => $result[$foreign_key]
 						]);
+					break;
+
+					case static::HABTM:
+					
+						$this->driver->find($rel['table'], [
+							'vals' => [$foreign_key],
+							'where' => [
+								$rel['table_foreign_key'] => $result[$local_key]
+							]
+						]);
+
+						$results = $this->driver->fetch_all();
+
+						$ids = array_map(function($a) use($foreign_key) {
+							return $a[$foreign_key];
+						}, $results);
+
+						$obj->fetch_all([
+							'id' => $ids
+						]);
+
 					break;
 				}
 
@@ -311,16 +339,15 @@ class ModelDatabase extends Model {
 
 		$this->driver->find(
 			$this->table_name,
-			[
-				'vals' => ['id'],
-				'where' => $this->conditions
-			]
+			array_merge([
+				'vals' => ['id']
+			], $this->conditions)
 		);
 
 		$results = $this->driver->fetch_all();
 
 		$class = $this->class_name;
-
+		
 		foreach ($results as $result) {
 			$this->rows[] = new $class($result['id']);
 		}

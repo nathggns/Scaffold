@@ -24,7 +24,7 @@ class Config {
 			$real = $part['default'];
 
 			if (ENVIROMENT && isset($part[ENVIROMENT])) {
-				$real = recursive_overwrite($real, $part[ENVIROMENT]);
+				$real = $part[ENVIROMENT];
 			}
 
 			$config[$name] = $real;

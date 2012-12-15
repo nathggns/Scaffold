@@ -217,6 +217,66 @@ class ModelDatabase extends Model {
 		];
 	}
 
+	public function export($values = [], $level = 1) {
+
+		if (!is_array($values)) $values = [$values];
+
+		$data = [];
+
+		if ($this->mode === static::MODE_MULT) {
+
+			for ($i = 0, $l = $this->count(); $i < $l; $i++) {
+				$data[] = $this[$i]->export($values, $level);
+			}
+
+		} else {
+
+			$schema = array_keys($this->schema);
+
+			if (count($values) > 0) {
+
+				$new = [];
+
+				foreach ($values as $key => $value) {
+
+					if (!is_array($value) && $key !== $value) {
+						$key = $value;
+					}
+
+					$new[$key] = $value;
+				}
+
+				$values = $new;
+
+			} else {
+
+				$keys = array_keys($this->schema);
+
+				$values = array_combine($keys, $keys);
+
+			}
+
+			$schema = array_intersect($schema, array_keys($values));
+
+			foreach ($schema as $key) {
+				$value = $this->__get($key);
+
+				if ($value instanceof Model) {
+					if ($level > 0) {
+						$value = $value->export(is_array($values[$key]) ? $values[$key] : [], $level - 1);
+					} else {
+						continue;
+					}
+				}
+
+				$data[$key] = $value;
+			}
+		}
+
+		return $data;
+
+	}
+
 	/**
 	 * Guess the name of our model
 	 */

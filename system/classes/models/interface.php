@@ -12,4 +12,5 @@ interface ModelInterface extends ArrayAccess {
 	public function delete();
 	public function reset();
 	public function find($conditions, $mode = null);
+	public function export($values = [], $level = 1);
 }

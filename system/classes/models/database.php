@@ -81,7 +81,7 @@ class ModelDatabase extends Model {
 		}
 
 		$structure = $this->driver->structure($this->table_name);
-		
+
 		foreach ($structure as $row) {
 			$this->schema[$row['field']] = $row;
 		}
@@ -210,6 +210,11 @@ class ModelDatabase extends Model {
 			'foreign_key' => $foreign_key,
 			'local_key' => $local_key
 		], $other);
+
+		// @TODO Use a single method to build the array
+		$this->schema[$alias] = [
+			'field' => $alias
+		];
 	}
 
 	/**

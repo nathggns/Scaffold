@@ -83,7 +83,7 @@ class ModelDatabase extends Model {
 		$structure = $this->driver->structure($this->table_name)->fetch_all();
 
 		foreach ($structure as $row) {
-			$this->schema[$row['Field']] = $row;
+			$this->schema[$row['field']] = $row;
 		}
 
 		// Let the child class do custom stuff.

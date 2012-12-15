@@ -239,7 +239,7 @@ class ModelDatabase extends Model {
 	 */
 	public function __get($key) {
 
-		if ($this->mode !== static::MODE_SINGLE || (count($this->data) > 0 && !isset($this->data[$key]))) {
+		if ($this->mode !== static::MODE_SINGLE || (count($this->data) > 0 && !array_key_exists($key, $this->data))) {
 			throw new Exception('Property ' . $key . ' does not exist on model ' . $this->name);
 		}
 
@@ -323,7 +323,11 @@ class ModelDatabase extends Model {
 			}
 		}
 
+		$schema = array_keys($this->schema);
 
+		foreach ($schema as $field) {
+			if (!isset($result[$field])) {
+				$result[$field] = null;
 			}
 		}
 

@@ -194,6 +194,16 @@ class ModelDatabase extends Model {
 	}
 
 	protected function relationship($type, $model, $alias = null, $foreign_key = null, $local_key = 'id', $other = []) {
+
+		if (!$alias) {
+
+			$alias = strtolower($model);
+
+			if (!in_array($type, [static::HAS_ONE, static::BELONGS_TO])) {
+				$alias = Inflector::pluralize($alias);
+			}
+		}
+
 		$this->relationships[$type][$model] = array_merge([
 			'model' => $model,
 			'alias' => $alias,
@@ -308,15 +318,11 @@ class ModelDatabase extends Model {
 
 				$alias = $rel['alias'];
 
-				if (!$alias) {
-					$alias = $obj->table_name;
-
-					if (in_array($type, [static::HAS_ONE, static::BELONGS_TO])) {
-						$alias = Inflector::singularize($alias);
-					}
-				}
-
 				$result[$alias] = $obj;
+
+			}
+		}
+
 
 			}
 		}

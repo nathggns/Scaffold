@@ -274,6 +274,9 @@ class ModelDatabase extends Model {
 					switch ($type) {
 						case static::HAS_MANY:
 						case static::HAS_ONE:
+							$foreign_key = Inflector::singularize($this->table_name) . '_' . $local_key;
+						break;
+
 						case static::BELONGS_TO:
 							$foreign_key = Inflector::singularize($table_name) . '_' . $local_key;
 						break;

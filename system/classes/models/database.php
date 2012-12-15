@@ -80,8 +80,8 @@ class ModelDatabase extends Model {
 			$this->table_name = $this->guess_table_name($this->name);
 		}
 
-		$structure = $this->driver->structure($this->table_name)->fetch_all();
-
+		$structure = $this->driver->structure($this->table_name);
+		
 		foreach ($structure as $row) {
 			$this->schema[$row['field']] = $row;
 		}

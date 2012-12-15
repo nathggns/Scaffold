@@ -200,7 +200,7 @@ class DatabaseDriverPDO extends DatabaseDriver {
      * Get the structure of a table
      */
     public function structure($table) {
-        $result = $this->query($this->builder->structure($table));
+        $result = $this->query($this->builder->structure($table))->fetch_all();
 
         $struct = [];
 

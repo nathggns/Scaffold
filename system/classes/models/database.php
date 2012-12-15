@@ -238,6 +238,27 @@ class ModelDatabase extends Model {
 	}
 
 	/**
+	 * Get the count
+	 *
+	 * @todo Implement Iterator instead.
+	 */
+	protected function count() {
+
+		$count = null;
+
+		switch ($this->mode) {
+
+			case static::MODE_MULT:
+				$row = $this[0];
+				$count = count($this->rows);
+			break;
+
+		}
+
+		return $count;
+	}
+
+	/**
 	 * Handle gets
 	 * 
 	 * @todo Lazy load all properties

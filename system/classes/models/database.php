@@ -256,20 +256,6 @@ class ModelDatabase extends Model {
 				if ($value instanceof Model) {
 					if ($level > 0) {
 						$value = $value->export(is_array($values[$key]) ? $values[$key] : [], $level - 1);
-						
-						if (is_array($value) && count($value) > 0) {
-							$all_null = true;
-
-							foreach ($value as $val) {
-								if (!is_null($val)) {
-									$all_null = false;
-									break;
-								}
-							}
-
-							if ($all_null) $value = null;
-						}
-
 					} else {
 						continue;
 					}

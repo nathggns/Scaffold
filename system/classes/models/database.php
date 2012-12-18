@@ -341,6 +341,21 @@ class ModelDatabase extends Model {
 		$result = $this->driver->fetch();
 
 		foreach ($this->relationships as $type => $relationships) {
+
+			// Test the type..
+			switch ($type) {
+				case static::HAS_ONE:
+				case static::HAS_MANY:
+				case static::HABTM:
+				case static::BELONGS_TO:
+					// Do nothing...
+				break;
+
+				default:
+					continue;
+				break;
+			}
+
 			foreach ($relationships as $model => $rel) {
 				$class_name = static::$prefix . $model;
 

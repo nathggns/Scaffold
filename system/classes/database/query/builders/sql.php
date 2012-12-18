@@ -7,8 +7,8 @@
  */
 class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
 
-    private $operators = ['=', '>', '<', '<>', '!='];
-    private $joins = ['AND', 'OR'];
+    protected $operators = ['=', '>', '<', '<>', '!='];
+    protected $joins = ['AND', 'OR'];
 
     public function select($options) {
         extract($this->extract($options));
@@ -98,11 +98,11 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         return 'SHOW FULL COLUMNS FROM ' . $this->backtick($table) . ';';
     }
 
-    private function where($conds) {
+    protected function where($conds) {
         return $this->conds($conds, 'WHERE');
     }
 
-    private function pairs($keys, $data = false) {
+    protected function pairs($keys, $data = false) {
         if (!$data) {
             $data = $keys;
             $keys = array_keys($data);
@@ -120,11 +120,11 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         return implode(', ', $parts);
     }
 
-    private function conds($conds, $query = '') {
+    protected function conds($conds, $query = '') {
         return $query . $this->where_part(0, $conds);
     }
 
-    private function where_part($key, $val, $first = false, $level = 0) {
+    protected function where_part($key, $val, $first = false, $level = 0) {
 
         $sql = '';
 
@@ -212,11 +212,11 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         return $sql;
     }
 
-    private function having($conds) {
+    protected function having($conds) {
         return $this->conds($conds, 'HAVING');
     }
 
-    private function group($group) {
+    protected function group($group) {
         $query = 'GROUP BY ';
         if (!is_array($group)) $group = [$group];
         $group = $this->backtick($group);
@@ -225,7 +225,7 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         return $query . $group;
     }
 
-    private function order($order) {
+    protected function order($order) {
         $query = 'ORDER BY ';
         if (!is_array($order)) $order = [$order];
         $parts = [];
@@ -242,7 +242,7 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         return $query;
     }
 
-    private function limit($limit) {
+    protected function limit($limit) {
         $query = 'LIMIT ';
         if (!is_array($limit)) $limit = [$limit];
         if (count($limit) < 2) $limit = array_merge([0], $limit);
@@ -252,7 +252,7 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         return $query;
     }
 
-    private function backtick($value) {
+    protected function backtick($value) {
         if (is_array($value)) return array_map([$this, 'backtick'], $value);
         if ($value === '*') return $value;
 
@@ -273,7 +273,7 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         return $value;
     }
 
-    private function split($value) {
+    protected function split($value) {
         $parts = [];
         $chrs = str_split($value);
         $buffer = '';
@@ -306,7 +306,7 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         return $parts;
     }
 
-    private function escape($value) {
+    protected function escape($value) {
         if (is_array($value)) {
             return array_map([$this, 'escape'], $value);
         }

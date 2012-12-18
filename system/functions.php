@@ -138,7 +138,7 @@ function get_files($pattern, $recursive = true) {
 function recursive_overwrite($parent, $child) {
 
     foreach ($child as $key => $val) {
-        if (is_array($parent[$key])) {
+        if (isset($parent[$key]) && is_array($parent[$key])) {
             $val = recursive_overwrite($parent[$key], $val);
         }
 
@@ -146,4 +146,25 @@ function recursive_overwrite($parent, $child) {
     }
 
     return $parent;
+}
+
+/**
+ * Implode using keys as well as values
+ */
+function key_implode($pair_glue, $glue, $arr) {
+
+    $key_arr = [];
+
+    foreach ($arr as $key => $val) {
+        $key_arr[] = is_int($key) ? [$val] : [$key, $val];
+    }
+
+    $key_arr = array_map(function($val) use($pair_glue) {
+
+        return implode($pair_glue, $val);
+
+    }, $key_arr);
+
+    return implode($glue, $key_arr);
+
 }

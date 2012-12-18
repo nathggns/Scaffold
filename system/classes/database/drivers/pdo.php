@@ -2,26 +2,42 @@
 
 class DatabaseDriverPDO extends DatabaseDriver {
 
-    private $conn = false;
+    protected $conn = false;
     public $query = false;
-    private $type = false;
+    protected $type = false;
 
     /**
      * Connect to the database via PDO
      *
      * @return DatabaseDriverPDO this
      */
-    public function connect() {
-        // Extract arguments from the config into our scope.
-        $exports = array('type', 'host', 'username', 'password', 'database');
-        $vals = arguments($exports, $this->config);
-        extract($vals);
+    public function connect() {    
 
-        // Set the driver connection string for PDO
-        $connstring = strtolower($type) . ':host=' . $host .';dbname=' . $database;
+        $type = $this->config['type'];
+        unset($this->config['type']);
+
+        if (isset($this->config['database'])) {
+            $this->config['dbname'] = $this->config['database'];
+            unset($this->config['database']);
+        }
+
+        $specials = ['username', 'password'];
+
+        foreach ($specials as $special) {
+            if (isset($this->config[$special])) {
+                $$special = $this->config[$special];
+                unset($this->config[$special]);
+            }
+        }
+
+        $dsn = $type . ':' . key_implode('=', ';', $this->config);
 
         // Create our connection
-        $this->connection = new PDO($connstring, $username, $password);
+        if (isset($username) && isset($password)) {
+            $this->connection = new PDO($dsn, $username, $password);
+        } else {
+            $this->connection = new PDO($dsn);
+        }
 
         // Return ourself to allow chaining.
         return $this;
@@ -231,7 +247,8 @@ class DatabaseDriverPDO extends DatabaseDriver {
      *
      * @param string $sql sql to run
      */
-    private function query($sql) {
+    protected function query($sql) {
+
         // Die if we're not connected
         if (!$this->connection) return false;
 
@@ -249,7 +266,7 @@ class DatabaseDriverPDO extends DatabaseDriver {
      *
      * @return string Table the last query was ran on.
      */
-    private function table() {
+    protected function table() {
         return $this->query->getColumnMeta(0)['table'];
     }
 }

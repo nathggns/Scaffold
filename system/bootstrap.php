@@ -71,6 +71,24 @@ Service::register('router.default', function() {
     return $router;
 });
 
+Service::singleton('database.builder', function($type) {
+    $class = 'DatabaseQueryBuilder';
+
+    switch ($type) {
+
+        case 'sqlite':
+            $class .= 'Sqlite';
+        break;
+
+        // @TODO Sensible defaults...
+        default:
+            $class .= 'SQL';
+        break;
+    }
+
+    return new $class;
+});
+
 Service::register('database.driver', function($config = false) {
 
     if (!$config) {
@@ -79,15 +97,14 @@ Service::register('database.driver', function($config = false) {
 
     $parent = 'DatabaseDriver';
     $type = $config['type'];
-    $class = $parent . $type;
+    $class = $parent . ucfirst($type);
     $driver = strtolower($type);
 
     if (!Autoload::load($class) && in_array($driver, PDO::getAvailableDrivers())) {
         $class = $parent . 'PDO';
     }
 
-    // @TODO: decide what type of builder to use
-    $builder = new DatabaseQueryBuilderSQL();
+    $builder = Service::get('database.builder', $type);
 
     return new $class($builder, $config);
 });

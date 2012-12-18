@@ -105,7 +105,6 @@ class Service {
             $default = implode('.', $parts);
             static::$defaults[$name] = $default;
         } else {
-            var_dump($name);
             unset(static::$defaults[$name]);
         }
 

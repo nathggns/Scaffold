@@ -224,36 +224,28 @@ class ModelDatabase extends Model {
 		$data = [];
 
 		if ($this->mode === static::MODE_MULT) {
-
 			for ($i = 0, $l = $this->count(); $i < $l; $i++) {
+				if (is_null($this[$i])) continue;
+
 				$data[] = $this[$i]->export($values, $level);
 			}
-
 		} else {
-
 			$schema = array_keys($this->schema);
 
 			if (count($values) > 0) {
-
 				$new = [];
 
 				foreach ($values as $key => $value) {
-
 					if (!is_array($value) && $key !== $value) {
 						$key = $value;
 					}
-
 					$new[$key] = $value;
 				}
 
 				$values = $new;
-
 			} else {
-
 				$keys = array_keys($this->schema);
-
 				$values = array_combine($keys, $keys);
-
 			}
 
 			$schema = array_intersect($schema, array_keys($values));
@@ -264,6 +256,20 @@ class ModelDatabase extends Model {
 				if ($value instanceof Model) {
 					if ($level > 0) {
 						$value = $value->export(is_array($values[$key]) ? $values[$key] : [], $level - 1);
+						
+						if (is_array($value) && count($value) > 0) {
+							$all_null = true;
+
+							foreach ($value as $val) {
+								if (!is_null($val)) {
+									$all_null = false;
+									break;
+								}
+							}
+
+							if ($all_null) $value = null;
+						}
+
 					} else {
 						continue;
 					}
@@ -274,7 +280,6 @@ class ModelDatabase extends Model {
 		}
 
 		return $data;
-
 	}
 
 	/**
@@ -459,11 +464,16 @@ class ModelDatabase extends Model {
 		);
 
 		$results = $this->driver->fetch_all();
-
 		$class = $this->class_name;
-		
-		foreach ($results as $result) {
-			$this->rows[] = new $class($result['id']);
+
+		if (is_array($results)) {
+			foreach ($results as $result) {
+				$this->rows[] = new $class($result['id']);
+			}
+		}
+
+		if (!isset($this->rows[$offset])) {
+			$this->rows[$offset] = null;
 		}
 
 		return $this->rows[$offset];

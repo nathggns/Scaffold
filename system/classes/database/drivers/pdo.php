@@ -171,7 +171,7 @@ class DatabaseDriverPDO extends DatabaseDriver {
         if (!is_null($table) && !is_null($options)) $this->find($table, $options);
 
         // Fetch all the rows from the query
-        return $this->query->fetchAll(PDO::FETCH_ASSOC);
+        return $this->query ? $this->query->fetchAll(PDO::FETCH_ASSOC) : null;
     }
 
     /**
@@ -248,7 +248,6 @@ class DatabaseDriverPDO extends DatabaseDriver {
      * @param string $sql sql to run
      */
     protected function query($sql) {
-
         // Die if we're not connected
         if (!$this->connection) return false;
 

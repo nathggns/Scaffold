@@ -51,6 +51,7 @@ class ModelDatabase extends Model {
 	 * The conditions for the model
 	 */
 	protected $conditions = [];
+	protected $defaults = [];
 
 	/**
 	 * Our relationships
@@ -351,7 +352,7 @@ class ModelDatabase extends Model {
 
 		$this->driver->find(
 			$this->table_name,
-			$this->conditions
+			$this->conditions()
 		);
 
 		$result = $this->driver->fetch();
@@ -469,9 +470,9 @@ class ModelDatabase extends Model {
 
 		$this->driver->find(
 			$this->table_name,
-			array_merge([
+			array_merge_recursive([
 				'vals' => ['id']
-			], $this->conditions)
+			], $this->conditions())
 		);
 
 		$results = $this->driver->fetch_all();
@@ -488,6 +489,10 @@ class ModelDatabase extends Model {
 		}
 
 		return $this->rows[$offset];
+	}
+
+	private function conditions($others = []) {
+		return array_merge_recursive($this->defaults, $this->conditions);
 	}
 
 }

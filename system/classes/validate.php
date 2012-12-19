@@ -15,7 +15,7 @@ class Validate {
     /**
      * Our default checks
      */
-    private $checks = ['empty', 'email', 'alphanumeric', 'regex', 'is_regex', 'equal'];
+    private $checks = ['empty', 'email', 'alphanumeric', 'regex', 'is_regex', 'equal', 'url'];
 
     /**
      * Checks can be prepended with some of these modifiers
@@ -242,5 +242,12 @@ class Validate {
      */
     public function modifier_not($value) {
         return !$value;
+    }
+
+    /**
+     * URL test
+     */
+    public function check_url($value) {
+        return filter_var($value, FILTER_VALIDATE_URL) ? true : false;
     }
 }

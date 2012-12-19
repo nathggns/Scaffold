@@ -1,6 +1,6 @@
 <?php defined('SCAFFOLD') or die;
 
-interface ModelInterface extends ArrayAccess {
+interface ModelInterface extends ArrayAccess, Iterator {
 
 	public function __get($key);
 	public function __set($key, $val);
@@ -13,4 +13,5 @@ interface ModelInterface extends ArrayAccess {
 	public function reset();
 	public function find($conditions, $mode = null);
 	public function export($values = [], $level = 1);
+	public function force_load();
 }

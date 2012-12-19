@@ -31,6 +31,11 @@ abstract class Model implements ModelInterface {
     protected $mode;
 
     /**
+     * For the iterator
+     */
+    private $position = 0;
+
+    /**
      * Validate before saving.
      *
      * At this point, the data that is supposed to be saved should be in $data.
@@ -49,6 +54,7 @@ abstract class Model implements ModelInterface {
         $this->data = [];
         $this->rows = [];
         $this->updated = [];
+        $this->position = 0;
     }
 
     public function offsetSet($offset, $value) {
@@ -76,6 +82,79 @@ abstract class Model implements ModelInterface {
                 $this->data[$key] = $value;
             }
         }
+    }
+
+    protected function iterator_master() {
+
+        if (!in_array($this->mode, [static::MODE_SINGLE, static::MODE_MULT])) {
+            throw new Exception('Cannot iterate on this mode');
+        }
+
+        $this->force_load();
+    }
+
+    function rewind() {
+
+        $this->iterator_master();
+        $this->position = 0;
+    }
+
+    function current() {
+
+        $this->iterator_master();
+        
+        switch ($this->mode) {
+
+            case static::MODE_SINGLE:
+                return $this->data[$this->getSinglePosition()];
+            break;
+
+            case static::MODE_MULT:
+                return $this->rows[$this->position];
+            break;
+
+        }
+    }
+
+    function valid() {
+
+        $this->iterator_master();
+
+        switch ($this->mode) {
+
+            case static::MODE_SINGLE:
+                $keys = array_keys($this->data);
+                return isset($keys[$this->position]);
+            break;
+
+            case static::MODE_MULT:
+                return isset($this->rows[$this->position]);
+            break;
+        }
+
+    }
+
+    function key() {
+
+        $this->iterator_master();
+
+        $pos = $this->mode === static::MODE_SINGLE ? $this->getSinglePosition() : $this->position;
+
+        return $pos;
+    }
+
+    function next() {
+
+        $this->iterator_master();
+
+        ++$this->position;
+    }
+
+    private function getSinglePosition() {
+        $keys = array_keys($this->data);
+        $key = $keys[$this->position];
+
+        return $key;
     }
 
 }

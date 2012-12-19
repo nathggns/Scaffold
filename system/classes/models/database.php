@@ -268,6 +268,18 @@ class ModelDatabase extends Model {
 		return $data;
 	}
 
+	public function force_load() {
+		switch ($this->mode) {
+			case static::MODE_SINGLE:
+				$this->__get('id');
+			break;
+
+			case static::MODE_MULT:
+				$this->offsetGet(0);
+			break;
+		}
+	}
+
 	/**
 	 * Guess the name of our model
 	 */

@@ -30,21 +30,30 @@ load_file('classes' . DS . 'autoload.php');
 Autoload::run();
 
 /**
+ * Register with our error class
+ */
+Error::register();
+
+/**
  * Register framework services
  */
 Service::register('dummy', function() {
     return new ServiceDummy();
 });
 
-Service::register('request', function($uri = null) {
+Service::singleton('request', function($uri = null) {
     return new Request($uri);
 });
 
-Service::register('response.json', function() {
+Service::singleton('response.json', function() {
     return new Response();
 }, true);
 
-Service::register('controller', function($controller, Request $request = null, Response $response = null) {
+Service::singleton('response.default', function() {
+    return Service::get('response.json');
+});
+
+Service::singleton('controller', function($controller, Request $request = null, Response $response = null) {
     $request  = ($request !== null) ? $request : Service::get('request');
     $response = ($response !== null) ? $response : Service::get('response');
 
@@ -53,11 +62,11 @@ Service::register('controller', function($controller, Request $request = null, R
     return new $controller($request, $response);
 });
 
-Service::register('router.blank', function() {
+Service::singleton('router.blank', function() {
     return new Router();
 }, true);
 
-Service::register('router.default', function() {
+Service::singleton('router.default', function() {
     $router = Service::get('router');
 
     // automatically send response
@@ -70,3 +79,12 @@ Service::register('router.default', function() {
 
     return $router;
 });
+
+Service::register('error', function($alias = false) {
+    return new Error($alias);
+});
+
+// If we have a custom bootloader for the application, load that.
+if (file_exists(APPLICATION . 'bootstrap.php')) {
+    include APPLICATION . 'bootstrap.php';
+}

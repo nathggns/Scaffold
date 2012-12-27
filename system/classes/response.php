@@ -217,4 +217,27 @@ class Response {
         exit;
     }
 
+    /**
+     * Send an error based on code.
+     *
+     * @param int $errco The http error code
+     * @param string $message The message to send
+     */
+    public function error($errco, $message = false) {
+        if (!$message) $message = static::$codes[$errco];
+        $this->code = $errco;
+
+        $body = [
+            'error' => [
+                'code' => $errco,
+                'message' => $message
+            ]
+        ];
+
+        $this->data($body);
+
+        return $this;
+    }
+    
+
 }

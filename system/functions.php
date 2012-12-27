@@ -68,3 +68,44 @@ function is_hash($arr) {
 
     return false;
 }
+
+/**
+ * Recursively merge arrays, overwriting non-array values.
+ *
+ * @param array $first First array
+ * @param array $second Second array
+ * ...
+ */
+function array_merge_recursive_overwrite() {
+    // Get all of our arguments
+    $args = func_get_args();
+
+    // Make sure we have arguments to work with
+    if (count($args) < 2) return;
+
+    // Handle more than 2 arrays
+    if (count($args) > 2) {
+        while (count($args) > 2) {
+            $first = array_shift($args);
+            $second = array_shift($args);
+            array_unshift($args, array_merge_recursive_overwrite($first, $second));
+        }
+
+        $args = array_merge_recursive_overwrite($args[0], $args[1]);
+
+        return $args;
+    }
+
+    $first = $args[0];
+    $second = $args[1];
+
+    foreach ($second as $key => $val) {
+        if (isset($first[$key]) && is_array($first[$key])) {
+            $val = array_merge_recursive_overwrite($first[$key], $val);
+        }
+
+        $first[$key] = $val;
+    }
+
+    return $first;
+}

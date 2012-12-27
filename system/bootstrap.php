@@ -30,6 +30,11 @@ load_file('classes' . DS . 'autoload.php');
 Autoload::run();
 
 /**
+ * Register with our error class
+ */
+Error::register();
+
+/**
  * Register framework services
  */
 Service::register('dummy', function() {
@@ -43,6 +48,10 @@ Service::singleton('request', function($uri = null) {
 Service::singleton('response.json', function() {
     return new Response();
 }, true);
+
+Service::singleton('response.default', function() {
+    return Service::get('response.json');
+});
 
 Service::singleton('controller', function($controller, Request $request = null, Response $response = null) {
     $request  = ($request !== null) ? $request : Service::get('request');
@@ -69,6 +78,10 @@ Service::singleton('router.default', function() {
     $router->all('/:controller/:id');
 
     return $router;
+});
+
+Service::register('error', function() {
+    return new Error;
 });
 
 // If we have a custom bootloader for the application, load that.

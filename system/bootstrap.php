@@ -36,15 +36,15 @@ Service::register('dummy', function() {
     return new ServiceDummy();
 });
 
-Service::register('request', function($uri = null) {
+Service::singleton('request', function($uri = null) {
     return new Request($uri);
 });
 
-Service::register('response.json', function() {
+Service::singleton('response.json', function() {
     return new Response();
 }, true);
 
-Service::register('controller', function($controller, Request $request = null, Response $response = null) {
+Service::singleton('controller', function($controller, Request $request = null, Response $response = null) {
     $request  = ($request !== null) ? $request : Service::get('request');
     $response = ($response !== null) ? $response : Service::get('response');
 
@@ -53,11 +53,11 @@ Service::register('controller', function($controller, Request $request = null, R
     return new $controller($request, $response);
 });
 
-Service::register('router.blank', function() {
+Service::singleton('router.blank', function() {
     return new Router();
 }, true);
 
-Service::register('router.default', function() {
+Service::singleton('router.default', function() {
     $router = Service::get('router');
 
     // automatically send response

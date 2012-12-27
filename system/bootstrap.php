@@ -70,3 +70,8 @@ Service::register('router.default', function() {
 
     return $router;
 });
+
+// If we have a custom bootloader for the application, load that.
+if (file_exists(APPLICATION . 'bootstrap.php')) {
+    include APPLICATION . 'bootstrap.php';
+}

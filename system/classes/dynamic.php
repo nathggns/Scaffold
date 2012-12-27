@@ -18,6 +18,7 @@ class Dynamic {
 	 * Handle method calling
 	 */
 	public function __call($name, $args) {
+		array_unshift($args, $this);
 		if (property_exists($this, $name) && is_callable($this->$name)) {
 			call_user_func_array($this->$name, $args);
 		} else {

@@ -80,8 +80,8 @@ Service::singleton('router.default', function() {
     return $router;
 });
 
-Service::register('error', function() {
-    return new Error;
+Service::register('error', function($alias = false) {
+    return new Error($alias);
 });
 
 // If we have a custom bootloader for the application, load that.

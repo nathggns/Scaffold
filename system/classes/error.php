@@ -75,9 +75,11 @@ class Error {
 
 	/**
 	 * Send the default error.
+	 *
+	 * @todo Logging
+	 * @todo Customisable error.
 	 */
 	protected static function uncatchable($err = false) {
-		var_dump(func_get_args());
 		static::get_response()->error(500)->send();
 		die;
 	}

@@ -154,8 +154,10 @@ class Router {
     public static function prepare_route($route) {
         $escaped_route = preg_quote($route, '/');
         $escaped_route = str_replace('\:', ':', $escaped_route);
+        $escaped_route = str_replace('\?', '?', $escaped_route);
 
-        $regex = preg_replace('/:([a-z]+)/', '(\w+)', $escaped_route);
+        $regex = preg_replace('/\\\\\/:\?([a-z]+)/', '(?:\/(\w+))?', $escaped_route);
+        $regex = preg_replace('/:([a-z]+)/', '(\w+)', $regex);
         $regex = '/^' . $regex . '$/';
 
         return $regex;
@@ -205,7 +207,7 @@ class Router {
 
         // search for matches
         preg_match_all($regex, $uri, $values);
-        preg_match_all('/:([a-z]+)/', $route, $names);
+        preg_match_all('/:\??([a-z]+)/', $route, $names);
 
         // remove full matches
         array_shift($values);
@@ -213,7 +215,7 @@ class Router {
 
         // extract values and cast numbers to integers
         $values = array_map(function($item) {
-            return is_numeric($item[0]) ? (int) $item[0] : $item[0];
+            return is_numeric($item[0]) ? (int) $item[0] : (empty($item[0]) ? null : $item[0]);
         }, $values);
 
         return array_combine($names, $values);
@@ -235,7 +237,9 @@ class Router {
 
         // parse URI and add defaults
         $params = static::parse_uri($request->uri, $route['path']);
-        $params = array_merge($route['defaults'], $params);
+        foreach ($route['defaults'] as $key => $val) {
+            if (!isset($params[$key])) $params[$key] = $val;
+        }
 
         $request->params = $params;
 

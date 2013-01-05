@@ -34,7 +34,10 @@ class RouterTest extends PHPUnit_Framework_Testcase {
         $route = '/:one/:two/:three.:four';
         $regex = Router::prepare_route($route);
 
-        $this->assertEquals($regex, '/^\/(\w+)\/(\w+)\/(\w+)\.(\w+)$/');
+        $section = '([\w\-_\.\!\~\*\'\(\)]+)';
+        $match = '/^' . str_repeat('\/' . $section, 3) . '\.' . $section . '$/';
+
+        $this->assertEquals($regex, $match);
     }
 
     /**

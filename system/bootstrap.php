@@ -57,7 +57,7 @@ Service::singleton('controller', function($controller, Request $request = null, 
     $request  = ($request !== null) ? $request : Service::get('request');
     $response = ($response !== null) ? $response : Service::get('response');
 
-    $controller = 'Controller' . ucfirst(Inflector::singularize($controller));
+    $controller = 'Controller' . ucfirst($controller);
 
     return new $controller($request, $response);
 });

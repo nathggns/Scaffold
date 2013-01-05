@@ -79,7 +79,7 @@ class Error {
 	 * @todo Logging
 	 * @todo Customisable error.
 	 */
-	protected static function uncatchable($err = false) {
+	public static function uncatchable($err = false) {
 		static::get_response()->error(500)->send();
 		die;
 	}

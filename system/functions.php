@@ -53,6 +53,22 @@ function recursive_scan_dir($dir, $filetype = false) {
 }
 
 /**
+ * Recursive glob
+ */
+function recursive_glob($pattern, $flags = 0) {
+    $files = glob($pattern, $flags);
+
+    foreach (glob(dirname($pattern) . DS . '*', GLOB_ONLYDIR|GLOB_NOSORT) as $dir) {
+        $files = array_merge(
+            $files,
+            recursive_glob($dir . DS . basename($pattern), $flags)
+        );
+    }
+
+    return $files;
+}
+
+/**
  * Is an array a hash?
  */
 function is_hash($arr) {
@@ -108,4 +124,88 @@ function array_merge_recursive_overwrite() {
     }
 
     return $first;
+}
+
+/**
+ * Check arguments
+ */
+function arguments($keys, $args) {
+    $missing = [];
+    $vals = [];
+
+    foreach ($keys as $arg) {
+        if (!isset($args[$arg])) {
+            $missing[] = $arg;
+        } else {
+            $vals[$arg] = $args[$arg];
+        }
+    }
+
+    if (count($missing) > 0) {
+        $args = implode(',', $missing);
+        throw new InvalidArgumentException('Missing arguments: ' . $args);
+
+        return false;
+    }
+
+    return $vals;
+}
+
+/**
+ * Find files both in the application and system folders
+ */
+function get_files($pattern, $recursive = true) {
+    $parts = ['system' => SYSTEM, 'application' => APPLICATION];
+    $files = [];
+    $function = $recursive ? 'recursive_glob' : 'glob';
+
+    foreach ($parts as $name => $path) {
+        $files[$name] = [];
+        $path = $path . $pattern;
+        $dir = dirname($path);
+        $filter = basename($path);
+
+        if (!file_exists($dir) || !is_dir($dir)) continue;
+
+        $files[$name] = $function($path);
+    }
+
+    return $files;
+}
+
+/**
+ * Overwrite one array with another, recursively.
+ */
+function recursive_overwrite($parent, $child) {
+
+    foreach ($child as $key => $val) {
+        if (isset($parent[$key]) && is_array($parent[$key])) {
+            $val = recursive_overwrite($parent[$key], $val);
+        }
+
+        $parent[$key] = $val;
+    }
+
+    return $parent;
+}
+
+/**
+ * Implode using keys as well as values
+ */
+function key_implode($pair_glue, $glue, $arr) {
+
+    $key_arr = [];
+
+    foreach ($arr as $key => $val) {
+        $key_arr[] = is_int($key) ? [$val] : [$key, $val];
+    }
+
+    $key_arr = array_map(function($val) use($pair_glue) {
+
+        return implode($pair_glue, $val);
+
+    }, $key_arr);
+
+    return implode($glue, $key_arr);
+
 }

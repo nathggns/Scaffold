@@ -84,6 +84,52 @@ Service::register('error', function($alias = false) {
     return new Error($alias);
 });
 
+Service::singleton('database.builder', function($type) {
+    $class = 'DatabaseQueryBuilder';
+
+    switch ($type) {
+
+        case 'sqlite':
+            $class .= 'Sqlite';
+        break;
+
+        // @TODO Sensible defaults...
+        default:
+            $class .= 'SQL';
+        break;
+    }
+
+    return new $class;
+});
+
+Service::register('database.driver', function($config = false) {
+
+    if (!$config) {
+        $config = Service::get('config')->get('database');
+    }
+
+    $parent = 'DatabaseDriver';
+    $type = $config['type'];
+    $class = $parent . ucfirst($type);
+    $driver = strtolower($type);
+
+    if (!Autoload::load($class) && in_array($driver, PDO::getAvailableDrivers())) {
+        $class = $parent . 'PDO';
+    }
+
+    $builder = Service::get('database.builder', $type);
+
+    return new $class($builder, $config);
+});
+
+Service::singleton('database', function() {
+    return new Database(Service::get('config'));
+});
+
+Service::singleton('config', function() {
+    return new Config;
+});
+
 // If we have a custom bootloader for the application, load that.
 if (file_exists(APPLICATION . 'bootstrap.php')) {
     include APPLICATION . 'bootstrap.php';

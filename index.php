@@ -25,6 +25,11 @@ defined('START') or define('START', microtime(true));
 defined('SCAFFOLD') or define('SCAFFOLD', true);
 
 /**
+ * What enviroment are we working with?
+ */
+defined('ENVIROMENT') or define('ENVIROMENT', getenv('SCAFFOLD_ENV'));
+
+/**
  * Standard directory seperator.
  */
 defined('DS') or define('DS', DIRECTORY_SEPARATOR);

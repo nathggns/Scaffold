@@ -253,7 +253,7 @@ class Inflector {
     }
 
     /**
-     * Converts "machine" names into English titles
+     * Converts 'machine' names into English titles
      *
      * @param string $string string to convert
      * @return string converted string

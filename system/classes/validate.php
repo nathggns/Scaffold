@@ -15,7 +15,7 @@ class Validate {
     /**
      * Our default checks
      */
-    private $checks = ['empty', 'email', 'alphanumeric', 'regex', 'is_regex', 'equal', 'url'];
+    private $checks = ['empty', 'email', 'alphanumeric', 'regex', 'is_regex', 'equal', 'url', 'numeric'];
 
     /**
      * Checks can be prepended with some of these modifiers
@@ -210,6 +210,13 @@ class Validate {
     }
 
     /**
+     * Numeric test
+     */
+    public function check_numeric($value) {
+        return is_numeric($value);
+    }
+
+    /**
      * Email test
      */
     public function check_email($value) {
@@ -243,7 +250,6 @@ class Validate {
     public function modifier_not($value) {
         return !$value;
     }
-
     /**
      * URL test
      */

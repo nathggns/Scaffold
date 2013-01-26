@@ -257,7 +257,7 @@ class Router {
                     $controller = $request->params['controller'];
 
                     if (isset($request->params['resource'])) {
-                        $controller = rtrim($controller, 's') . ucfirst($request->params['resource']);
+                        $controller = Inflector::singularize($controller) . ucfirst($request->params['resource']);
                     }
 
                     $action = $request->method;

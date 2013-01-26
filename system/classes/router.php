@@ -233,7 +233,7 @@ class Router {
         $request  = ($request !== null) ? $request : Service::get('request');
         $response = ($response !== null) ? $response : Service::get('response');
 
-        $route = $this->find_route($request);
+        $route = $this->find_route($request);  
 
         if (!$route) static::throw_error($request->method, $request->uri);
 
@@ -255,7 +255,12 @@ class Router {
             if ($route['target'] === null) {
                 if (isset($request->params['controller'])) {
                     $controller = $request->params['controller'];
-                    $action     = $request->method;
+
+                    if (isset($request->params['resource'])) {
+                        $controller = Inflector::singularize($controller) . ucfirst($request->params['resource']);
+                    }
+
+                    $action = $request->method;
                 } else {
                     static::throw_error($request->method, $request->method);
                 }

@@ -75,6 +75,7 @@ Service::singleton('router.default', function() {
     });
 
     $router->all('/', 'index');
+    $router->all('/:controller/:resource/:id');
     $router->all('/:controller/:id');
 
     return $router;

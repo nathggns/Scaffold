@@ -63,7 +63,7 @@ class Autoload {
         $previous_parts = [];
 
         foreach($parts as $key => $part) {
-            $plural_directory =  Inflector::pluralize($part);
+            $plural_directory = Inflector::pluralize($part);
 
             if (in_array(implode(DS, $previous_parts) . DS . $plural_directory, static::$parents)) {
                 $parts[$key] = $plural_directory;

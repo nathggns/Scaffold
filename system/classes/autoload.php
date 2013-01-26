@@ -30,10 +30,16 @@ class Autoload {
            return Inflector::pluralize($directory) === $directory;
         });
 
-        static::$parents = array_map(function($directory) {
-           $parts = explode(DS, $directory);
-           return end($parts);
-        }, $directories);
+        static::$parents = [];
+
+        $paths = [];
+
+        foreach ($directories as $directory) {
+            $parts = explode(DS, substr($directory, strlen(ROOT)));
+            $parts = array_slice($parts, 2);
+
+            static::$parents[] = DS . implode(DS, $parts);
+        }
 
         // register autoloader
         spl_autoload_register(['Autoload', 'load']);
@@ -54,12 +60,16 @@ class Autoload {
 
         if ($result = static::load_file($parts)) return $result;
 
+        $previous_parts = [];
+
         foreach($parts as $key => $part) {
             $plural_directory = Inflector::pluralize($part);
 
-            if (in_array($plural_directory, static::$parents)) {
+            if (in_array(implode(DS, $previous_parts) . DS . $plural_directory, static::$parents)) {
                 $parts[$key] = $plural_directory;
             }
+
+            $previous_parts[] = $plural_directory;;
         }
 
         if ($result = static::load_file($parts)) return $result;

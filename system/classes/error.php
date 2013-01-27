@@ -80,6 +80,7 @@ class Error {
 	 * @todo Customisable error.
 	 */
 	public static function uncatchable($err = false) {
+		if (in_array($err, [E_WARNING, E_NOTICE])) return;
 		static::get_response()->error(500)->send();
 		die;
 	}

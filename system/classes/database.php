@@ -17,65 +17,44 @@ class Database {
         $this->driver = Service::get('database.driver', $config->get('database'));
     }
 
-    /* Complex Query Helpers */
-    public static function where_or($val) {
-        return static::query($val, static::query_arr('or'));
-    }
+    /* Query Helpers */
+    public static function __callStatic($name, $args = []) {
+        if (preg_match('/^where_/i', $name)) {
+            $name = substr($name, strlen('where_'));
 
-    public static function where_and($val) {
-        return static::query($val, static::query_arr('and'));
-    }
+            switch ($name) {
+                case 'not':
+                    $prop = 'special';
+                    $name = ['not'];
+                break;
 
-    public static function where_equals($val) {
-        return static::query($val, static::query_arr('equals'));
-    }
+                case 'or':
+                case 'and':
+                    $prop = 'connector';
+                break;
 
-    public static function where_gt($val) {
-        return static::query($val, static::query_arr('gt'));
-    }
+                case 'gt':
+                case 'gte':
+                case 'lt':
+                case 'lte':
+                case 'equals':
+                    $prop = 'operator';
+                break;
 
-    public static function where_gte($val) {
-        return static::query($val, static::query_arr('gte'));
-    }
+                default: return;
+            }
 
-    public static function where_lt($val) {
-        return static::query($val, static::query_arr('lt'));
-    }
+            $args[] = [$prop => $name];
 
-    public static function where_lte($val) {
-        return static::query($val, static::query_arr('lte'));
-    }
-
-    public static function where_not($val) {
-        return static::query($val, static::query_arr('not'));
-    }
-
-    public static function query_arr($name) {
-        switch ($name) {
-            case 'not':
-                $prop = 'special';
-                $name = ['not'];
-            break;
-
-            case 'or':
-            case 'and':
-                $prop = 'connector';
-            break;
-
-            case 'gt':
-            case 'gte':
-            case 'lt':
-            case 'lte':
-            case 'equals':
-                $prop = 'operator';
-            break;
-
-            default: return;
+            return call_user_func_array([self, 'query'], $args);
         }
 
-        return [$prop => $name];
+        return call_user_func_array([get_class($this->driver), $name], $args);
     }
 
+    /**
+     * Build query object
+     */
     public static function query($val, $opts = []) {
 
         while (is_object($val)) {

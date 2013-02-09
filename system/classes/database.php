@@ -76,14 +76,14 @@ class Database {
         return [$prop => $name];
     }
 
-    public static function query($val, $opts) {
+    public static function query($val, $opts = []) {
 
-        if (is_object($val)) {
-            $opts = array_merge(get_object_vars($val), $opts);
-        } else {
-            $opts['val'] = $val;
+        while (is_object($val)) {
+            $opts = array_merge($opts, get_object_vars($val));
+            $val = $val->val;
         }
 
+        $opts['val'] = $val;
         $obj = new Dynamic($opts);
 
         return $obj;

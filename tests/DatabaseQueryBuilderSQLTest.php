@@ -103,6 +103,45 @@ class DatabaseQueryBuilderSQLTest extends PHPUnit_Framework_Testcase {
 		$this->assertEquals('SELECT * FROM `users` GROUP BY `last_name`, `location`;', $sql);
 	}
 
+	public function testSelectWithOrder() {
+		$sql = $this->builder->select([
+			'table' => 'users',
+			'order' => 'name'
+		]);
+
+		$this->assertEquals('SELECT * FROM `users` ORDER BY `name` ASC;', $sql);
+	}
+
+	public function testSelectWithOrderOfOrder() {
+		$sql = $this->builder->select([
+			'table' => 'users',
+			'order' => [['name', 'desc']]
+		]);
+
+		$this->assertEquals('SELECT * FROM `users` ORDER BY `name` DESC;', $sql);
+	}
+
+	public function testSelectWithMultipleOrders() {
+		$sql = $this->builder->select([
+			'table' => 'users',
+			'order' => ['last_name', 'name']
+		]);
+
+		$this->assertEquals('SELECT * FROM `users` ORDER BY `last_name` ASC, `name` ASC;', $sql);
+	}
+
+	public function testSelectWithMultipleOrdersWithOrderofOrders() {
+		$sql = $this->builder->select([
+			'table' => 'users',
+			'order' => [
+				'last_name',
+				['name', 'desc']
+			]
+		]);
+
+		$this->assertEquals('SELECT * FROM `users` ORDER BY `last_name` ASC, `name` DESC;', $sql);
+	}
+
 	public function testUpdate() {
 		$sql = $this->builder->update('users', [
 			'name' => 'Bob'

@@ -250,7 +250,7 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
             if (!is_array($part)) $part = [$part, 'ASC'];
             $part[0] = $this->backtick($part[0]);
 
-            $parts[] = $part[0] . ' ' . $part[1];
+            $parts[] = $part[0] . ' ' . strtoupper($part[1]);
         }
 
         $query .= implode(', ', $parts);

@@ -85,6 +85,24 @@ class DatabaseQueryBuilderSQLTest extends PHPUnit_Framework_Testcase {
 		$this->assertEquals('SELECT * FROM `users` LIMIT 25, 56;', $sql);
 	}
 
+	public function testSelectWithGroupBy() {
+		$sql = $this->builder->select([
+			'table' => 'users',
+			'group' => 'last_name'
+		]);
+
+		$this->assertEquals('SELECT * FROM `users` GROUP BY `last_name`;', $sql);
+	}
+
+	public function testSelectWithMultipleGroupBys() {
+		$sql = $this->builder->select([
+			'table' => 'users',
+			'group' => ['last_name', 'location']
+		]);
+
+		$this->assertEquals('SELECT * FROM `users` GROUP BY `last_name`, `location`;', $sql);
+	}
+
 	public function testUpdate() {
 		$sql = $this->builder->update('users', [
 			'name' => 'Bob'

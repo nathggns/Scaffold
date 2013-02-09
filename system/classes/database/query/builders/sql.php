@@ -236,7 +236,7 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         $query = 'GROUP BY ';
         if (!is_array($group)) $group = [$group];
         $group = $this->backtick($group);
-        $group = implode(',', $group);
+        $group = implode(', ', $group);
 
         return $query . $group;
     }

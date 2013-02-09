@@ -161,4 +161,12 @@ class DatabaseQueryBuilderSQLTest extends PHPUnit_Framework_Testcase {
 		$this->assertEquals('INSERT INTO `users` (`name`, `email`) VALUES (\'Joe\', \'joe.is@awesome.com\');', $sql);
 	}
 
+	public function testDelete() {
+		$sql = $this->builder->delete('users', [
+			'name' => 'Harry'
+		]);
+
+		$this->assertEquals('DELETE FROM `users` WHERE `name` = \'Harry\';', $sql);
+	}
+
 }

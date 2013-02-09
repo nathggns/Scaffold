@@ -78,17 +78,13 @@ class Database {
 
     public static function query($val, $opts) {
 
-        $obj = new Dynamic([]);
-
         if (is_object($val)) {
             $opts = array_merge(get_object_vars($val), $opts);
         } else {
             $opts['val'] = $val;
         }
 
-        foreach ($opts as $key => $val) {
-            $obj->$key = $val;
-        }
+        $obj = new Dynamic($opts);
 
         return $obj;
     }

@@ -7,6 +7,7 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
 
 	protected $mode;
 	protected $query_opts = [];
+	protected $query_mode;
 
 	public function __construct() {
 		$this->mode = static::MODE_SINGLE;
@@ -24,6 +25,8 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
 	 */
 	public function end() {
 		$this->mode = static::MODE_SINGLE;
+
+		return call_user_func([$this, $this->query_mode], $this->options);
 	}
 
 	/**

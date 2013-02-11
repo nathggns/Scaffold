@@ -5,6 +5,8 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
 	const MODE_SINGLE = 1;
 	const MODE_CHAINED = 2;
 
+	protected $mode;
+
 	public function __construct() {
 		$this->mode = static::MODE_SINGLE;
 	}

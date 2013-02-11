@@ -6,6 +6,7 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
 	const MODE_CHAINED = 2;
 
 	protected $mode;
+	protected $query_opts = [];
 
 	public function __construct() {
 		$this->mode = static::MODE_SINGLE;
@@ -13,6 +14,7 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
 
 	public function start() {
 		$this->mode = static::MODE_CHAINED;
+		$this->query_opts = [];
 
 		return $this;
 	}

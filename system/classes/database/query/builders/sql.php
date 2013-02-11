@@ -12,7 +12,7 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
     protected $default_meta = ['connector' => 'AND', 'operator' => '='];
 
     public function select($options) {
-        extract($this->extract($options));
+        extract(call_user_func_array([$this, 'extract'], func_get_args()));
 
         if (!is_array($table)) {
             $table = [$table];

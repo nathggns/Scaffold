@@ -2,7 +2,23 @@
 
 abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
 
-	protected function extract($options) {
+	protected function extract($table = null, $options = []) {
+
+		// Argument shuffling
+		if (is_array($table)) {
+			$options = $table;
+
+			if (isset($options['table'])) {
+				$table = $options['table'];
+			} else {
+				$table = null;
+			}
+		}
+
+		if (!is_null($table)) {
+			$options['table'] = $table;
+		}
+
 		$args = [];
 		$required = ['table'];
 		$optional = [
@@ -13,6 +29,7 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
 		    'having' => [],
 		    'limit' => []
 		];
+
 		$keys = array_keys($options);
 
 		foreach ($required as $req) {

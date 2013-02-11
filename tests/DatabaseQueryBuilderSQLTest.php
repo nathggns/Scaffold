@@ -8,8 +8,17 @@ class DatabaseQueryBuilderSQLTest extends PHPUnit_Framework_Testcase {
 
 	public function testBasicSelect() {
 		$sql = $this->builder->select(['table' => 'users']);
-
 		$this->assertEquals($sql, 'SELECT * FROM `users`;');
+	}
+
+	public function testBasicSelectWithStringForTable() {
+		$sql = $this->builder->select('users');
+		$this->assertEquals($sql, 'SELECT * FROM `users`;');
+	}
+
+	public function testBasicSelectWithStringForTableAndArgs() {
+		$sql = $this->builder->select('users', ['conds' => ['id' => 1]]);
+		$this->assertEquals('SELECT * FROM `users` WHERE `id` = 1;', $sql);
 	}
 
 	public function testSelectWithSimpleWhere() {

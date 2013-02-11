@@ -2,6 +2,26 @@
 
 abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
 
+	const MODE_SINGLE = 1;
+	const MODE_CHAINED = 2;
+
+	public function __construct() {
+		$this->mode = static::MODE_SINGLE;
+	}
+
+	public function start() {
+		$this->mode = static::MODE_CHAINED;
+
+		return $this;
+	}
+
+	/**
+	 * @todo Return the query...
+	 */
+	public function end() {
+		$this->mode = static::MODE_SINGLE;
+	}
+
 	protected function extract() {
 
 		$options = call_user_func_array([$this, 'extract_shuffle'], func_get_args());

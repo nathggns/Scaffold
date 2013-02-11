@@ -24,6 +24,13 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
 		$this->mode = static::MODE_SINGLE;
 	}
 
+	/**
+	 * We should return the query if we're typecasted to a string
+	 */
+	public function __toString() {
+		return $this->end();
+	}
+
 	protected function extract() {
 
 		$options = call_user_func_array([$this, 'extract_shuffle'], func_get_args());

@@ -2,22 +2,9 @@
 
 abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
 
-	protected function extract($table = null, $options = []) {
+	protected function extract() {
 
-		// Argument shuffling
-		if (is_array($table)) {
-			$options = $table;
-
-			if (isset($options['table'])) {
-				$table = $options['table'];
-			} else {
-				$table = null;
-			}
-		}
-
-		if (!is_null($table)) {
-			$options['table'] = $table;
-		}
+		$options = call_user_func_array([$this, 'extract_shuffle'], func_get_args());
 
 		$args = [];
 		$required = ['table'];
@@ -49,6 +36,25 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
 		}
 
 		return $args;
+	}
+
+	protected function extract_shuffle($table = null, $options = []) {
+		// Argument shuffling
+		if (is_array($table)) {
+			$options = $table;
+
+			if (isset($options['table'])) {
+				$table = $options['table'];
+			} else {
+				$table = null;
+			}
+		}
+
+		if (!is_null($table)) {
+			$options['table'] = $table;
+		}
+
+		return $options;
 	}
 
 }

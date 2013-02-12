@@ -11,8 +11,17 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
     protected $joins = ['AND', 'OR'];
     protected $default_meta = ['connector' => 'AND', 'operator' => '='];
 
-    public function select($options) {
-        $options = extract(call_user_func_array([$this, 'extract'], func_get_args()));
+    public function select() {
+        $options = call_user_func_array([$this, 'extract'], func_get_args());
+
+        if ($this->mode === static::MODE_CHAINED) {
+            $this->query_mode = 'select';
+            $this->query_opts = recursive_overwrite($this->query_opts, $options);
+
+            return $this;
+        }
+
+        extract($options);
 
         if (!is_array($table)) {
             $table = [$table];
@@ -42,11 +51,11 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         $val = implode(', ', $vals);
         $query = 'SELECT ' . $val . ' FROM ' . $table;
 
-        if (count($conds) > 0) $query .= ' ' . $this->where($conds);
-        if (count($group) > 0) $query .= ' ' . $this->group($group);
-        if (count($order) > 0) $query .= ' ' . $this->order($order);
+        if (count($conds) > 0) $query .= ' ' . $this->where_array($conds);
+        if (count($group) > 0) $query .= ' ' . $this->group_array($group);
+        if (count($order) > 0) $query .= ' ' . $this->order_array($order);
         if (count($having) > 0) $query .= ' ' . $this->having($having);
-        if (count($limit) > 0) $query .= ' ' . $this->limit($limit);
+        if (count($limit) > 0) $query .= ' ' . $this->limit_array($limit);
 
         $query .= ';';
 
@@ -77,7 +86,7 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         $data = $this->escape($data);
         $query = 'UPDATE ' . $table . ' SET ' . $this->pairs($keys, $data);
 
-        if (count($where) > 0) $query .= ' ' . $this->where($where);
+        if (count($where) > 0) $query .= ' ' . $this->where_array($where);
 
         $query .= ';';
 
@@ -88,7 +97,7 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         $table = $this->backtick($table);
         $query = 'DELETE FROM ' . $table;
 
-        if (count($where) > 0) $query .= ' ' . $this->where($where);
+        if (count($where) > 0) $query .= ' ' . $this->where_array($where);
 
         $query .= ';';
 
@@ -99,7 +108,7 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         return 'SHOW FULL COLUMNS FROM ' . $this->backtick($table) . ';';
     }
 
-    protected function where($conds) {
+    protected function where_array($conds) {
         return $this->conds($conds, 'WHERE');
     }
 
@@ -232,7 +241,7 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         return $this->conds($conds, 'HAVING');
     }
 
-    protected function group($group) {
+    protected function group_array($group) {
         $query = 'GROUP BY ';
         if (!is_array($group)) $group = [$group];
         $group = $this->backtick($group);
@@ -241,13 +250,14 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         return $query . $group;
     }
 
-    protected function order($order) {
+    protected function order_array($order) {
         $query = 'ORDER BY ';
         if (!is_array($order)) $order = [$order];
         $parts = [];
 
         foreach ($order as $part) {
             if (!is_array($part)) $part = [$part, 'ASC'];
+            if (count($part) < 2) $part[] = 'ASC';
             $part[0] = $this->backtick($part[0]);
 
             $parts[] = $part[0] . ' ' . strtoupper($part[1]);
@@ -258,7 +268,7 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         return $query;
     }
 
-    protected function limit($limit) {
+    protected function limit_array($limit) {
         $query = 'LIMIT ';
         if (!is_array($limit)) $limit = [$limit];
         if (count($limit) < 2) $limit = array_merge([0], $limit);

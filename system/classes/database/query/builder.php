@@ -6,8 +6,9 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
 	const MODE_CHAINED = 2;
 
 	protected $mode;
-	protected $query_opts = [];
+	protected $query_opts;
 	protected $query_mode;
+	protected $where_mode;
 
 	/* config functions */
 
@@ -18,6 +19,8 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
 	public function start() {
 		$this->mode = static::MODE_CHAINED;
 		$this->query_opts = [];
+		$this->query_mode = null;
+		$this->where_mode = [];
 
 		return $this;
 	}
@@ -36,6 +39,99 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
 	 */
 	public function __toString() {
 		return $this->end();
+	}
+
+	/* Filtering functions */
+	public function where($key, $val) {
+		foreach ($this->where_mode as $where_mode) {
+			$func = 'where_' . $where_mode;
+			$val = call_user_func(['Database', $func], $val);
+		}
+
+		$this->where_mode = [];
+
+		if (!isset($this->query_opts['conds'])) {
+			$this->query_opts['conds'] = [];
+		}
+
+		$this->query_opts['conds'][$key] = $val;
+
+		return $this;
+	}
+
+	// public function where_or() {
+	// 	$this->where_mode = 'or';
+
+	// 	if (count($args = func_get_args()) > 0) {
+	// 		call_user_func_array([$this, 'where'], $args);
+	// 	}
+
+	// 	return $this;
+	// }
+
+	// public function where_and() {
+	// 	$this->where_mode = 'and';
+
+	// 	if (count($args = func_get_args()) > 0) {
+	// 		call_user_func_array([$this, 'where'], $args);
+	// 	}
+
+	// 	return $this;
+	// }
+
+	// public function where_not() {
+	// 	$this->where_mode = 'not';
+
+	// 	if (count($args = func_get_args()) > 0) {
+	// 		call_user_func_array([$this, 'where'], $args);
+	// 	}
+
+	// 	return $this;
+	// }
+	// 
+	public function __call($name, $args) {
+		if (preg_match('/^where_/i', $name)) {
+			$name = substr($name, strlen('where_'));
+			$this->where_mode[] = $name;
+
+			if (count($args) > 0) {
+				call_user_func_array([$this, 'where'], $args);
+			}
+
+			return $this;
+		}
+
+		throw new Exception('No such function');
+	}
+
+	public function group() {
+		$part = func_get_args();
+
+		if (!isset($this->query_opts['group'])) $this->query_opts['group'] = [];
+
+		$this->query_opts['group'] = array_merge_recursive($this->query_opts['group'], $part);
+
+		return $this;
+	}
+
+	public function order($col, $dir = false) {
+		$part = [$col];
+		if ($dir) $part[] = $dir;
+
+		if (!isset($this->query_opts['order'])) $this->query_opts['order'] = [];
+
+		$this->query_opts['order'][] = $part;
+
+		return $this;
+	}
+
+	public function limit($start, $end = null) {
+		$part = [$start];
+		if (!is_null($end)) $part[] = $end;
+
+		$this->query_opts['limit'] = array_merge($this->query_opts['limit'], $part);
+
+		return $this;
 	}
 
 	/* Utility functions for the subclass */

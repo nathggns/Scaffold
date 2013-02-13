@@ -166,7 +166,35 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         return $query;
     }
 
-    public function delete($table, $where = []) {
+    public function delete($table, $where = null) {
+
+        $defaults = [
+            'table' => null,
+            'conds' => []
+        ];
+        
+        $options = [];
+
+        if (is_array($table)) {
+            $options = $table;
+        } else {
+            $options['table'] = $table;
+        }
+
+        if (!is_null($where)) {
+            $options['conds'] = $where;
+        }
+
+        if ($this->chained()) {
+            $this->query_mode = 'delete';
+            $this->query_opts = $options;
+
+            return $this;
+        }
+
+        $options = recursive_overwrite($defaults, $options);
+        list($table, $where) = array_values($options);
+
         $table = $this->backtick($table);
         $query = 'DELETE FROM ' . $table;
 

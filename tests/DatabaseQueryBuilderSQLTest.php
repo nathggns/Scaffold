@@ -311,4 +311,33 @@ class DatabaseQueryBuilderSQLTest extends PHPUnit_Framework_Testcase {
 		$this->assertEquals('DELETE FROM `users` WHERE `name` = \'Harry\';', $sql);
 	}
 
+	public function testDeleteChained() {
+		$sql = $this->builder->start()->delete('users')->where('name', 'Harry')->end();
+		$this->assertEquals('DELETE FROM `users` WHERE `name` = \'Harry\';', $sql);
+	}
+
+
+	public function testDeleteWithComplexWhere() {
+		$sql = $this->builder->delete('users', [
+			'logins' => Database::where_gt(5)
+		]);
+
+		$this->assertEquals('DELETE FROM `users` WHERE `logins` > 5;', $sql);
+	}
+
+	public function testDeleteWithMultComplexWhere() {
+		$sql = $this->builder->delete('users', [
+			'logins' => Database::where_gt(5),
+			'name' => Database::where_or('Josh')
+		]);
+
+		$this->assertEquals('DELETE FROM `users` WHERE `logins` > 5 OR `name` = \'Josh\';', $sql);
+	}
+
+	public function testDeleteWithoutWhere() {
+		$sql = $this->builder->delete('users');
+
+		$this->assertEquals('DELETE FROM `users`;', $sql);
+	}
+
 }

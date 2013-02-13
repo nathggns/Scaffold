@@ -14,7 +14,7 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
     public function select() {
         $options = call_user_func_array([$this, 'extract'], func_get_args());
 
-        if ($this->mode === static::MODE_CHAINED) {
+        if ($this->chained()) {
             $this->query_mode = 'select';
             $this->query_opts = recursive_overwrite($this->query_opts, $options);
 
@@ -62,8 +62,44 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         return $query;
     }
 
-    public function insert($table, $data) {
+    public function insert($table, $data = null) {
+
+        $default = [
+            'table' => null,
+            'data' => []
+        ];
+
+        $options = [];
+
+        if (is_array($table)) {
+            $options = $table;
+        } else {
+            $options['table'] = $table;
+        }
+
+        if (!is_null($data)) {
+            $options['data'] = $data;
+        }
+
+        $options = recursive_overwrite($default, $options);
+        list($table, $data) = array_values($options);
+
+        if ($this->chained()) {
+            $this->query_mode = 'insert';
+            $this->query_opts = [
+                'data' => $data,
+                'table' => $table
+            ];
+
+            return $this;
+        }
+
+        if (count($data) === 0) {
+            throw new InvalidArgumentsException('Must pass data when inserting...');
+        }
+
         $table = $this->backtick($table);
+
         $values = $this->escape($data);
         $values = implode(', ', $values);
 

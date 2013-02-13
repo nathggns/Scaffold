@@ -59,36 +59,6 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
 		return $this;
 	}
 
-	// public function where_or() {
-	// 	$this->where_mode = 'or';
-
-	// 	if (count($args = func_get_args()) > 0) {
-	// 		call_user_func_array([$this, 'where'], $args);
-	// 	}
-
-	// 	return $this;
-	// }
-
-	// public function where_and() {
-	// 	$this->where_mode = 'and';
-
-	// 	if (count($args = func_get_args()) > 0) {
-	// 		call_user_func_array([$this, 'where'], $args);
-	// 	}
-
-	// 	return $this;
-	// }
-
-	// public function where_not() {
-	// 	$this->where_mode = 'not';
-
-	// 	if (count($args = func_get_args()) > 0) {
-	// 		call_user_func_array([$this, 'where'], $args);
-	// 	}
-
-	// 	return $this;
-	// }
-	// 
 	public function __call($name, $args) {
 		if (preg_match('/^where_/i', $name)) {
 			$name = substr($name, strlen('where_'));
@@ -130,6 +100,20 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
 		if (!is_null($end)) $part[] = $end;
 
 		$this->query_opts['limit'] = array_merge($this->query_opts['limit'], $part);
+
+		return $this;
+	}
+
+	public function set($key, $value) {
+		if (!in_array($this->query_mode, ['insert', 'update'])) {
+			throw new InvalidArgumentException('Cannot use with this type of query');
+		}
+
+		if (!isset($this->query_opts['data'])) {
+			$this->query_opts['data'] = [];
+		}
+
+		$this->query_opts['data'][$key] = $value;
 
 		return $this;
 	}
@@ -189,6 +173,10 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
 		}
 
 		return $options;
+	}
+
+	protected function chained() {
+		return $this->mode === static::MODE_CHAINED;
 	}
 
 }

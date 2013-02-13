@@ -265,6 +265,11 @@ class DatabaseQueryBuilderSQLTest extends PHPUnit_Framework_Testcase {
 		$this->assertEquals('INSERT INTO `users` (`name`, `email`) VALUES (\'Joe\', \'joe.is@awesome.com\');', $sql);
 	}
 
+	public function testInsertChained() {
+		$sql = $this->builder->start()->insert('users')->set('name', 'Joe')->set('email', 'joe.is@awesome.com')->end();
+		$this->assertEquals('INSERT INTO `users` (`name`, `email`) VALUES (\'Joe\', \'joe.is@awesome.com\');', $sql);
+	}
+
 	public function testDelete() {
 		$sql = $this->builder->delete('users', [
 			'name' => 'Harry'

@@ -256,6 +256,39 @@ class DatabaseQueryBuilderSQLTest extends PHPUnit_Framework_Testcase {
 		$this->assertEquals('UPDATE `users` SET `name` = \'Bob\' WHERE `name` = \'Paul\';', $sql);
 	}
 
+	public function testUpdateWithoutWhere() {
+		$sql = $this->builder->update('users', [
+			'name' => 'Bob'
+		]);
+
+		$this->assertEquals('UPDATE `users` SET `name` = \'Bob\';', $sql);
+	}
+
+	public function testUpdateWithComplexWhere() {
+		$sql = $this->builder->update('users', [
+			'name' => 'Bob'
+		], [
+			'name' => Database::where_not('nat')
+		]);
+
+		$this->assertEquals('UPDATE `users` SET `name` = \'Bob\' WHERE NOT `name` = \'nat\';', $sql);
+	}
+
+	public function testUpdateMultipleValues() {
+		$sql = $this->builder->update('users', [
+			'name' => 'Bob',
+			'logins' => 5
+		]);
+
+		$this->assertEquals('UPDATE `users` SET `name` = \'Bob\', `logins` = 5;', $sql);
+	}
+
+	public function testUpdateChained() {
+		$sql = $this->builder->start()->update('users')->set('name', 'nat')->where('name', 'bob')->end();
+
+		$this->assertEquals('UPDATE `users` SET `name` = \'nat\' WHERE `name` = \'bob\';', $sql);
+	}
+
 	public function testInsert() {
 		$sql = $this->builder->insert('users', [
 			'name' => 'Joe',

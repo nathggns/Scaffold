@@ -95,7 +95,7 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         }
 
         if (count($data) === 0) {
-            throw new InvalidArgumentsException('Must pass data when inserting...');
+            throw new InvalidArgumentException('Must pass data when inserting...');
         }
 
         $table = $this->backtick($table);
@@ -116,7 +116,44 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         return $query;
     }
 
-    public function update($table, $data, $where = []) {
+    public function update($table, $data = null, $where = null) {
+
+        $default = [
+            'table' => null,
+            'data' => [],
+            'conds' => []
+        ];
+
+        $options = [];
+
+        if (is_array($table)) {
+            $options = $table;
+        } else {
+            $options['table'] = $table;
+        }
+
+        if (!is_null($data)) {
+            $options['data'] = $data;
+        }
+
+        if (!is_null($where)) {
+            $options['conds'] = $where;
+        }
+
+        if ($this->chained()) {
+            $this->query_opts = $options;
+            $this->query_mode = 'update';
+
+            return $this;
+        }
+
+        $options = recursive_overwrite($default, $options);
+        list($table, $data, $where) = array_values($options);
+
+        if (count($data) === 0) {
+            throw new InvalidArgumentException('You must pass data to set');
+        }
+
         $table = $this->backtick($table);
         $keys = $this->backtick(array_keys($data));
         $data = $this->escape($data);

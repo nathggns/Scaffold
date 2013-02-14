@@ -43,9 +43,9 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
 
 	/* Filtering functions */
 	public function where($key, $val) {
-		foreach ($this->where_mode as $where_mode) {
-			$func = 'where_' . $where_mode;
-			$val = call_user_func(['Database', $func], $val);
+
+		while (count($this->where_mode) > 0 && $func = array_pop($this->where_mode)) {
+			$val = call_user_func(['Database', 'where_' . $func], $val);
 		}
 
 		$this->where_mode = [];
@@ -61,8 +61,8 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
 
 	public function __call($name, $args) {
 		if (preg_match('/^where_/i', $name)) {
-			$name = substr($name, strlen('where_'));
-			$this->where_mode[] = $name;
+			$names = array_slice(explode('_', $name), 1);
+			$this->where_mode = array_merge($this->where_mode, $names);
 
 			if (count($args) > 0) {
 				call_user_func_array([$this, 'where'], $args);

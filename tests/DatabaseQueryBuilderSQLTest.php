@@ -346,4 +346,10 @@ class DatabaseQueryBuilderSQLTest extends PHPUnit_Framework_Testcase {
 		$this->assertEquals('SELECT * FROM `users`;', $sql);
 	}
 
+	public function testOrGtChaing() {
+		$sql = $this->builder->start()->select('users')->where('name', 'nat')->where_or_gt('logins', 5)->end();
+
+		$this->assertEquals('SELECT * FROM `users` WHERE `name` = \'nat\' OR `logins` > 5;', $sql);
+	}
+
 }

@@ -9,6 +9,7 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
 	protected $query_opts;
 	protected $query_mode;
 	protected $where_mode;
+	protected $where_ref;
 
 	/* config functions */
 
@@ -21,6 +22,7 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
 		$this->query_opts = [];
 		$this->query_mode = null;
 		$this->where_mode = [];
+		$this->where_ref = null;
 
 		return $this;
 	}
@@ -54,7 +56,11 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
 			$this->query_opts['conds'] = [];
 		}
 
-		$this->query_opts['conds'][$key] = $val;
+		if (!$this->where_ref) {
+			$this->where_ref =& $this->query_opts['conds'];
+		}
+
+		$this->where_ref[$key] = $val;
 
 		return $this;
 	}

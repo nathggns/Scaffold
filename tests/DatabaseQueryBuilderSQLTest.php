@@ -340,4 +340,10 @@ class DatabaseQueryBuilderSQLTest extends PHPUnit_Framework_Testcase {
 		$this->assertEquals('DELETE FROM `users`;', $sql);
 	}
 
+	public function testChainToString() {
+		$sql = (string) $this->builder->start()->select('users');
+
+		$this->assertEquals('SELECT * FROM `users`;', $sql);
+	}
+
 }

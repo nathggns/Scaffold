@@ -9,7 +9,6 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
 	protected $query_opts;
 	protected $query_mode;
 	protected $where_mode;
-	protected $where_ref;
 
 	/* config functions */
 
@@ -22,7 +21,6 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
 		$this->query_opts = [];
 		$this->query_mode = null;
 		$this->where_mode = [];
-		$this->where_ref = null;
 
 		return $this;
 	}
@@ -44,23 +42,39 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
 	}
 
 	/* Filtering functions */
-	public function where($key, $val) {
+	public function where($key, $val = null) {
+
+		// if (is_array($key) && is_null($val)) {
+		// 	$vals = $key;
+
+		// 	foreach ($vals as $key => $val) {
+		// 		$this->where($key, $val);
+		// 	}
+
+		// 	return $this;
+		// }
+		// 
+		
+		if (is_array($key) && is_null($val)) {
+			$val = $key;
+			$key = null;
+		}
 
 		while (count($this->where_mode) > 0 && $func = array_pop($this->where_mode)) {
 			$val = call_user_func(['Database', 'where_' . $func], $val);
 		}
 
 		$this->where_mode = [];
-
+		
 		if (!isset($this->query_opts['conds'])) {
 			$this->query_opts['conds'] = [];
 		}
 
-		if (!$this->where_ref) {
-			$this->where_ref =& $this->query_opts['conds'];
+		if (!is_null($key)) {
+			$this->query_opts['conds'][$key] = $val;
+		} else {
+			$this->query_opts['conds'][] = $val;
 		}
-
-		$this->where_ref[$key] = $val;
 
 		return $this;
 	}

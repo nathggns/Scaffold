@@ -160,6 +160,33 @@ class DatabaseQueryBuilderSQLTest extends PHPUnit_Framework_Testcase {
 		$this->assertEquals('SELECT * FROM `users` WHERE (`id` = 1 AND `name` = \'Nat\') OR (`id` = 2 AND `name` = \'Claudio\');', $sql);
 	}
 
+	public function testSelectWithGroupsLevelTwo() {
+		$sql = $this->builder->select([
+			'table' => 'users',
+			'conds' => [
+				[
+					'id' => 1,
+					'name' => 'Nat',
+
+					[
+						'key' => 'val',
+						'key_two' => 'val_two'
+					]
+				],
+
+				Database::where_or([
+					'id' => 2,
+					'name' => 'Claudio'
+				])
+			]
+		]);
+
+		$this->assertEquals(
+            'SELECT * FROM `users` WHERE (`id` = 1 AND `name` = \'Nat\' AND (`key` = \'val\' AND `key_two` = \'val_two\')) OR (`id` = 2 AND `name` = \'Claudio\');',
+            $sql
+        );
+	}
+
 	public function testSelectWithIn() {
 		$sql = $this->builder->select([
 			'table' => 'users',
@@ -350,6 +377,24 @@ class DatabaseQueryBuilderSQLTest extends PHPUnit_Framework_Testcase {
 		$sql = $this->builder->start()->select('users')->where('name', 'nat')->where_or_gt('logins', 5)->end();
 
 		$this->assertEquals('SELECT * FROM `users` WHERE `name` = \'nat\' OR `logins` > 5;', $sql);
+	}
+	
+	public function testBasicGroupChain() {
+		$sql = $this->builder->start()->select('users')->where(['name' => 'nat'])->end();
+
+		$this->assertEquals('SELECT * FROM `users` WHERE (`name` = \'nat\');', $sql);
+	}
+
+	public function testBasicGroupChainWithOther() {
+		$sql = $this->builder->start()->select('users')->where(['name' => 'nat'])->where_gt('logins', 5)->end();
+
+		$this->assertEquals('SELECT * FROM `users` WHERE (`name` = \'nat\') AND `logins` > 5;', $sql);
+	}
+
+	public function testAdvancedGroupChain() {
+		$sql = $this->builder->start()->select('users')->where('name', 'nat')->where_or(['id' => 2, 'logins' => Database::where_or(Database::where_gt(5))]);
+
+		$this->assertEquals('SELECT * FROM `users` WHERE `name` = \'nat\' OR (`id` = 2 OR `logins` > 5);', $sql);
 	}
 
 }

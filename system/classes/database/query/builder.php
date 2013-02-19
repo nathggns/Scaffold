@@ -50,12 +50,16 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
 	/* Filtering functions */
 	public function where($key, $val = null) {
 
+		if (is_null($val)) {
+			if (is_array($key)) {
+				$val = $key;
+				$key = null;	
 
 
-		
-		if (is_array($key) && is_null($val)) {
-			$val = $key;
-			$key = null;
+			} else {
+				// @todo Should probably work something out here, maybe throw an exception?
+				return $this;
+			}
 		}
 
 		while (count($this->where_mode) > 0 && $func = array_pop($this->where_mode)) {

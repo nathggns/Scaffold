@@ -397,4 +397,9 @@ class DatabaseQueryBuilderSQLTest extends PHPUnit_Framework_Testcase {
 		$this->assertEquals('SELECT * FROM `users` WHERE `name` = \'nat\' OR (`id` = 2 OR `logins` > 5);', $sql);
 	}
 
+	public function testNestedGroupChain() {
+		$sql = $this->builder->start()->select('users')->where('name', 'nat')->where_or(['id' => 2, 'logins' => Database::where_or(Database::where_gt(5)), ['name' => 'joe']])->end();
+
+		$this->assertEquals('SELECT * FROM `users` WHERE `name` = \'nat\' OR (`id` = 2 OR `logins` > 5 AND (`name` = \'joe\'));', $sql);
+	}
 }

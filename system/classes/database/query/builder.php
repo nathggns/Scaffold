@@ -25,9 +25,6 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
 		return $this;
 	}
 
-	/**
-	 * @todo Return the query...
-	 */
 	public function end() {
 		$this->mode = static::MODE_SINGLE;
 

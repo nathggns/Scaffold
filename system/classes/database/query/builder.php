@@ -38,6 +38,15 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
 		return $this->end();
 	}
 
+	/**
+	 * Return query_opts['conds'], if they exist
+	 */
+	public function get_conds() {
+		return isset($this->query_opts['conds']) ?
+			$this->query_opts['conds'] :
+			null;
+	}
+
 	/* Filtering functions */
 	public function where($key, $val = null) {
 

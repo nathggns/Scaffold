@@ -402,4 +402,23 @@ class DatabaseQueryBuilderSQLTest extends PHPUnit_Framework_Testcase {
 
 		$this->assertEquals('SELECT * FROM `users` WHERE `name` = \'nat\' OR (`id` = 2 OR `logins` > 5 AND (`name` = \'joe\'));', $sql);
 	}
+
+	public function testGroupFunction() {
+		$sql = $this->builder->start()->select('users')->where('name', 'nat')->where_or(function() {;
+			$this->where('id', 2)->where_or_gt('logins', 5);
+		})->end();
+
+		$this->assertEquals('SELECT * FROM `users` WHERE `name` = \'nat\' OR (`id` = 2 OR `logins` > 5);', $sql);
+	}
+
+	public function testGroupFunctionMultiLayer() {
+		$sql = $this->builder->start()->select('users')->where('name', 'nat')->where_or(function() {
+			$this->where('id', 2)->where_or_gt('logins', 5)->where(function() {
+				$this->where('name', 'joe');
+			});
+		})->end();
+
+		$this->assertEquals('SELECT * FROM `users` WHERE `name` = \'nat\' OR (`id` = 2 OR `logins` > 5 AND (`name` = \'joe\'));', $sql);
+	}
+
 }

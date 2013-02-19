@@ -54,6 +54,18 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
 			if (is_array($key)) {
 				$val = $key;
 				$key = null;	
+			} else if (is_callable($key)) {
+				$class = get_class($this);
+				$instance = new $class;
+				
+				$key = $key->bindTo($instance);
+				$key();
+				
+				if (!($val = $instance->get_conds())) {
+					return $this;
+				}
+
+				$key = null;
 
 
 			} else {

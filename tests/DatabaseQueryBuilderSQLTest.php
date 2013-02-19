@@ -392,7 +392,7 @@ class DatabaseQueryBuilderSQLTest extends PHPUnit_Framework_Testcase {
 	}
 
 	public function testAdvancedGroupChain() {
-		$sql = $this->builder->start()->select('users')->where('name', 'nat')->where_or(['id' => 2, 'logins' => Database::where_or(Database::where_gt(5))]);
+		$sql = $this->builder->start()->select('users')->where('name', 'nat')->where_or(['id' => 2, 'logins' => Database::where_or(Database::where_gt(5))])->end();
 
 		$this->assertEquals('SELECT * FROM `users` WHERE `name` = \'nat\' OR (`id` = 2 OR `logins` > 5);', $sql);
 	}

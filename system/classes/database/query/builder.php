@@ -44,16 +44,8 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
 	/* Filtering functions */
 	public function where($key, $val = null) {
 
-		// if (is_array($key) && is_null($val)) {
-		// 	$vals = $key;
 
-		// 	foreach ($vals as $key => $val) {
-		// 		$this->where($key, $val);
-		// 	}
 
-		// 	return $this;
-		// }
-		// 
 		
 		if (is_array($key) && is_null($val)) {
 			$val = $key;

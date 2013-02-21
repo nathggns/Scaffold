@@ -60,5 +60,7 @@ require(SYSTEM . 'bootstrap.php');
 /**
  * Register standard route and run router
  */
-$router = Service::get('router.default');
-$router->run();
+if (!defined('TESTING') || !TESTING) {
+	$router = Service::get('router.default');
+	$router->run();
+}

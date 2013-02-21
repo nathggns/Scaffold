@@ -15,6 +15,11 @@ class Error {
 	public static $handlers = [];
 
 	/**
+	 * Our config
+	 */
+	public static $config;
+
+	/**
 	 * Global instance
 	 */
 	public static $instance;
@@ -80,11 +85,20 @@ class Error {
 	 * @todo Customisable error.
 	 */
 	public static function uncatchable($err = false) {
-		if (in_array($err, [E_WARNING, E_NOTICE])) return;
-		static::get_response()->error(500)->send();
 
 		// If it's a supressed error
 		if (0 == (error_reporting() & $err)) return;
+
+		// If we haven't got config yet, load it
+		if (!static::$config) {
+			static::$config = Service::get('config')->get('errors');
+		}
+
+		if (static::$config['ignore'] | $err === static::$config['ignore']) {
+			return;
+		}
+
+		static::get_response()->error(500, false, static::$config['debug'] ? func_get_args() : false)->send();
 		die;
 	}
 

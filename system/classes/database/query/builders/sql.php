@@ -15,12 +15,8 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         $args = func_get_args();
         $options = call_user_func_array([$this, 'extract'], $args);
 
-        if ((count($args) === 1 && is_string(reset($args))) || $chained = $this->chained()) {
-            if (!$chained) $this->start();
-            $this->query_mode = 'select';
-            $this->query_opts = recursive_overwrite($this->query_opts, $options);
-
-            return $this;
+        if ((count($args) === 1 && is_string(reset($args))) || $this->chained()) {
+            return $this->start('select', recursive_overwrite($this->query_opts, $options));
         }
 
         $options = call_user_func_array([$this, 'extract'], $args);
@@ -87,14 +83,11 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         $options = recursive_overwrite($default, $options);
         list($table, $data) = array_values($options);
 
-        if ($this->chained()) {
-            $this->query_mode = 'insert';
-            $this->query_opts = [
+        if ($this->chained() || count($data) < 1) {
+            return $this->start('insert', [
                 'data' => $data,
                 'table' => $table
-            ];
-
-            return $this;
+            ]);
         }
 
         if (count($data) === 0) {

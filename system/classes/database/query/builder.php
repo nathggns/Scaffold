@@ -16,10 +16,10 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
 		$this->mode = static::MODE_SINGLE;
 	}
 
-	public function start() {
+	public function start($type = null, $opts = []) {
 		$this->mode = static::MODE_CHAINED;
-		$this->query_opts = [];
-		$this->query_mode = null;
+		$this->query_opts = $opts;
+		$this->query_mode = $type;
 		$this->where_mode = [];
 
 		return $this;

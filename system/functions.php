@@ -209,3 +209,31 @@ function key_implode($pair_glue, $glue, $arr) {
     return implode($glue, $key_arr);
 
 }
+
+/**
+ * Absolute to relative path
+ *
+ * @param string $path The absolute path
+ * @param string $base The base, to base it on. Defaults to ROOT
+ */
+function abs2rel($path, $base = ROOT) {
+    $path = explode('/', $path);
+    $base = explode('/', $base);
+    $rel = $path;
+
+    foreach ($base as $depth => $dir) {
+        if ($dir === $path[$depth]) {
+            array_shift($rel);
+        } else {
+            $remaining = count($base) - $depth;
+
+            if ($remaining > 1) {
+                $padlen = (count($rel) + $remaining - 1) * -1;
+                $rel = array_pad($rel, $padlen, '..');
+                break;
+            }
+        }
+    }
+
+    return implode('/', $rel);
+}

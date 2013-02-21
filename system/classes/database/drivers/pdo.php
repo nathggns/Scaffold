@@ -32,18 +32,21 @@ class DatabaseDriverPDO extends DatabaseDriver {
      */
     protected function dsn($config) {
         $type = $config['type'];
-        unset($config['type']);
+        $specials = ['username', 'password', 'type', 'database' => 'dbname'];
 
-        if (isset($config['database'])) {
-            $config['dbname'] = $config['database'];
-            unset($config['database']);
-        }
+        foreach ($specials as $key => $special) {
 
-        $specials = ['username', 'password'];
+            if (!is_int($key)) {
+                list($key, $special) = [$special, $key];
+            }
 
-        foreach ($specials as $special) {
             if (isset($config[$special])) {
+                $val = $config[$special];
                 unset($config[$special]);
+
+                if (!is_int($key)) {
+                    $config[$key] = $val;
+                }
             }
         }
 

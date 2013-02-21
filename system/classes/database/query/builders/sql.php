@@ -7,37 +7,25 @@
  */
 class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
 
-    protected $operators = ['=', '>', '<', '<>', '!='];
+    protected $operators = ['=', '>', '<', '<>', '!=']; 
     protected $joins = ['AND', 'OR'];
     protected $default_meta = ['connector' => 'AND', 'operator' => '='];
 
     public function select() {
         $args = func_get_args();
-        $options = call_user_func_array([$this, 'extract'], $args);
+        $options = call_user_func_array([$this, 'extract_select'], $args);
 
-        if ((count($args) === 1 && is_string(reset($args))) || $this->chained()) {
-            return $this->start('select', recursive_overwrite($this->query_opts, $options));
+        if ($this->chained($args)) {
+            return $this->start('select', $options);
         }
 
-        $options = call_user_func_array([$this, 'extract'], $args);
         extract($options);
 
         if (!is_array($table)) {
             $table = [$table];
         }
 
-        $parts = [];
-        foreach ($table as $key => $val) {
-            $col = $this->backtick(is_int($key) ? $val : $key);
-
-            if (!is_int($key)) {
-                $col .= ' AS ' . $this->backtick($val);
-            }
-
-            $parts[] = $col;
-        }
-
-        $table = implode(',', $parts);
+        $table = $this->table($table);
 
         $vals = $this->backtick($vals);
 
@@ -110,43 +98,27 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         return $query;
     }
 
-    public function update($table, $data = null, $where = null) {
+    public function update() {
 
-        $default = [
-            'table' => null,
-            'data' => [],
-            'conds' => []
-        ];
+        $args = func_get_args();
+        $options = call_user_func_array([$this, 'extract_update'], $args);
 
-        $options = [];
-
-        if (is_array($table)) {
-            $options = $table;
-        } else {
-            $options['table'] = $table;
+        if ($this->chained($args)) {
+            $this->start('update', $options);
+            return $this;
         }
 
-        if (!is_null($data)) {
-            $options['data'] = $data;
-        }
-
-        if (!is_null($where)) {
-            $options['conds'] = $where;
-        }
-
-        $options = recursive_overwrite($default, $options);
-        list($table, $data, $where) = array_values($options);
-
-
-        if ($this->chained(func_get_args())) {
-            return $this->start('update', $options);
-        }
+        extract($options);
 
         if (count($data) === 0) {
             throw new InvalidArgumentException('You must pass data to set');
         }
 
-        $table = $this->backtick($table);
+        if (!is_array($table)) {
+            $table = [$table];
+        }
+
+        $table = $this->table($table);
         $keys = $this->backtick(array_keys($data));
         $data = $this->escape($data);
         $query = 'UPDATE ' . $table . ' SET ' . $this->pairs($keys, $data);
@@ -158,33 +130,22 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         return $query;
     }
 
-    public function delete($table, $where = null) {
+    public function delete() {
 
-        $defaults = [
-            'table' => null,
-            'conds' => []
-        ];
-        
-        $options = [];
+        $args = func_get_args();
+        $options = call_user_func_array([$this, 'extract_delete'], $args);
 
-        if (is_array($table)) {
-            $options = $table;
-        } else {
-            $options['table'] = $table;
-        }
-
-        if (!is_null($where)) {
-            $options['conds'] = $where;
-        }
-
-        $options = recursive_overwrite($defaults, $options);
-        list($table, $where) = array_values($options);
-
-        if ($this->chained(func_get_args())) {
+        if ($this->chained($args)) {
             return $this->start('delete', $options);
         }
 
-        $table = $this->backtick($table);
+        extract($options);
+
+        if (!is_array($table)) {
+            $table = [$table];
+        }
+
+        $table = $this->table($table);
         $query = 'DELETE FROM ' . $table;
 
         if (count($where) > 0) $query .= ' ' . $this->where_array($where);
@@ -436,5 +397,20 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         }
 
         return $value;
+    }
+
+    protected function table($table) {
+        $parts = [];
+        foreach ($table as $key => $val) {
+            $col = $this->backtick(is_int($key) ? $val : $key);
+
+            if (!is_int($key)) {
+                $col .= ' AS ' . $this->backtick($val);
+            }
+
+            $parts[] = $col;
+        }
+
+        return implode(',', $parts);
     }
 }

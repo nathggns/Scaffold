@@ -153,9 +153,9 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
 
 	/* Utility functions for the subclass */
 
-	protected function extract() {
+	protected function extract_select() {
 
-		$options = call_user_func_array([$this, 'extract_shuffle'], func_get_args());
+		$options = call_user_func_array([$this, 'extract_shuffle_select'], func_get_args());
 
 		$args = [];
 		$required = ['table'];
@@ -189,7 +189,50 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
 		return $args;
 	}
 
-	protected function extract_shuffle($table = null, $options = []) {
+	protected function extract_update() {
+
+		$args = $this->extract_shuffle(['table'], ['table', 'data', 'where', 'conds'], func_get_args());
+
+		if (isset($args['conds'])) {
+			$args['where'] = $args['conds'];
+			unset($args['conds']);
+		}
+
+		return $args;
+	}
+
+	protected function extract_delete() {
+		$args = $this->extract_shuffle(['table'], ['table', 'where', 'conds'], func_get_args());
+
+		if (isset($args['conds'])) {
+			$args['where'] = $args['conds'];
+			unset($args['conds']);
+		}
+
+		return $args;
+	}
+
+	protected function extract_shuffle($required, $keys, $options) {
+		if (count($options) === 1 && is_array(reset($options)) && is_hash(reset($options))) {
+			$args = reset($options);
+		} else {
+			$args = [];
+
+			foreach ($keys as $i => $key) {
+				$args[$key] = isset($options[$i]) ? $options[$i] : null;
+			}
+		}
+
+		foreach ($required as $req) {
+			if (!isset($args[$req])) {
+				throw new InvalidArgumentException('Missing ' . $req);
+			}
+		}
+
+		return $args;
+	}
+
+	protected function extract_shuffle_select($table = null, $options = []) {
 		// Argument shuffling
 		if (is_array($table)) {
 			$options = $table;

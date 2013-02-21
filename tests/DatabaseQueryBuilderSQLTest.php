@@ -317,13 +317,11 @@ class DatabaseQueryBuilderSQLTest extends PHPUnit_Framework_Testcase {
 
 	public function testUpdateChained() {
 		$sql = $this->builder->start()->update('users')->set('name', 'nat')->where('name', 'bob')->end();
-
 		$this->assertEquals('UPDATE `users` SET `name` = \'nat\' WHERE `name` = \'bob\';', $sql);
 	}
 
 	public function testUpdateChainedWithoutStart() {
 		$sql = $this->builder->update('users')->set('name', 'nat')->where('name', 'bob')->end();
-
 		$this->assertEquals('UPDATE `users` SET `name` = \'nat\' WHERE `name` = \'bob\';', $sql);
 	}
 
@@ -382,43 +380,36 @@ class DatabaseQueryBuilderSQLTest extends PHPUnit_Framework_Testcase {
 
 	public function testDeleteWithoutWhere() {
 		$sql = $this->builder->delete('users');
-
 		$this->assertEquals('DELETE FROM `users`;', $sql);
 	}
 
 	public function testChainToString() {
 		$sql = (string) $this->builder->select('users');
-
 		$this->assertEquals('SELECT * FROM `users`;', $sql);
 	}
 
 	public function testOrGtChaing() {
 		$sql = $this->builder->select('users')->where('name', 'nat')->where_or_gt('logins', 5)->end();
-
 		$this->assertEquals('SELECT * FROM `users` WHERE `name` = \'nat\' OR `logins` > 5;', $sql);
 	}
 	
 	public function testBasicGroupChain() {
 		$sql = $this->builder->select('users')->where(['name' => 'nat'])->end();
-
 		$this->assertEquals('SELECT * FROM `users` WHERE (`name` = \'nat\');', $sql);
 	}
 
 	public function testBasicGroupChainWithOther() {
 		$sql = $this->builder->select('users')->where(['name' => 'nat'])->where_gt('logins', 5)->end();
-
 		$this->assertEquals('SELECT * FROM `users` WHERE (`name` = \'nat\') AND `logins` > 5;', $sql);
 	}
 
 	public function testAdvancedGroupChain() {
 		$sql = $this->builder->start()->select('users')->where('name', 'nat')->where_or(['id' => 2, 'logins' => Database::where_or(Database::where_gt(5))])->end();
-
 		$this->assertEquals('SELECT * FROM `users` WHERE `name` = \'nat\' OR (`id` = 2 OR `logins` > 5);', $sql);
 	}
 
 	public function testNestedGroupChain() {
 		$sql = $this->builder->start()->select('users')->where('name', 'nat')->where_or(['id' => 2, 'logins' => Database::where_or(Database::where_gt(5)), ['name' => 'joe']])->end();
-
 		$this->assertEquals('SELECT * FROM `users` WHERE `name` = \'nat\' OR (`id` = 2 OR `logins` > 5 AND (`name` = \'joe\'));', $sql);
 	}
 

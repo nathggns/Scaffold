@@ -12,15 +12,18 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
     protected $default_meta = ['connector' => 'AND', 'operator' => '='];
 
     public function select() {
-        $options = call_user_func_array([$this, 'extract'], func_get_args());
+        $args = func_get_args();
+        $options = call_user_func_array([$this, 'extract'], $args);
 
-        if ($this->chained()) {
+        if ((count($args) === 1 && is_string(reset($args))) || $chained = $this->chained()) {
+            if (!$chained) $this->start();
             $this->query_mode = 'select';
             $this->query_opts = recursive_overwrite($this->query_opts, $options);
 
             return $this;
         }
 
+        $options = call_user_func_array([$this, 'extract'], $args);
         extract($options);
 
         if (!is_array($table)) {

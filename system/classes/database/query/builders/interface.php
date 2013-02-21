@@ -8,7 +8,7 @@
 interface DatabaseQueryBuilderInterface {
     public function select();
     public function insert($table, $data);
-    public function update($table, $data, $where = []);
+    public function update();
     public function structure($table);
-    public function delete($table);
+    public function delete();
 }

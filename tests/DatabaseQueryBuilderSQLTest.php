@@ -288,6 +288,56 @@ class DatabaseQueryBuilderSQLTest extends PHPUnit_Framework_Testcase {
 		$this->assertEquals('UPDATE `users` SET `name` = \'Bob\' WHERE `name` = \'Paul\';', $sql);
 	}
 
+	public function testUpdateWithLimit() {
+		$sql = $this->builder->update([
+			'table' => 'users',
+			'data' => [
+				'name' => 'Bob'
+			],
+			'where' => [
+				'name' => 'Paul'
+			],
+			'limit' => [23, 43]
+		]);
+
+		$this->assertEquals('UPDATE `users` SET `name` = \'Bob\' WHERE `name` = \'Paul\' LIMIT 23, 43;', $sql);
+	}
+
+	public function testUpdateWithOrder() {
+		$sql = $this->builder->update([
+			'table' => 'users',
+			'data' => [
+				'name' => 'Bob'
+			],
+			'where' => [
+				'name' => 'Paul'
+			],
+			'order' => [
+				['name', 'DESC']
+			]
+		]);
+
+		$this->assertEquals('UPDATE `users` SET `name` = \'Bob\' WHERE `name` = \'Paul\' ORDER BY `name` DESC;', $sql);
+	}
+
+	public function testUpdateWithOrderAndLimit() {
+		$sql = $this->builder->update([
+			'table' => 'users',
+			'data' => [
+				'name' => 'Bob'
+			],
+			'where' => [
+				'name' => 'Paul'
+			],
+			'order' => [
+				['name', 'DESC']
+			],
+			'limit' => [23, 43]
+		]);
+
+		$this->assertEquals('UPDATE `users` SET `name` = \'Bob\' WHERE `name` = \'Paul\' ORDER BY `name` DESC LIMIT 23, 43;', $sql);
+	}
+
 	public function testUpdateWithoutWhere() {
 		$sql = $this->builder->update('users', [
 			'name' => 'Bob'
@@ -318,6 +368,21 @@ class DatabaseQueryBuilderSQLTest extends PHPUnit_Framework_Testcase {
 	public function testUpdateChained() {
 		$sql = $this->builder->start()->update('users')->set('name', 'nat')->where('name', 'bob')->end();
 		$this->assertEquals('UPDATE `users` SET `name` = \'nat\' WHERE `name` = \'bob\';', $sql);
+	}
+
+	public function testUpdateChainedOrder() {
+		$sql = $this->builder->start()->update('users')->set('name', 'nat')->where('name', 'bob')->order('name', 'desc')->end();
+		$this->assertEquals('UPDATE `users` SET `name` = \'nat\' WHERE `name` = \'bob\' ORDER BY `name` DESC;', $sql);
+	}
+
+	public function testUpdateChainedLimit() {
+		$sql = $this->builder->start()->update('users')->set('name', 'nat')->where('name', 'bob')->limit(22, 56)->end();
+		$this->assertEquals('UPDATE `users` SET `name` = \'nat\' WHERE `name` = \'bob\' LIMIT 22, 56;', $sql);
+	}
+
+	public function testUpdateChainedOrderAndLimit() {
+		$sql = $this->builder->start()->update('users')->set('name', 'nat')->where('name', 'bob')->order('name', 'desc')->limit(22, 56)->end();
+		$this->assertEquals('UPDATE `users` SET `name` = \'nat\' WHERE `name` = \'bob\' ORDER BY `name` DESC LIMIT 22, 56;', $sql);
 	}
 
 	public function testUpdateChainedWithoutStart() {
@@ -351,6 +416,48 @@ class DatabaseQueryBuilderSQLTest extends PHPUnit_Framework_Testcase {
 		$this->assertEquals('DELETE FROM `users` WHERE `name` = \'Harry\';', $sql);
 	}
 
+	public function testDeleteWithOrder() {
+		$sql = $this->builder->delete([
+			'table' => 'users',
+			'where' => [
+				'name' => 'Harry'
+			],
+			'order' => [
+				['name', 'DESC']
+			]
+		]);
+
+		$this->assertEquals('DELETE FROM `users` WHERE `name` = \'Harry\' ORDER BY `name` DESC;', $sql);
+	}
+
+	public function testDeleteWithLimit() {
+		$sql = $this->builder->delete([
+			'table' => 'users',
+			'where' => [
+				'name' => 'Harry'
+			],
+			'order' => [
+				['name', 'DESC']
+			],
+			'limit' => [26, 50]
+		]);
+
+		$this->assertEquals('DELETE FROM `users` WHERE `name` = \'Harry\' ORDER BY `name` DESC LIMIT 26, 50;', $sql);
+	}
+
+	public function testDeleteWithOrderAndLimit() {
+		$sql = $this->builder->delete([
+			'table' => 'users',
+			'where' => [
+				'name' => 'Harry'
+			],
+			'limit' => [26, 50]
+		]);
+
+		$this->assertEquals('DELETE FROM `users` WHERE `name` = \'Harry\' LIMIT 26, 50;', $sql);
+	}
+
+
 	public function testDeleteChained() {
 		$sql = $this->builder->start()->delete('users')->where('name', 'Harry')->end();
 		$this->assertEquals('DELETE FROM `users` WHERE `name` = \'Harry\';', $sql);
@@ -359,6 +466,21 @@ class DatabaseQueryBuilderSQLTest extends PHPUnit_Framework_Testcase {
 	public function testDeleteChainedWithoutStart() {
 		$sql = $this->builder->delete('users')->where('name', 'Harry')->end();
 		$this->assertEquals('DELETE FROM `users` WHERE `name` = \'Harry\';', $sql);
+	}
+
+	public function testDeleteChainedWithOrder() {
+		$sql = $this->builder->start()->delete('users')->where('name', 'Harry')->order('name', 'desc')->end();
+		$this->assertEquals('DELETE FROM `users` WHERE `name` = \'Harry\' ORDER BY `name` DESC;', $sql);
+	}
+
+	public function testDeleteChainedWithLimit() {
+		$sql = $this->builder->start()->delete('users')->where('name', 'Harry')->limit(22, 30)->end();
+		$this->assertEquals('DELETE FROM `users` WHERE `name` = \'Harry\' LIMIT 22, 30;', $sql);
+	}
+
+	public function testDeleteChainedWithLimitAndOrder() {
+		$sql = $this->builder->start()->delete('users')->where('name', 'Harry')->order('name', 'desc')->limit(22, 30)->end();
+		$this->assertEquals('DELETE FROM `users` WHERE `name` = \'Harry\' ORDER BY `name` DESC LIMIT 22, 30;', $sql);
 	}
 
 	public function testDeleteWithComplexWhere() {

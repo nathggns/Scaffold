@@ -38,11 +38,11 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         $val = implode(', ', $vals);
         $query = 'SELECT ' . $val . ' FROM ' . $table;
 
-        if (count($conds) > 0) $query .= ' ' . $this->where_array($conds);
-        if (count($group) > 0) $query .= ' ' . $this->group_array($group);
-        if (count($order) > 0) $query .= ' ' . $this->order_array($order);
-        if (count($having) > 0) $query .= ' ' . $this->having($having);
-        if (count($limit) > 0) $query .= ' ' . $this->limit_array($limit);
+        if (isset($conds) && count($conds) > 0) $query .= ' ' . $this->where_array($conds);
+        if (isset($group) && count($group) > 0) $query .= ' ' . $this->group_array($group);
+        if (isset($order) && count($order) > 0) $query .= ' ' . $this->order_array($order);
+        if (isset($having) && count($having) > 0) $query .= ' ' . $this->having($having);
+        if (isset($limit) && count($limit) > 0) $query .= ' ' . $this->limit_array($limit);
 
         $query .= ';';
 
@@ -123,9 +123,9 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         $data = $this->escape($data);
         $query = 'UPDATE ' . $table . ' SET ' . $this->pairs($keys, $data);
 
-        if (count($where) > 0) $query .= ' ' . $this->where_array($where);
-        if (count($order) > 0) $query .= ' ' . $this->order_array($order);
-        if (count($limit) > 0) $query .= ' ' . $this->limit_array($limit);
+        if (isset($where) && count($where) > 0) $query .= ' ' . $this->where_array($where);
+        if (isset($order) && count($order) > 0) $query .= ' ' . $this->order_array($order);
+        if (isset($limit) && count($limit) > 0) $query .= ' ' . $this->limit_array($limit);
 
         $query .= ';';
 
@@ -150,9 +150,9 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         $table = $this->table($table);
         $query = 'DELETE FROM ' . $table;
 
-        if (count($where) > 0) $query .= ' ' . $this->where_array($where);
-        if (count($order) > 0) $query .= ' ' . $this->order_array($order);
-        if (count($limit) > 0) $query .= ' ' . $this->limit_array($limit);
+        if (isset($where) && count($where) > 0) $query .= ' ' . $this->where_array($where);
+        if (isset($order) && count($order) > 0) $query .= ' ' . $this->order_array($order);
+        if (isset($limit) && count($limit) > 0) $query .= ' ' . $this->limit_array($limit);
 
         $query .= ';';
 

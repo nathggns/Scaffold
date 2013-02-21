@@ -30,7 +30,7 @@ class ModelDatabase extends Model {
 	/**
 	 * Schema for the table
 	 */
-	protected $schema = [];
+	protected static $schema = [];
 
 	/**
 	 * We need to know the class name in order to guess other properties if they're not provided.
@@ -84,7 +84,7 @@ class ModelDatabase extends Model {
 		$structure = $this->driver->structure($this->table_name);
 
 		foreach ($structure as $row) {
-			$this->schema[$row['field']] = $row;
+			static::$schema[$row['field']] = $row;
 		}
 
 		// Let the child class do custom stuff.
@@ -213,7 +213,7 @@ class ModelDatabase extends Model {
 		], $other);
 
 		// @TODO Use a single method to build the array
-		$this->schema[$alias] = [
+		static::$schema[$alias] = [
 			'field' => $alias
 		];
 	}
@@ -231,7 +231,7 @@ class ModelDatabase extends Model {
 				$data[] = $this[$i]->export($values, $level);
 			}
 		} else {
-			$schema = array_keys($this->schema);
+			$schema = array_keys(static::$schema);
 
 			if (count($values) > 0) {
 				$new = [];
@@ -245,7 +245,7 @@ class ModelDatabase extends Model {
 
 				$values = $new;
 			} else {
-				$keys = array_keys($this->schema);
+				$keys = array_keys(static::$schema);
 				$values = array_combine($keys, $keys);
 			}
 
@@ -444,7 +444,7 @@ class ModelDatabase extends Model {
 			}
 		}
 
-		$schema = array_keys($this->schema);
+		$schema = array_keys(static::$schema);
 
 		foreach ($schema as $field) {
 			if (!isset($result[$field])) {

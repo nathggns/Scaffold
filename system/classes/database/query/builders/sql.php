@@ -82,12 +82,10 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
 
         $options = recursive_overwrite($default, $options);
         list($table, $data) = array_values($options);
+        $args = func_get_args();
 
-        if ($this->chained() || count($data) < 1) {
-            return $this->start('insert', [
-                'data' => $data,
-                'table' => $table
-            ]);
+        if ($this->chained(func_get_args())) {
+            return $this->start('insert', $options);
         }
 
         if (count($data) === 0) {
@@ -136,15 +134,13 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
             $options['conds'] = $where;
         }
 
-        if ($this->chained()) {
-            $this->query_opts = $options;
-            $this->query_mode = 'update';
-
-            return $this;
-        }
-
         $options = recursive_overwrite($default, $options);
         list($table, $data, $where) = array_values($options);
+
+
+        if ($this->chained(func_get_args())) {
+            return $this->start('update', $options);
+        }
 
         if (count($data) === 0) {
             throw new InvalidArgumentException('You must pass data to set');

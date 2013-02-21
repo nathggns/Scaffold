@@ -208,8 +208,13 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
 		return $options;
 	}
 
-	protected function chained() {
-		return $this->mode === static::MODE_CHAINED;
+	protected function chained($data = null) {
+		if (
+			$this->mode === static::MODE_CHAINED ||
+			!is_null($data) && count($data) === 1 && is_string(current($data))
+		) return true;
+
+		return false;
 	}
 
 }

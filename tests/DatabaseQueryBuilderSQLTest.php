@@ -321,6 +321,12 @@ class DatabaseQueryBuilderSQLTest extends PHPUnit_Framework_Testcase {
 		$this->assertEquals('UPDATE `users` SET `name` = \'nat\' WHERE `name` = \'bob\';', $sql);
 	}
 
+	public function testUpdateChainedWithoutStart() {
+		$sql = $this->builder->update('users')->set('name', 'nat')->where('name', 'bob')->end();
+
+		$this->assertEquals('UPDATE `users` SET `name` = \'nat\' WHERE `name` = \'bob\';', $sql);
+	}
+
 	public function testInsert() {
 		$sql = $this->builder->insert('users', [
 			'name' => 'Joe',

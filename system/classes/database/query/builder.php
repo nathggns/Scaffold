@@ -132,6 +132,8 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
 		$part = [$start];
 		if (!is_null($end)) $part[] = $end;
 
+		if (!isset($this->query_opts['limit'])) $this->query_opts['limit'] = [];
+
 		$this->query_opts['limit'] = array_merge($this->query_opts['limit'], $part);
 
 		return $this;
@@ -191,7 +193,16 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
 
 	protected function extract_update() {
 
-		$args = $this->extract_shuffle(['table'], ['table', 'data', 'where', 'conds'], func_get_args());
+		$args = $this->extract_shuffle([
+			'table'
+		], [
+			'table',
+			'data',
+			'where',
+			'conds',
+			'limit',
+			'order'
+		], func_get_args());
 
 		if (isset($args['conds'])) {
 			$args['where'] = $args['conds'];
@@ -202,7 +213,15 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
 	}
 
 	protected function extract_delete() {
-		$args = $this->extract_shuffle(['table'], ['table', 'where', 'conds'], func_get_args());
+		$args = $this->extract_shuffle([
+			'table'
+		], [
+			'table',
+			'where',
+			'conds',
+			'limit',
+			'order'
+		], func_get_args());
 
 		if (isset($args['conds'])) {
 			$args['where'] = $args['conds'];

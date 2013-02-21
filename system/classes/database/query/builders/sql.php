@@ -124,6 +124,8 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         $query = 'UPDATE ' . $table . ' SET ' . $this->pairs($keys, $data);
 
         if (count($where) > 0) $query .= ' ' . $this->where_array($where);
+        if (count($order) > 0) $query .= ' ' . $this->order_array($order);
+        if (count($limit) > 0) $query .= ' ' . $this->limit_array($limit);
 
         $query .= ';';
 
@@ -149,6 +151,8 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         $query = 'DELETE FROM ' . $table;
 
         if (count($where) > 0) $query .= ' ' . $this->where_array($where);
+        if (count($order) > 0) $query .= ' ' . $this->order_array($order);
+        if (count($limit) > 0) $query .= ' ' . $this->limit_array($limit);
 
         $query .= ';';
 

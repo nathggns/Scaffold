@@ -82,6 +82,9 @@ class Error {
 	public static function uncatchable($err = false) {
 		if (in_array($err, [E_WARNING, E_NOTICE])) return;
 		static::get_response()->error(500)->send();
+
+		// If it's a supressed error
+		if (0 == (error_reporting() & $err)) return;
 		die;
 	}
 

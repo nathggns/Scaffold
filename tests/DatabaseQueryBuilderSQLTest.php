@@ -358,6 +358,10 @@ class DatabaseQueryBuilderSQLTest extends PHPUnit_Framework_Testcase {
 		$this->assertEquals('DELETE FROM `users` WHERE `name` = \'Harry\';', $sql);
 	}
 
+	public function testDeleteChainedWithoutStart() {
+		$sql = $this->builder->delete('users')->where('name', 'Harry')->end();
+		$this->assertEquals('DELETE FROM `users` WHERE `name` = \'Harry\';', $sql);
+	}
 
 	public function testDeleteWithComplexWhere() {
 		$sql = $this->builder->delete('users', [

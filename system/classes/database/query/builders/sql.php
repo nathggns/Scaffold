@@ -177,15 +177,12 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
             $options['conds'] = $where;
         }
 
-        if ($this->chained()) {
-            $this->query_mode = 'delete';
-            $this->query_opts = $options;
-
-            return $this;
-        }
-
         $options = recursive_overwrite($defaults, $options);
         list($table, $where) = array_values($options);
+
+        if ($this->chained(func_get_args())) {
+            return $this->start('delete', $options);
+        }
 
         $table = $this->backtick($table);
         $query = 'DELETE FROM ' . $table;

@@ -11,36 +11,48 @@ class DatabaseDriverPDO extends DatabaseDriver {
      *
      * @return DatabaseDriverPDO this
      */
-    public function connect() {    
-
-        $type = $this->config['type'];
-        unset($this->config['type']);
-
-        if (isset($this->config['database'])) {
-            $this->config['dbname'] = $this->config['database'];
-            unset($this->config['database']);
-        }
-
-        $specials = ['username', 'password'];
-
-        foreach ($specials as $special) {
-            if (isset($this->config[$special])) {
-                $$special = $this->config[$special];
-                unset($this->config[$special]);
-            }
-        }
-
-        $dsn = $type . ':' . key_implode('=', ';', $this->config);
+    public function connect() { 
+        $dsn = $this->dsn($this->config);
 
         // Create our connection
-        if (isset($username) && isset($password)) {
-            $this->connection = new PDO($dsn, $username, $password);
+        if (isset($this->config['username']) && isset($this->config['password'])) {
+            $this->connection = new PDO($dsn, $this->config['username'], $this->config['password']);
         } else {
             $this->connection = new PDO($dsn);
         }
 
         // Return ourself to allow chaining.
         return $this;
+    }
+
+    /**
+     * Build the DSN
+     *
+     * @param array $config Config to base the DSN on. 
+     */
+    protected function dsn($config) {
+        $type = $config['type'];
+        $specials = ['username', 'password', 'type', 'database' => 'dbname'];
+
+        foreach ($specials as $key => $special) {
+
+            if (!is_int($key)) {
+                list($key, $special) = [$special, $key];
+            }
+
+            if (isset($config[$special])) {
+                $val = $config[$special];
+                unset($config[$special]);
+
+                if (!is_int($key)) {
+                    $config[$key] = $val;
+                }
+            }
+        }
+
+        $dsn = $type . ':' . key_implode('=', ';', $config);
+
+        return $dsn;
     }
 
     /**
@@ -214,6 +226,8 @@ class DatabaseDriverPDO extends DatabaseDriver {
 
     /**
      * Get the structure of a table
+     *
+     * @todo Make this more testable
      */
     public function structure($table) {
         $result = $this->query($this->builder->structure($table))->fetch_all();

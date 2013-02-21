@@ -9,9 +9,18 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
 
     protected $operators = ['=', '>', '<', '<>', '!='];
     protected $joins = ['AND', 'OR'];
+    protected $default_meta = ['connector' => 'AND', 'operator' => '='];
 
-    public function select($options) {
-        extract($this->extract($options));
+    public function select() {
+        $args = func_get_args();
+        $options = call_user_func_array([$this, 'extract'], $args);
+
+        if ((count($args) === 1 && is_string(reset($args))) || $this->chained()) {
+            return $this->start('select', recursive_overwrite($this->query_opts, $options));
+        }
+
+        $options = call_user_func_array([$this, 'extract'], $args);
+        extract($options);
 
         if (!is_array($table)) {
             $table = [$table];
@@ -41,19 +50,50 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         $val = implode(', ', $vals);
         $query = 'SELECT ' . $val . ' FROM ' . $table;
 
-        if (count($conds) > 0) $query .= ' ' . $this->where($conds);
-        if (count($group) > 0) $query .= ' ' . $this->group($group);
-        if (count($order) > 0) $query .= ' ' . $this->order($order);
+        if (count($conds) > 0) $query .= ' ' . $this->where_array($conds);
+        if (count($group) > 0) $query .= ' ' . $this->group_array($group);
+        if (count($order) > 0) $query .= ' ' . $this->order_array($order);
         if (count($having) > 0) $query .= ' ' . $this->having($having);
-        if (count($limit) > 0) $query .= ' ' . $this->limit($limit);
+        if (count($limit) > 0) $query .= ' ' . $this->limit_array($limit);
 
         $query .= ';';
 
         return $query;
     }
 
-    public function insert($table, $data) {
+    public function insert($table, $data = null) {
+
+        $default = [
+            'table' => null,
+            'data' => []
+        ];
+
+        $options = [];
+
+        if (is_array($table)) {
+            $options = $table;
+        } else {
+            $options['table'] = $table;
+        }
+
+        if (!is_null($data)) {
+            $options['data'] = $data;
+        }
+
+        $options = recursive_overwrite($default, $options);
+        list($table, $data) = array_values($options);
+        $args = func_get_args();
+
+        if ($this->chained(func_get_args())) {
+            return $this->start('insert', $options);
+        }
+
+        if (count($data) === 0) {
+            throw new InvalidArgumentException('Must pass data when inserting...');
+        }
+
         $table = $this->backtick($table);
+
         $values = $this->escape($data);
         $values = implode(', ', $values);
 
@@ -70,24 +110,84 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         return $query;
     }
 
-    public function update($table, $data, $where = []) {
+    public function update($table, $data = null, $where = null) {
+
+        $default = [
+            'table' => null,
+            'data' => [],
+            'conds' => []
+        ];
+
+        $options = [];
+
+        if (is_array($table)) {
+            $options = $table;
+        } else {
+            $options['table'] = $table;
+        }
+
+        if (!is_null($data)) {
+            $options['data'] = $data;
+        }
+
+        if (!is_null($where)) {
+            $options['conds'] = $where;
+        }
+
+        $options = recursive_overwrite($default, $options);
+        list($table, $data, $where) = array_values($options);
+
+
+        if ($this->chained(func_get_args())) {
+            return $this->start('update', $options);
+        }
+
+        if (count($data) === 0) {
+            throw new InvalidArgumentException('You must pass data to set');
+        }
+
         $table = $this->backtick($table);
         $keys = $this->backtick(array_keys($data));
         $data = $this->escape($data);
         $query = 'UPDATE ' . $table . ' SET ' . $this->pairs($keys, $data);
 
-        if (count($where) > 0) $query .= ' ' . $this->where($where);
+        if (count($where) > 0) $query .= ' ' . $this->where_array($where);
 
         $query .= ';';
 
         return $query;
     }
 
-    public function delete($table, $where = []) {
+    public function delete($table, $where = null) {
+
+        $defaults = [
+            'table' => null,
+            'conds' => []
+        ];
+        
+        $options = [];
+
+        if (is_array($table)) {
+            $options = $table;
+        } else {
+            $options['table'] = $table;
+        }
+
+        if (!is_null($where)) {
+            $options['conds'] = $where;
+        }
+
+        $options = recursive_overwrite($defaults, $options);
+        list($table, $where) = array_values($options);
+
+        if ($this->chained(func_get_args())) {
+            return $this->start('delete', $options);
+        }
+
         $table = $this->backtick($table);
         $query = 'DELETE FROM ' . $table;
 
-        if (count($where) > 0) $query .= ' ' . $this->where($where);
+        if (count($where) > 0) $query .= ' ' . $this->where_array($where);
 
         $query .= ';';
 
@@ -98,7 +198,7 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         return 'SHOW FULL COLUMNS FROM ' . $this->backtick($table) . ';';
     }
 
-    protected function where($conds) {
+    protected function where_array($conds) {
         return $this->conds($conds, 'WHERE');
     }
 
@@ -121,120 +221,136 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
     }
 
     protected function conds($conds, $query = '') {
-        return $query . $this->where_part(0, $conds);
+        return $query . $this->where_part(null, $conds);
     }
 
-    protected function where_part($key, $val, $first = false, $level = 0) {
+    protected function get_meta($obj = false) {
 
-        $sql = '';
+        $arr = $this->default_meta;
 
-        if (is_int($key) && is_array($val) && (is_hash($val) || $level < 1)) {
-
-            if ($level > 0) {
-
-                if (is_hash($val) || !in_array($val[0], $this->joins)) {
-                    $val = ['AND', $val];
-                }
-
-                list($val, $join) = array_reverse($val);
-                $sql = $join . ' (';
+        if ($obj) {
+            if (property_exists($obj, 'connector')) {
+                $arr['connector'] = strtoupper($obj->connector);
             }
 
-            $vals = [];
+            if (property_exists($obj, 'operator')) {
+                $arr['operator'] = call_user_func(function() use($obj) {
+                    switch ($obj->operator) {
+                        case 'gt': return '>';
+                        case 'gte': return '>=';
+                        case 'lt': return '<';
+                        case 'lte': return '<=';
+                        case 'equals': return '=';
+                    }
 
-            foreach ($val as $key => $val) {
-                if ($part = $this->where_part($key, $val, count($vals) < 1, $level + 1)) $vals[] = $part;
+                    return false;
+                });
             }
-
-            if ($level < 1) $sql .= ' ';
-            $sql .= implode(' ', $vals);
-            if ($level > 0) $sql .= ')';
-
-            return $sql;
         }
 
-        if (!is_array($val) || (is_array($val) && count($val) < 3)) {
-            $val = [$key, $val];
-        }
+        return $arr;
+    }
 
-        if (($count = count($val)) < 4) {
-            $value = $val[$count - 1];
-            $join = 'AND';
-            $operator = '=';
+    protected function where_part($key, $val, $first = false, $level = 0, $meta = false) {
 
+        $query = '';
 
-            if ($count === 2) {
-                $key = $val[0];
-            } else if ($count === 3) {
-                if (in_array($val[0], $this->joins)) {
-                    $join = $val[0];
-                    $key = $val[1];
-                } else if (in_array($val[1], $this->operators)) {
-                    $key = $val[0];
-                    $operator = $val[1];
-                } else {
-                    $value = $val;
-                }
-            } else {
-                return false;
+        // Initial call, loops through all items in the conditions
+        if (is_null($key)) {
+            // We can't do anything if we don't have conditions
+            if (!is_array($val)) return;
+
+            // Loop through each condition and call itself with them
+            $first = true;
+
+            foreach ($val as $k => $v) {
+                $query .= $this->where_part($k, $v, $first, $level + 1);
+                $first = false;
             }
 
-            if ($special = is_numeric($key)) {
-
-                foreach ($this->operators as $operator) {   
-                    if (strpos($value, $operator) !== false) break;
-                }
-
-                list($key, $value) = array_map('trim', explode($operator, $value));
-            }
-
-            $val = [$join, $key, $operator, $value, $special];
-
-        } else if ($count > 4) {
-            return false;
-        }
-
-        list($special, $val, $operator, $key, $join) = array_reverse($val);
-
-        if (!$first) $sql .= $join . ' ';
-        $sql .= $this->backtick($key);
-        $val = $special ? $this->backtick($val) : $this->escape($val);
-
-        if (is_array($val)) {
-            $val = 'IN (' . implode(', ', $val) . ')';
-            $sql .= ' ';
         } else {
-            $sql .= ' ' . $operator . ' ';
+
+            $obj = false;
+
+            // Keep a reference to our object for later
+            if (is_object($val)) {
+                $obj = $val;
+                $val = $obj->val;
+            }
+
+            if (!$meta) {
+
+                // If we can get meta from the object?
+                if ($obj) {
+                    $meta = $this->get_meta($obj);
+                // No, so we'll get default stuffs.
+                } else {
+                    $meta = $this->get_meta();
+                }
+            }
+
+            extract($meta);
+
+            // Connectors
+            if (!$first) {
+                $query .= ' ' . $connector;
+            }
+
+            // Spacings
+            if (!$first || $level < 2) $query .= ' ';
+
+            // Let's escape val and stuff
+            if (is_scalar($val)) {
+                $val = $this->escape($val);
+            }
+
+            // In queries (we'll escape here too!)
+            if (is_array($val) && !is_hash($val)) {
+                $operator = 'IN';
+                $val = '(' . implode(', ', array_map([$this, 'escape'], $val)) . ')';
+            }
+
+            // Operator based queries (including IN queries)
+            if (is_scalar($val)) {
+                // If we have a not special
+                if ($obj && property_exists($obj, 'special') && in_array('not', $obj->special)) {
+                    $query .= 'NOT ';
+                }
+
+                $query .= $this->backtick($key) . ' ' . $operator . ' ' . $val;
+            // Grouped queries
+            } else {
+                $query .= '(' . $this->where_part(null, $val, null, $level + 1) . ')';
+            }
         }
 
-        $sql .= $val;
-
-        return $sql;
+        return $query;
     }
 
     protected function having($conds) {
         return $this->conds($conds, 'HAVING');
     }
 
-    protected function group($group) {
+    protected function group_array($group) {
         $query = 'GROUP BY ';
         if (!is_array($group)) $group = [$group];
         $group = $this->backtick($group);
-        $group = implode(',', $group);
+        $group = implode(', ', $group);
 
         return $query . $group;
     }
 
-    protected function order($order) {
+    protected function order_array($order) {
         $query = 'ORDER BY ';
         if (!is_array($order)) $order = [$order];
         $parts = [];
 
         foreach ($order as $part) {
             if (!is_array($part)) $part = [$part, 'ASC'];
+            if (count($part) < 2) $part[] = 'ASC';
             $part[0] = $this->backtick($part[0]);
 
-            $parts[] = $part[0] . ' ' . $part[1];
+            $parts[] = $part[0] . ' ' . strtoupper($part[1]);
         }
 
         $query .= implode(', ', $parts);
@@ -242,7 +358,7 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         return $query;
     }
 
-    protected function limit($limit) {
+    protected function limit_array($limit) {
         $query = 'LIMIT ';
         if (!is_array($limit)) $limit = [$limit];
         if (count($limit) < 2) $limit = array_merge([0], $limit);

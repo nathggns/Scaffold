@@ -29,12 +29,26 @@ class DatabaseDriverPDOTest extends PHPUnit_Framework_TestCase {
     public function testDSN() {
         $config = [
             'type' => 'mysql',
-            'host' => 'localhost'
+            'host' => 'localhost',
+            'database' => 'scaffold'
         ];
 
         $dsn = $this->driver->get_dsn($config);
 
-        $this->assertEquals('mysql:host=localhost', $dsn);
+        $this->assertEquals('mysql:host=localhost;dbname=scaffold', $dsn);
+    }
+
+    public function testDSNCompilicated() {
+        $config = [
+            'type' => 'mysql',
+            'host' => 'localhost',
+            'database' => 'scaffold',
+            'version' => '10'
+        ];
+
+        $dsn = $this->driver->get_dsn($config);
+
+        $this->assertEquals('mysql:host=localhost;version=10;dbname=scaffold', $dsn);
     }
 
     public function testFindWithJustTable() {

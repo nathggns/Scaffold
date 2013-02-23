@@ -166,8 +166,6 @@ class Error {
 		if (empty($handlers) || !$obj->catched) {
 			return $obj->rethrow();
 		}
-
-		die;
 	}
 
 	/**

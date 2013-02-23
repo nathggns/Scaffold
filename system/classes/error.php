@@ -124,7 +124,7 @@ class Error {
 		// Get all assigned handlers
 		$all = static::$handlers[static::ALIAS_DEFAULT];
 		if ($this->alias !== static::ALIAS_DEFAULT) {
-
+			$all = array_merge_recursive($all, static::$handlers[$this->alias]);
 		}
 
 		// Filter to the ones associated with this exception

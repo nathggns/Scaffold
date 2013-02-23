@@ -32,8 +32,7 @@ class ErrorTest extends PHPUnit_Framework_TestCase {
 		$errored = false;
 
 		$this->error->alias('testUnCatching')->attach('Exception', function($e) use (&$errored) {
-			$e->catch();
-			$e->uncatch();
+			$e->catch()->uncatch();
 		}, 'testUnCatching');
 
 		try {
@@ -72,8 +71,7 @@ class ErrorTest extends PHPUnit_Framework_TestCase {
 		$errored = false;
 
 		$this->error->alias('testStopping')->attach('Exception', function($e) use (&$errored) {
-			$e->catch();
-			$e->stop();
+			$e->catch()->stop();
 			$errored = true;
 		}, 'testStopping');
 
@@ -88,6 +86,45 @@ class ErrorTest extends PHPUnit_Framework_TestCase {
 		} 
 
 		$this->assertTrue($errored);
+	}
+
+	public function testRethrow() {
+		$errored = false;
+
+		$this->error->alias('testRethrow')->attach('Exception', function($e) use (&$errored) {
+			$e->catch()->rethrow();
+		}, 'testRethrow');
+
+		try {
+			try {
+				throw new Exception;
+			} catch (Exception $e) {
+				$this->error->handle($e);
+			}
+		} catch (Exception $e) {
+			$errored = true;
+		}
+
+		$this->assertTrue($errored);
+	}
+
+	public function testExceptionGoesThroughToHandler() {
+		$error = false;
+		$catchederror = false;
+
+		$this->error->alias('testExceptionGoesThroughToHandler')->attach('Exception', function($e) use (&$catchederror) {
+			$e->catch();
+			$catchederror = $e->exc;
+		}, 'testExceptionGoesThroughToHandler');
+
+		try {
+			throw new Exception;
+		} catch (Exception $e) {
+			$error = $e;
+			$this->error->handle($e);
+		}
+
+		$this->assertEquals($error, $catchederror);
 	}
 
 }

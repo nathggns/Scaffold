@@ -158,6 +158,9 @@ class Error {
 			'catched' => false,
 			'catch' => function($obj) {
 				$obj->catched = true;	
+			},
+			'uncatch' => function($obj) {
+				$obj->catched = false;
 			}
 		]);
 

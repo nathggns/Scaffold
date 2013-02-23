@@ -140,9 +140,9 @@ class Error {
 		// Generate the object passed to handlers
 		$obj = new Dynamic([
 			'exc' => $exc,
-			'rethrow' => function($obj) use ($exc) {
-				$obj->stop();
-				throw $exc;
+			'rethrow' => function() {
+				$this->stop();
+				throw $this->exc;
 			},
 			'send' => function($obj, $value, $code = 200) use ($response) {
 				$response = $response->data($value);
@@ -152,15 +152,15 @@ class Error {
 			},
 			'type' => get_class($exc),
 			'running' => true,
-			'stop' => function($obj) {
-				$obj->running = false;
+			'stop' => function() {
+				$this->running = false;
 			},
 			'catched' => false,
-			'catch' => function($obj) {
-				$obj->catched = true;	
+			'catch' => function() {
+				$this->catched = true;	
 			},
-			'uncatch' => function($obj) {
-				$obj->catched = false;
+			'uncatch' => function() {
+				$this->catched = false;
 			}
 		]);
 

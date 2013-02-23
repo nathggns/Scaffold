@@ -98,6 +98,11 @@ class Error {
 			return;
 		}
 
+		return static::send();
+	}
+
+	/** Actually throw the error in response **/
+	protected static function send() {
 		static::get_response()->error(500, false, static::$config['debug'] ? func_get_args() : false)->send();
 		die;
 	}

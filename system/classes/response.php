@@ -238,7 +238,7 @@ class Response {
             $body['error']['debug'] = [
                 'type' => $debug[0],
                 'file' => abs2rel($debug[2]) . ':' . $debug[3],
-                'eror' => $debug[1]
+                'error' => $debug[1]
             ];
         }
 

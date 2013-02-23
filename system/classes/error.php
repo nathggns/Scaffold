@@ -207,6 +207,8 @@ class Error {
 		if (!$alias) $alias = static::ALIAS_DEFAULT;
 
 		$this->alias = $alias;
+
+		return $this;
 	}
 
 }

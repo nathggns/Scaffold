@@ -38,18 +38,15 @@ class Error {
 
 		// We need to turn off default display of errors. They should still be logged, though.
 		// This is to catch global errors.
-		ini_set('display_errors', -1);
+		ini_set('display_errors', 0);
 
 		// Register
 		set_error_handler(['Error', 'uncatchable']);
 		set_exception_handler(function($exc) {
 			Error::get()->handle($exc);
 		});
-		register_shutdown_function(function() {
-			if ($err = error_get_last()) {
-				Error::uncatchable($err);
-			}
-		});
+		Shutdown::register();
+		Shutdown::set([get_called_class(), 'uncatchable']);
 
 		// Tell the class we have loaded
 		static::$loaded = true;
@@ -85,7 +82,6 @@ class Error {
 	 * @todo Customisable error.
 	 */
 	public static function uncatchable($err = false) {
-
 		// If it's a supressed error
 		if (0 == (error_reporting() & $err)) return;
 
@@ -94,11 +90,11 @@ class Error {
 			static::$config = Service::get('config')->get('errors');
 		}
 
-		if (static::$config['ignore'] | $err === static::$config['ignore']) {
+		if (static::$config['ignore'] & $err) {
 			return;
 		}
 
-		return static::send();
+		return call_user_func_array([get_called_class(), 'send'], func_get_args());
 	}
 
 	/** Actually throw the error in response **/

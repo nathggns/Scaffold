@@ -14,7 +14,7 @@ class DatabaseDriverPDOTestClass extends DatabaseDriverPDO {
     }
 
     public function get_dsn() {
-        return call_user_func_array([parent, 'dsn'], func_get_args());
+        return call_user_func_array([$this, 'dsn'], func_get_args());
     }
 }
 

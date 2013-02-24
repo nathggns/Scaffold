@@ -2,277 +2,277 @@
 
 abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
 
-	const MODE_SINGLE = 1;
-	const MODE_CHAINED = 2;
+    const MODE_SINGLE = 1;
+    const MODE_CHAINED = 2;
 
-	protected $mode;
-	protected $query_opts;
-	protected $query_mode;
-	protected $where_mode;
+    protected $mode;
+    protected $query_opts;
+    protected $query_mode;
+    protected $where_mode;
 
-	/* config functions */
+    /* config functions */
 
-	public function __construct() {
-		$this->mode = static::MODE_SINGLE;
-	}
+    public function __construct() {
+        $this->mode = static::MODE_SINGLE;
+    }
 
-	public function start($type = null, $opts = []) {
-		$this->mode = static::MODE_CHAINED;
-		$this->query_opts = $opts;
-		$this->query_mode = $type;
-		$this->where_mode = [];
+    public function start($type = null, $opts = []) {
+        $this->mode = static::MODE_CHAINED;
+        $this->query_opts = $opts;
+        $this->query_mode = $type;
+        $this->where_mode = [];
 
-		return $this;
-	}
+        return $this;
+    }
 
-	public function end() {
-		$this->mode = static::MODE_SINGLE;
+    public function end() {
+        $this->mode = static::MODE_SINGLE;
 
-		return call_user_func([$this, $this->query_mode], $this->query_opts);
-	}
+        return call_user_func([$this, $this->query_mode], $this->query_opts);
+    }
 
-	/**
-	 * We should return the query if we're typecasted to a string
-	 */
-	public function __toString() {
-		return $this->end();
-	}
+    /**
+     * We should return the query if we're typecasted to a string
+     */
+    public function __toString() {
+        return $this->end();
+    }
 
-	/**
-	 * Return query_opts['conds'], if they exist
-	 */
-	public function get_conds() {
-		return isset($this->query_opts['conds']) ?
-			$this->query_opts['conds'] :
-			null;
-	}
+    /**
+     * Return query_opts['conds'], if they exist
+     */
+    public function get_conds() {
+        return isset($this->query_opts['conds']) ?
+            $this->query_opts['conds'] :
+            null;
+    }
 
-	/* Filtering functions */
-	public function where($key, $val = null) {
+    /* Filtering functions */
+    public function where($key, $val = null) {
 
-		if (is_null($val)) {
-			if (is_array($key)) {
-				$val = $key;
-				$key = null;	
-			} else if (is_callable($key)) {
-				
-				$instance = new $this;
-				$key = $key->bindTo($instance);
-				$key();
-				
-				if (!($val = $instance->get_conds())) {
-					return $this;
-				}
+        if (is_null($val)) {
+            if (is_array($key)) {
+                $val = $key;
+                $key = null;    
+            } else if (is_callable($key)) {
+                
+                $instance = new $this;
+                $key = $key->bindTo($instance);
+                $key();
+                
+                if (!($val = $instance->get_conds())) {
+                    return $this;
+                }
 
-				$key = null;
+                $key = null;
 
 
-			} else {
-				// @todo Should probably work something out here, maybe throw an exception?
-				return $this;
-			}
-		}
+            } else {
+                // @todo Should probably work something out here, maybe throw an exception?
+                return $this;
+            }
+        }
 
-		while (count($this->where_mode) > 0 && $func = array_pop($this->where_mode)) {
-			$val = call_user_func(['Database', 'where_' . $func], $val);
-		}
+        while (count($this->where_mode) > 0 && $func = array_pop($this->where_mode)) {
+            $val = call_user_func(['Database', 'where_' . $func], $val);
+        }
 
-		$this->where_mode = [];
-		
-		if (!isset($this->query_opts['conds'])) {
-			$this->query_opts['conds'] = [];
-		}
+        $this->where_mode = [];
+        
+        if (!isset($this->query_opts['conds'])) {
+            $this->query_opts['conds'] = [];
+        }
 
-		if (!is_null($key)) {
-			$this->query_opts['conds'][$key] = $val;
-		} else {
-			$this->query_opts['conds'][] = $val;
-		}
+        if (!is_null($key)) {
+            $this->query_opts['conds'][$key] = $val;
+        } else {
+            $this->query_opts['conds'][] = $val;
+        }
 
-		return $this;
-	}
+        return $this;
+    }
 
-	public function __call($name, $args) {
-		if (preg_match('/^where_/i', $name)) {
-			$names = array_slice(explode('_', $name), 1);
-			$this->where_mode = array_merge($this->where_mode, $names);
+    public function __call($name, $args) {
+        if (preg_match('/^where_/i', $name)) {
+            $names = array_slice(explode('_', $name), 1);
+            $this->where_mode = array_merge($this->where_mode, $names);
 
-			if (count($args) > 0) {
-				call_user_func_array([$this, 'where'], $args);
-			}
+            if (count($args) > 0) {
+                call_user_func_array([$this, 'where'], $args);
+            }
 
-			return $this;
-		}
+            return $this;
+        }
 
-		throw new Exception('No such function');
-	}
+        throw new Exception('No such function');
+    }
 
-	public function group() {
-		$part = func_get_args();
+    public function group() {
+        $part = func_get_args();
 
-		if (!isset($this->query_opts['group'])) $this->query_opts['group'] = [];
+        if (!isset($this->query_opts['group'])) $this->query_opts['group'] = [];
 
-		$this->query_opts['group'] = array_merge_recursive($this->query_opts['group'], $part);
+        $this->query_opts['group'] = array_merge_recursive($this->query_opts['group'], $part);
 
-		return $this;
-	}
+        return $this;
+    }
 
-	public function order($col, $dir = false) {
-		$part = [$col];
-		if ($dir) $part[] = $dir;
+    public function order($col, $dir = false) {
+        $part = [$col];
+        if ($dir) $part[] = $dir;
 
-		if (!isset($this->query_opts['order'])) $this->query_opts['order'] = [];
+        if (!isset($this->query_opts['order'])) $this->query_opts['order'] = [];
 
-		$this->query_opts['order'][] = $part;
+        $this->query_opts['order'][] = $part;
 
-		return $this;
-	}
+        return $this;
+    }
 
-	public function limit($start, $end = null) {
-		$part = [$start];
-		if (!is_null($end)) $part[] = $end;
+    public function limit($start, $end = null) {
+        $part = [$start];
+        if (!is_null($end)) $part[] = $end;
 
-		if (!isset($this->query_opts['limit'])) $this->query_opts['limit'] = [];
+        if (!isset($this->query_opts['limit'])) $this->query_opts['limit'] = [];
 
-		$this->query_opts['limit'] = array_merge($this->query_opts['limit'], $part);
+        $this->query_opts['limit'] = array_merge($this->query_opts['limit'], $part);
 
-		return $this;
-	}
+        return $this;
+    }
 
-	public function set($key, $value) {
-		if (!in_array($this->query_mode, ['insert', 'update'])) {
-			throw new InvalidArgumentException('Cannot use with this type of query');
-		}
+    public function set($key, $value) {
+        if (!in_array($this->query_mode, ['insert', 'update'])) {
+            throw new InvalidArgumentException('Cannot use with this type of query');
+        }
 
-		if (!isset($this->query_opts['data'])) {
-			$this->query_opts['data'] = [];
-		}
+        if (!isset($this->query_opts['data'])) {
+            $this->query_opts['data'] = [];
+        }
 
-		$this->query_opts['data'][$key] = $value;
+        $this->query_opts['data'][$key] = $value;
 
-		return $this;
-	}
+        return $this;
+    }
 
-	/* Utility functions for the subclass */
+    /* Utility functions for the subclass */
 
-	protected function extract_select() {
+    protected function extract_select() {
 
-		$options = call_user_func_array([$this, 'extract_shuffle_select'], func_get_args());
+        $options = call_user_func_array([$this, 'extract_shuffle_select'], func_get_args());
 
-		$args = [];
-		$required = ['table'];
-		$optional = [
-		    'vals' => ['*'],
-		    'conds' => [],
-		    'group' => [],
-		    'order' => [],
-		    'having' => [],
-		    'limit' => []
-		];
+        $args = [];
+        $required = ['table'];
+        $optional = [
+            'vals' => ['*'],
+            'conds' => [],
+            'group' => [],
+            'order' => [],
+            'having' => [],
+            'limit' => []
+        ];
 
-		$keys = array_keys($options);
+        $keys = array_keys($options);
 
-		foreach ($required as $req) {
-		    if (!in_array($req, $keys)) {
-		        throw new InvalidArgumentException('Missing ' . $req);
-		    } else {
-		    	$args[$req] = $options[$req];
-		    }
-		}
+        foreach ($required as $req) {
+            if (!in_array($req, $keys)) {
+                throw new InvalidArgumentException('Missing ' . $req);
+            } else {
+                $args[$req] = $options[$req];
+            }
+        }
 
-		foreach ($optional as $name => $value) {
-		    if (in_array($name, $keys)) {
-		        $value = $options[$name];
-		    }
+        foreach ($optional as $name => $value) {
+            if (in_array($name, $keys)) {
+                $value = $options[$name];
+            }
 
-		    $args[$name] = $value;
-		}
+            $args[$name] = $value;
+        }
 
-		return $args;
-	}
+        return $args;
+    }
 
-	protected function extract_update() {
+    protected function extract_update() {
 
-		$args = $this->extract_shuffle([
-			'table'
-		], [
-			'table',
-			'data',
-			'where',
-			'conds',
-			'limit',
-			'order'
-		], func_get_args());
+        $args = $this->extract_shuffle([
+            'table'
+        ], [
+            'table',
+            'data',
+            'where',
+            'conds',
+            'limit',
+            'order'
+        ], func_get_args());
 
-		if (isset($args['conds'])) {
-			$args['where'] = $args['conds'];
-			unset($args['conds']);
-		}
+        if (isset($args['conds'])) {
+            $args['where'] = $args['conds'];
+            unset($args['conds']);
+        }
 
-		return $args;
-	}
+        return $args;
+    }
 
-	protected function extract_delete() {
-		$args = $this->extract_shuffle([
-			'table'
-		], [
-			'table',
-			'where',
-			'conds',
-			'limit',
-			'order'
-		], func_get_args());
+    protected function extract_delete() {
+        $args = $this->extract_shuffle([
+            'table'
+        ], [
+            'table',
+            'where',
+            'conds',
+            'limit',
+            'order'
+        ], func_get_args());
 
-		if (isset($args['conds'])) {
-			$args['where'] = $args['conds'];
-			unset($args['conds']);
-		}
+        if (isset($args['conds'])) {
+            $args['where'] = $args['conds'];
+            unset($args['conds']);
+        }
 
-		return $args;
-	}
+        return $args;
+    }
 
-	protected function extract_shuffle($required, $keys, $options) {
-		if (count($options) === 1 && is_array(reset($options)) && is_hash(reset($options))) {
-			$args = reset($options);
-		} else {
-			$args = [];
+    protected function extract_shuffle($required, $keys, $options) {
+        if (count($options) === 1 && is_array(reset($options)) && is_hash(reset($options))) {
+            $args = reset($options);
+        } else {
+            $args = [];
 
-			foreach ($keys as $i => $key) {
-				$args[$key] = isset($options[$i]) ? $options[$i] : null;
-			}
-		}
+            foreach ($keys as $i => $key) {
+                $args[$key] = isset($options[$i]) ? $options[$i] : null;
+            }
+        }
 
-		foreach ($required as $req) {
-			if (!isset($args[$req])) {
-				throw new InvalidArgumentException('Missing ' . $req);
-			}
-		}
+        foreach ($required as $req) {
+            if (!isset($args[$req])) {
+                throw new InvalidArgumentException('Missing ' . $req);
+            }
+        }
 
-		return $args;
-	}
+        return $args;
+    }
 
-	protected function extract_shuffle_select($table = null, $options = []) {
-		// Argument shuffling
-		if (is_array($table)) {
-			$options = $table;
+    protected function extract_shuffle_select($table = null, $options = []) {
+        // Argument shuffling
+        if (is_array($table)) {
+            $options = $table;
 
-			if (isset($options['table'])) {
-				$table = $options['table'];
-			} else {
-				$table = null;
-			}
-		}
+            if (isset($options['table'])) {
+                $table = $options['table'];
+            } else {
+                $table = null;
+            }
+        }
 
-		if (!is_null($table)) {
-			$options['table'] = $table;
-		}
+        if (!is_null($table)) {
+            $options['table'] = $table;
+        }
 
-		return $options;
-	}
+        return $options;
+    }
 
-	protected function chained($data = null) {
-		return $this->mode === static::MODE_CHAINED ||
-			(!is_null($data) && count($data) === 1 && is_string(current($data)));
-	}
+    protected function chained($data = null) {
+        return $this->mode === static::MODE_CHAINED ||
+            (!is_null($data) && count($data) === 1 && is_string(current($data)));
+    }
 
 }

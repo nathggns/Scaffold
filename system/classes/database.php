@@ -46,7 +46,7 @@ class Database {
 
             $args[] = [$prop => $name];
 
-            return call_user_func_array([self, 'query'], $args);
+            return call_user_func_array(['self', 'query'], $args);
         }
 
         return call_user_func_array([get_class($this->driver), $name], $args);

@@ -223,7 +223,7 @@ class Response {
      * @param int $errco The http error code
      * @param string $message The message to send
      */
-    public function error($errco, $message = false) {
+    public function error($errco, $message = false, $debug = false) {
         if (!$message) $message = static::$codes[$errco];
         $this->code = $errco;
 
@@ -233,6 +233,14 @@ class Response {
                 'message' => $message
             ]
         ];
+
+        if ($debug) {
+            $body['error']['debug'] = [
+                'type' => $debug[0],
+                'file' => abs2rel($debug[2]) . ':' . $debug[3],
+                'error' => $debug[1]
+            ];
+        }
 
         $this->data($body);
 

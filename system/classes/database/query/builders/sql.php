@@ -36,7 +36,11 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         }
 
         $val = implode(', ', $vals);
-        $query = 'SELECT ' . $val . ' FROM ' . $table;
+        $query = 'SELECT ';
+
+        if ($distinct) $query .= 'DISTINCT ';
+
+        $query .= $val . ' FROM ' . $table;
 
         if (!empty($conds)) $query .= ' ' . $this->where_array($conds);
         if (!empty($group)) $query .= ' ' . $this->group_array($group);

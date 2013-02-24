@@ -48,6 +48,13 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
     }
 
     /* Filtering functions */
+
+    public function distinct() {
+        $this->query_opts['distinct'] = true;
+
+        return $this;
+    }
+
     public function where($key, $val = null) {
 
         if (is_null($val)) {
@@ -167,7 +174,8 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
             'group' => [],
             'order' => [],
             'having' => [],
-            'limit' => []
+            'limit' => [],
+            'distinct' => false
         ];
 
         $keys = array_keys($options);

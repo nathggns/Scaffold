@@ -1,13 +1,13 @@
 <?php
 
 return [
-	'default' => [
-		'ignore' => E_NOTICE | E_WARNING,
-		'debug' => true
-	],
+    'default' => [
+        'ignore' => E_NOTICE | E_WARNING,
+        'debug' => true
+    ],
 
-	'production' => [
-		'ignore' => E_ALL,
-		'debug' => false
-	]
+    'production' => [
+        'ignore' => E_ALL,
+        'debug' => false
+    ]
 ];

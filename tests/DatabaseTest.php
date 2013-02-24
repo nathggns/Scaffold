@@ -2,41 +2,41 @@
 
 class DatabaseTest extends PHPUnit_Framework_TestCase {
 
-	public function testConnectors() {
-		$connectors = ['and', 'or'];
+    public function testConnectors() {
+        $connectors = ['and', 'or'];
 
-		foreach ($connectors as $connector) {
-			$obj = call_user_func(['Database', 'where_' . $connector], 'nat');
+        foreach ($connectors as $connector) {
+            $obj = call_user_func(['Database', 'where_' . $connector], 'nat');
 
-			$this->assertEquals($connector, $obj->connector);
-			$this->assertEquals('nat', $obj->val);
-		}
-	}
+            $this->assertEquals($connector, $obj->connector);
+            $this->assertEquals('nat', $obj->val);
+        }
+    }
 
-	public function testOperators() {
-		$operators = ['gte', 'gt', 'lte', 'lt', 'equals'];
+    public function testOperators() {
+        $operators = ['gte', 'gt', 'lte', 'lt', 'equals'];
 
-		foreach ($operators as $operator) {
-			$obj = call_user_func(['Database', 'where_' . $operator], 'nat');
+        foreach ($operators as $operator) {
+            $obj = call_user_func(['Database', 'where_' . $operator], 'nat');
 
-			$this->assertEquals($operator, $obj->operator);
-			$this->assertEquals('nat', $obj->val);
-		}
-	}
+            $this->assertEquals($operator, $obj->operator);
+            $this->assertEquals('nat', $obj->val);
+        }
+    }
 
-	public function testWhereNot() {
-		$obj = Database::where_not('nat');
+    public function testWhereNot() {
+        $obj = Database::where_not('nat');
 
-		$this->assertEquals(['not'], $obj->special);
-		$this->assertEquals('nat', $obj->val);
-	}
+        $this->assertEquals(['not'], $obj->special);
+        $this->assertEquals('nat', $obj->val);
+    }
 
-	public function testWhereNested() {
-		$obj = Database::where_or(Database::where_gt('nat'));
+    public function testWhereNested() {
+        $obj = Database::where_or(Database::where_gt('nat'));
 
-		$this->assertEquals('or', $obj->connector);
-		$this->assertEquals('gt', $obj->operator);
-		$this->assertEquals('nat', $obj->val);
-	}
+        $this->assertEquals('or', $obj->connector);
+        $this->assertEquals('gt', $obj->operator);
+        $this->assertEquals('nat', $obj->val);
+    }
 
 }

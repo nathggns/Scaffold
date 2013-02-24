@@ -2,129 +2,129 @@
 
 class ErrorTest extends PHPUnit_Framework_TestCase {
 
-	public function setUp() {
-		$this->error = Service::get('error');
-	}
+    public function setUp() {
+        $this->error = Service::get('error');
+    }
 
-	public function testAliasFunction() {
-		$this->assertEquals('exceptions', $this->error->alias('exceptions')->alias);
-	}
-	
-	public function testThrowingException() {
+    public function testAliasFunction() {
+        $this->assertEquals('exceptions', $this->error->alias('exceptions')->alias);
+    }
+    
+    public function testThrowingException() {
 
-		$errored = false;
+        $errored = false;
 
-		$this->error->alias('testThrowingException')->attach('Exception', function($e) use (&$errored) {
-			$e->catch();
-			$errored = true;
-		}, 'testThrowingException');
+        $this->error->alias('testThrowingException')->attach('Exception', function($e) use (&$errored) {
+            $e->catch();
+            $errored = true;
+        }, 'testThrowingException');
 
-		try {
-			throw new Exception;
-		} catch (Exception $e) {
-			$this->error->handle($e);
-		}
+        try {
+            throw new Exception;
+        } catch (Exception $e) {
+            $this->error->handle($e);
+        }
 
-		$this->assertTrue($errored);
-	}
+        $this->assertTrue($errored);
+    }
 
-	public function testUnCatching() {
-		$errored = false;
+    public function testUnCatching() {
+        $errored = false;
 
-		$this->error->alias('testUnCatching')->attach('Exception', function($e) use (&$errored) {
-			$e->catch()->uncatch();
-		}, 'testUnCatching');
+        $this->error->alias('testUnCatching')->attach('Exception', function($e) use (&$errored) {
+            $e->catch()->uncatch();
+        }, 'testUnCatching');
 
-		try {
-			try {
-				throw new Exception;
-			} catch (Exception $e) {
-				$this->error->handle($e);
-			}
-		} catch (Exception $e) {
-			$errored = true;
-		}
+        try {
+            try {
+                throw new Exception;
+            } catch (Exception $e) {
+                $this->error->handle($e);
+            }
+        } catch (Exception $e) {
+            $errored = true;
+        }
 
-		$this->assertTrue($errored);
-	}
+        $this->assertTrue($errored);
+    }
 
-	public function testNotCatching() {
-		$errored = false;
+    public function testNotCatching() {
+        $errored = false;
 
-		$this->error->alias('testNotCatching')->attach('Exception', function($e) use (&$errored) {
-		}, 'testNotCatching');
+        $this->error->alias('testNotCatching')->attach('Exception', function($e) use (&$errored) {
+        }, 'testNotCatching');
 
-		try {
-			try {
-				throw new Exception;
-			} catch (Exception $e) {
-				$this->error->handle($e);
-			}
-		} catch (Exception $e) {
-			$errored = true;
-		}
+        try {
+            try {
+                throw new Exception;
+            } catch (Exception $e) {
+                $this->error->handle($e);
+            }
+        } catch (Exception $e) {
+            $errored = true;
+        }
 
-		$this->assertTrue($errored);
-	}
+        $this->assertTrue($errored);
+    }
 
-	public function testStopping() {
-		$errored = false;
+    public function testStopping() {
+        $errored = false;
 
-		$this->error->alias('testStopping')->attach('Exception', function($e) use (&$errored) {
-			$e->catch()->stop();
-			$errored = true;
-		}, 'testStopping');
+        $this->error->alias('testStopping')->attach('Exception', function($e) use (&$errored) {
+            $e->catch()->stop();
+            $errored = true;
+        }, 'testStopping');
 
-		$this->error->alias('testStopping')->attach('Exception', function($e) use (&$errored) {
-			$errored = false;
-		}, 'testStopping');
+        $this->error->alias('testStopping')->attach('Exception', function($e) use (&$errored) {
+            $errored = false;
+        }, 'testStopping');
 
-		try {
-			throw new Exception;
-		} catch (Exception $e) {
-			$this->error->handle($e);
-		} 
+        try {
+            throw new Exception;
+        } catch (Exception $e) {
+            $this->error->handle($e);
+        } 
 
-		$this->assertTrue($errored);
-	}
+        $this->assertTrue($errored);
+    }
 
-	public function testRethrow() {
-		$errored = false;
+    public function testRethrow() {
+        $errored = false;
 
-		$this->error->alias('testRethrow')->attach('Exception', function($e) use (&$errored) {
-			$e->catch()->rethrow();
-		}, 'testRethrow');
+        $this->error->alias('testRethrow')->attach('Exception', function($e) use (&$errored) {
+            $e->catch()->rethrow();
+        }, 'testRethrow');
 
-		try {
-			try {
-				throw new Exception;
-			} catch (Exception $e) {
-				$this->error->handle($e);
-			}
-		} catch (Exception $e) {
-			$errored = true;
-		}
+        try {
+            try {
+                throw new Exception;
+            } catch (Exception $e) {
+                $this->error->handle($e);
+            }
+        } catch (Exception $e) {
+            $errored = true;
+        }
 
-		$this->assertTrue($errored);
-	}
+        $this->assertTrue($errored);
+    }
 
-	public function testExceptionGoesThroughToHandler() {
-		$error = false;
-		$catchederror = false;
+    public function testExceptionGoesThroughToHandler() {
+        $error = false;
+        $catchederror = false;
 
-		$this->error->alias('testExceptionGoesThroughToHandler')->attach('Exception', function($e) use (&$catchederror) {
-			$e->catch();
-			$catchederror = $e->exc;
-		}, 'testExceptionGoesThroughToHandler');
+        $this->error->alias('testExceptionGoesThroughToHandler')->attach('Exception', function($e) use (&$catchederror) {
+            $e->catch();
+            $catchederror = $e->exc;
+        }, 'testExceptionGoesThroughToHandler');
 
-		try {
-			throw new Exception;
-		} catch (Exception $e) {
-			$error = $e;
-			$this->error->handle($e);
-		}
+        try {
+            throw new Exception;
+        } catch (Exception $e) {
+            $error = $e;
+            $this->error->handle($e);
+        }
 
-		$this->assertEquals($error, $catchederror);
-	}
+        $this->assertEquals($error, $catchederror);
+    }
 
 }

@@ -144,8 +144,17 @@ class Service {
             return static::$builds[$name];
         } else if (isset(static::$functions[$name])) {
             return call_user_func_array(static::$functions[$name], $arguments);
-        } else if (Autoload::load($name)) {
-            return (new ReflectionClass($name))->newInstanceArgs($arguments);
+        } else {
+
+            $reflect = false;
+
+            if (Autoload::load($name)) {
+                $reflect = new ReflectionClass($name);
+            }
+
+            if ($reflect) {
+                return $reflect->newInstanceArgs($arguments);
+            }
         }
 
         static::throw_error($name);

@@ -30,7 +30,8 @@ class ModelDatabase extends Model {
 	/**
 	 * Schema for the table
 	 */
-	protected $schema = [];
+	protected static $static_schema;
+	protected $schema;
 
 	/**
 	 * We need to know the class name in order to guess other properties if they're not provided.
@@ -81,11 +82,15 @@ class ModelDatabase extends Model {
 			$this->table_name = $this->guess_table_name($this->name);
 		}
 
-		$structure = $this->driver->structure($this->table_name);
+		if (!static::$static_schema) {
+			$structure = $this->driver->structure($this->table_name);
 
-		foreach ($structure as $row) {
-			$this->schema[$row['field']] = $row;
+			foreach ($structure as $row) {
+				static::$static_schema[$row['field']] = $row;
+			}
 		}
+
+		$this->scehma = static::$static_schema;
 
 		// Let the child class do custom stuff.
 		$this->init();

@@ -146,14 +146,16 @@ class Service {
             return call_user_func_array(static::$functions[$name], $arguments);
         } else {
 
-            $reflect = false;
+            if (!($reflect = Autoload::load($name))) {
+                $name = implode('', array_map(function($a) {
+                    return ucfirst($a);
+                }, explode('.', $name)));
 
-            if (Autoload::load($name)) {
-                $reflect = new ReflectionClass($name);
+                $reflect = Autoload::load($name);
             }
 
             if ($reflect) {
-                return $reflect->newInstanceArgs($arguments);
+                return (new ReflectionClass($name))->newInstanceArgs($arguments);
             }
         }
 

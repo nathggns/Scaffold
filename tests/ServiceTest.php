@@ -110,4 +110,10 @@ class ServiceTest extends PHPUnit_Framework_Testcase {
         $this->assertEquals('b', $dynamic->a);
         $this->assertEquals('d', $dynamic->c);
     }
+
+    public function testTransformation() {
+        $driver = Service::get('database.driver.PDO');
+
+        $this->assertInstanceOf('DatabaseDriverPDO', $driver);
+    }
 }

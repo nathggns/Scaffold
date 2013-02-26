@@ -110,8 +110,8 @@ class Response {
      * @param  mixed $data data
      * @return Response    this
      */
-    public function data($data) {
-        if (is_array($this->data) && is_array($data)) {
+    public function data($data, $merge = true) {
+        if ($merge && is_array($this->data) && is_array($data)) {
             $data = array_merge($this->data, $data);
         }
 
@@ -242,7 +242,7 @@ class Response {
             ];
         }
 
-        $this->data($body);
+        $this->data($body, false);
 
         return $this;
     }

@@ -11,6 +11,11 @@ class DatabaseQueryBuilderSQLTest extends PHPUnit_Framework_Testcase {
         $this->assertEquals($sql, 'SELECT * FROM `users`;');
     }
 
+    public function testBasicSelectDistinct() {
+        $sql = $this->builder->select(['table' => 'users', 'distinct' => true]);
+        $this->assertEquals($sql, 'SELECT DISTINCT * FROM `users`;');
+    }
+
     public function testBasicSelectWithStringForTable() {
         $sql = $this->builder->select('users');
         $this->assertEquals($sql, 'SELECT * FROM `users`;');
@@ -24,6 +29,11 @@ class DatabaseQueryBuilderSQLTest extends PHPUnit_Framework_Testcase {
     public function testBasicSelectChainedWithoutStart() {
         $sql = $this->builder->select('users')->end();
         $this->assertEquals($sql, 'SELECT * FROM `users`;');
+    }
+
+    public function testBasicSelectChainedDistinct() {
+        $sql = $this->builder->select('users')->distinct()->end();
+        $this->assertEquals($sql, 'SELECT DISTINCT * FROM `users`;');
     }
 
     public function testBasicSelectChainedWithArgs() {

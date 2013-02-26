@@ -90,7 +90,7 @@ class ModelDatabase extends Model {
             }
         }
 
-        $this->scehma = static::$static_schema;
+        $this->schema = static::$static_schema;
 
         // Let the child class do custom stuff.
         $this->init();

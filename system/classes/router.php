@@ -275,6 +275,10 @@ class Router {
             // invoke controller
             $instance = Service::get('controller', $controller, $request, $response);
 
+            if (!$instance) {
+                static::throw_error($request->method, $request->uri);
+            }
+
             // call `before` event
             $instance->before();
 

@@ -59,6 +59,8 @@ Service::singleton('controller', function($controller, Request $request = null, 
 
     $controller = 'Controller' . ucfirst($controller);
 
+    if (!Autoload::load($controller)) return;
+
     return new $controller($request, $response);
 });
 

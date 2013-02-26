@@ -95,4 +95,24 @@ class ServiceTest extends PHPUnit_Framework_Testcase {
     public function testException() {
         Service::get('__NonExistentService');
     }
+
+    public function testGettingNotRegisteredService() {
+        $autoload = Service::get('Autoload');
+        $this->assertInstanceOf('Autoload', $autoload);
+    }
+
+    public function testGettingNotRegisteredServiceWithArgs() {
+        $dynamic = Service::get('Dynamic', [
+            'a' => 'b',
+            'c' => 'd'
+        ]);
+        $this->assertInstanceOf('Dynamic', $dynamic);
+        $this->assertEquals('b', $dynamic->a);
+        $this->assertEquals('d', $dynamic->c);
+    }
+
+    public function testTransformation() {
+        $driver = Service::get('database.query.builder.SQL');
+        $this->assertInstanceOf('DatabaseQueryBuilderSQL', $driver);
+    }
 }

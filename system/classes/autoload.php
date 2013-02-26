@@ -55,6 +55,8 @@ class Autoload {
      * @return bool          did a class get loaded
      */
     public static function load($class) {
+        if (class_exists($class)) return true;
+
         $parts = preg_split('/([[:upper:]][[:lower:]]+)/', $class, null, PREG_SPLIT_DELIM_CAPTURE|PREG_SPLIT_NO_EMPTY);
         $parts = array_map('strtolower', $parts);
 

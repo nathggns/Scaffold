@@ -109,12 +109,12 @@ class Router {
      * @return Router           this
      */
     public function add_route($method, $path, $target = null, array $defaults = []) {
-        $this->routes[strtoupper($method) . ' ' . $path] = [
+        array_unshift($this->routes, [
             'method'   => $method,
             'path'     => $path,
             'target'   => $target,
             'defaults' => $defaults
-        ];
+        ]);
 
         return $this;
     }
@@ -233,7 +233,7 @@ class Router {
         $request  = ($request !== null) ? $request : Service::get('request');
         $response = ($response !== null) ? $response : Service::get('response');
 
-        $route = $this->find_route($request);  
+        $route = $this->find_route($request);
 
         if (!$route) static::throw_error($request->method, $request->uri);
 

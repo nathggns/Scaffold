@@ -223,7 +223,7 @@ class Response {
      * @param int $errco The http error code
      * @param string $message The message to send
      */
-    public function error($errco, $message = false, $debug = false) {
+    public function error($errco, $message = false, $debug = false, $extra = []) {
         if (!$message) $message = static::$codes[$errco];
         $this->code = $errco;
 
@@ -241,6 +241,8 @@ class Response {
                 'error' => $debug[1]
             ];
         }
+
+        $body = recursive_overwrite($body, $extra);
 
         $this->data($body, false);
 

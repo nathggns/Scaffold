@@ -30,7 +30,7 @@ class ModelDatabase extends Model {
     /**
      * Schema for the table
      */
-    protected static $static_schema;
+    protected static $static_schema = [];
     protected $schema;
 
     /**
@@ -82,15 +82,15 @@ class ModelDatabase extends Model {
             $this->table_name = $this->guess_table_name($this->name);
         }
 
-        if (!static::$static_schema) {
+        if (!isset(static::$static_schema[$this->name])) {
             $structure = $this->driver->structure($this->table_name);
 
             foreach ($structure as $row) {
-                static::$static_schema[$row['field']] = $row;
+                static::$static_schema[$this->name][$row['field']] = $row;
             }
         }
 
-        $this->schema = static::$static_schema;
+        $this->schema = static::$static_schema[$this->name];
 
         // Let the child class do custom stuff.
         $this->init();
@@ -210,7 +210,7 @@ class ModelDatabase extends Model {
             }
         }
 
-        $this->relationships[$type][$model] = array_merge([
+        $this->relationships[$type][$model][] = array_merge([
             'model' => $model,
             'alias' => $alias,
             'foreign_key' => $foreign_key,
@@ -378,74 +378,76 @@ class ModelDatabase extends Model {
                 break;
             }
 
-            foreach ($relationships as $model => $rel) {
-                $class_name = static::$prefix . $model;
+            foreach ($relationships as $model => $rels) {
+                foreach ($rels as $rel) {
+                    
+                    $class_name = static::$prefix . $model;
 
-                $obj = new $class_name;
+                    $obj = new $class_name;
 
-                $foreign_key = $rel['foreign_key'];
-                $local_key = $rel['local_key'];
+                    $foreign_key = $rel['foreign_key'];
+                    $local_key = $rel['local_key'];
 
-                $table_name = $obj->table_name;
+                    $table_name = $obj->table_name;
 
-                if (!$foreign_key) {
+                    if (!$foreign_key) {
+                        switch ($type) {
+                            case static::HAS_MANY:
+                            case static::HAS_ONE:
+                                $foreign_key = Inflector::singularize($this->table_name) . '_' . $local_key;
+                            break;
+
+                            case static::BELONGS_TO:
+                                $foreign_key = Inflector::singularize($table_name) . '_' . $local_key;
+                            break;
+                        }
+                    }
+
                     switch ($type) {
                         case static::HAS_MANY:
+                            $obj->fetch_all([
+                                $foreign_key => $result[$local_key]
+                            ]);
+                        break;
+
                         case static::HAS_ONE:
-                            $foreign_key = Inflector::singularize($this->table_name) . '_' . $local_key;
+                            $obj->fetch([
+                                $foreign_key => $result[$local_key]
+                            ]);
                         break;
 
                         case static::BELONGS_TO:
-                            $foreign_key = Inflector::singularize($table_name) . '_' . $local_key;
+                            $obj->fetch([
+                                $local_key => $result[$foreign_key]
+                            ]);
+                        break;
+
+                        case static::HABTM:
+                        
+                            $this->driver->find($rel['table'], [
+                                'vals' => [$foreign_key],
+                                'where' => [
+                                    $rel['table_foreign_key'] => $result[$local_key]
+                                ]
+                            ]);
+
+                            $results = $this->driver->fetch_all();
+
+                            $ids = array_map(function($a) use($foreign_key) {
+                                return $a[$foreign_key];
+                            }, $results);
+
+                            $obj->fetch_all([
+                                'id' => $ids
+                            ]);
+
                         break;
                     }
+
+                    $alias = $rel['alias'];
+
+                    $result[$alias] = $obj;
                 }
-
-                switch ($type) {
-                    case static::HAS_MANY:
-                        $obj->fetch_all([
-                            $foreign_key => $result[$local_key]
-                        ]);
-                    break;
-
-                    case static::HAS_ONE:
-                        $obj->fetch([
-                            $foreign_key => $result[$local_key]
-                        ]);
-                    break;
-
-                    case static::BELONGS_TO:
-                        $obj->fetch([
-                            $local_key => $result[$foreign_key]
-                        ]);
-                    break;
-
-                    case static::HABTM:
-                    
-                        $this->driver->find($rel['table'], [
-                            'vals' => [$foreign_key],
-                            'where' => [
-                                $rel['table_foreign_key'] => $result[$local_key]
-                            ]
-                        ]);
-
-                        $results = $this->driver->fetch_all();
-
-                        $ids = array_map(function($a) use($foreign_key) {
-                            return $a[$foreign_key];
-                        }, $results);
-
-                        $obj->fetch_all([
-                            'id' => $ids
-                        ]);
-
-                    break;
-                }
-
-                $alias = $rel['alias'];
-
-                $result[$alias] = $obj;
-
             }
         }
 

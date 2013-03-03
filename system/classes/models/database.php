@@ -60,6 +60,12 @@ class ModelDatabase extends Model {
     protected $relationships = [];
 
     /**
+     * Default fields to export.
+     * True means all. False, or empty array, means none.
+     */
+    protected static $export_fields = true;
+
+    /**
      * Inital Setup
      */
     public function __construct($id = null) {
@@ -233,9 +239,13 @@ class ModelDatabase extends Model {
         ];
     }
 
-    public function export($values = [], $level = 1) {
+    public function export($values = null, $level = 1) {
 
-        if (!is_array($values)) $values = [$values];
+        if (is_null($values)) $values = static::$export_fields;
+
+        if ($values === false) $values = [];
+
+        if (!is_bool($values) && !is_array($values)) $values = [$values];
 
         $data = [];
 
@@ -248,7 +258,7 @@ class ModelDatabase extends Model {
         } else {
             $schema = array_keys($this->schema);
 
-            if (count($values) > 0) {
+            if ($values !== true) {
                 $new = [];
 
                 foreach ($values as $key => $value) {

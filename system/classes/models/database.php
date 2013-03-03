@@ -324,7 +324,7 @@ class ModelDatabase extends Model {
      *
      * @todo Implement Iterator instead.
      */
-    protected function count() {
+    public function count() {
 
         $count = null;
 

@@ -73,9 +73,9 @@ class Autoload {
             }
 
             $previous_parts[] = $parts[$key];
-        }
 
-        if ($result = static::load_file($parts)) return $result;
+            if ($result = static::load_file($parts)) return $result;
+        }
     }
 
     /**

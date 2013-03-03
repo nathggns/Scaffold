@@ -241,7 +241,9 @@ class ModelDatabase extends Model {
 
     public function export($values = null, $level = 1) {
 
-        if (is_null($values)) $values = static::$export_fields;
+        if (is_null($values)) {
+            $values = static::$export_fields;
+        }
 
         if ($values === false) $values = [];
 
@@ -281,7 +283,7 @@ class ModelDatabase extends Model {
 
                 if ($value instanceof Model) {
                     if ($level > 0) {
-                        $value = $value->export(is_array($values[$key]) ? $values[$key] : [], $level - 1);
+                        $value = $value->export(is_array($values[$key]) ? $values[$key] : null, $level - 1);
 
                         if (is_array($value) && count($value) > 0) {
                             $is_null = true;

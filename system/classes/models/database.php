@@ -255,7 +255,7 @@ class ModelDatabase extends Model {
             for ($i = 0, $l = $this->count(); $i < $l; $i++) {
                 if (is_null($this[$i])) continue;
 
-                $data[] = $this[$i]->export($values, $level, $count_models);
+                $data[] = $this[$i]->export($values, $level);
             }
         } else {
             $schema = array_keys($this->schema);
@@ -282,11 +282,8 @@ class ModelDatabase extends Model {
                 $value = $this->__get($key);
 
                 if ($value instanceof Model) {
-                    
-                    if ($count_models) {
-                        $value = $value->count();
-                    } else if ($level > 0) {
-                        $value = $value->export(is_array($values[$key]) ? $values[$key] : null, $level - 1, $count_models);
+                    if ($level > 0) {
+                        $value = $value->export(is_array($values[$key]) ? $values[$key] : null, $level - 1);
 
                         if (is_array($value) && count($value) > 0) {
                             $is_null = true;

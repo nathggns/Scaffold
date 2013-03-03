@@ -352,7 +352,9 @@ class ModelDatabase extends Model {
 
             case static::MODE_MULT:
                 $row = $this[0];
-                $count = count($this->rows);
+                $count = count(array_filter($this->rows, function($row) {
+                    return !is_null($row);
+                }));
             break;
 
         }

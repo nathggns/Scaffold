@@ -148,10 +148,20 @@ class ModelDatabase extends Model {
         }
 
         if ($this->mode === static::MODE_INSERT) {
+
+            if (isset($this->schema['created']) && !isset($this->data['created'])) {
+                $this->data['created'] = time();
+            }
+
             $this->driver->insert($this->table_name, $this->data);
             $this->reset();
             $this->conditions = ['id' => $this->driver->id()];
         } else if (count($this->updated) > 0 && $this->mode === static::MODE_SINGLE) {
+
+            if (isset($this->schema['updated'])) {
+                $this->updated['updated'] = time();
+            }
+
             $this->driver->update($this->table_name, $this->updated, [
                 'id' => $this->id
             ]);

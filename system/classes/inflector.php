@@ -12,6 +12,7 @@ class Inflector {
      */
     protected static $plural = [
         'rules' => [
+            '/(p)hoto$/i' => '\1hotos',
             '/([b-df-hj-np-tv-z]o)$/i' => '\1es',
             '/(s)tatus$/i' => '\1\2tatuses',
             '/(quiz)$/i' => '\1zes',
@@ -93,6 +94,7 @@ class Inflector {
 
     protected static $singular = [
         'rules' => [
+            '/(p)hotos$/i' => '\1photo',
             '/(s)tatuses$/i' => '\1\2tatus',
             '/^(.*)(menu)s$/i' => '\1\2',
             '/(quiz)zes$/i' => '\\1',

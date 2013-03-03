@@ -110,7 +110,7 @@ class ModelDatabase extends Model {
     public function fetch($conditions = [], $reset = true) {
         if ($reset) $this->reset();
         $this->mode = static::MODE_SINGLE;
-        $this->conditions['where'] = $conditions;
+        $this->conditions['where'] = recursive_overwrite($this->conditions['where'], $conditions);
 
         return $this;
     }
@@ -118,7 +118,7 @@ class ModelDatabase extends Model {
     public function fetch_all($conditions = [], $reset = true) {
         if ($reset) $this->reset();
         $this->mode = static::MODE_MULT;
-        $this->conditions['where'] = $conditions;
+        $this->conditions['where'] = recursive_overwrite($this->conditions['where'], $conditions);
 
         return $this;
     }
@@ -132,7 +132,7 @@ class ModelDatabase extends Model {
         }
 
         $this->mode = $mode;
-        $this->conditions = $conditions;
+        $this->conditions = recursive_overwrite($this->conditions, $conditions);
 
         return $this;
     }

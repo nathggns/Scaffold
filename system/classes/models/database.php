@@ -239,7 +239,7 @@ class ModelDatabase extends Model {
         ];
     }
 
-    public function export($values = null, $level = 1) {
+    public function export($values = null, $level = 1, $count_models = false) {
 
         if (is_null($values)) {
             $values = static::$export_fields;
@@ -282,7 +282,10 @@ class ModelDatabase extends Model {
                 $value = $this->__get($key);
 
                 if ($value instanceof Model) {
-                    if ($level > 0) {
+
+                    if ($count_models) {
+                        $value = $value->count();
+                    } else if ($level > 0) {
                         $value = $value->export(is_array($values[$key]) ? $values[$key] : null, $level - 1);
 
                         if (is_array($value) && count($value) > 0) {

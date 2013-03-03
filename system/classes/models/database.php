@@ -107,25 +107,25 @@ class ModelDatabase extends Model {
         }
     }
 
-    public function fetch($conditions = []) {
-        $this->reset();
+    public function fetch($conditions = [], $reset = true) {
+        if ($reset) $this->reset();
         $this->mode = static::MODE_SINGLE;
         $this->conditions['where'] = $conditions;
 
         return $this;
     }
 
-    public function fetch_all($conditions = []) {
-        $this->reset();
+    public function fetch_all($conditions = [], $reset = true) {
+        if ($reset) $this->reset();
         $this->mode = static::MODE_MULT;
         $this->conditions['where'] = $conditions;
 
         return $this;
     }
 
-    public function find($conditions, $mode = null) {
+    public function find($conditions, $mode = null, $reset = true) {
 
-        $this->reset();
+        if ($reset) $this->reset();
 
         if (is_null($mode)) {
             $mode = static::MODE_MULT;

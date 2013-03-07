@@ -125,6 +125,8 @@ class ModelDatabase extends Model {
 
     public function find($conditions, $mode = null, $reset = true) {
 
+        var_dump($conditions, $mode, $reset);
+
         if ($reset) $this->reset();
 
         if (is_null($mode)) {
@@ -525,7 +527,7 @@ class ModelDatabase extends Model {
         return $this->rows[$offset];
     }
 
-    private function conditions($others = []) {
+    public function conditions($others = []) {
         return array_merge_recursive($this->defaults, $this->conditions);
     }
 

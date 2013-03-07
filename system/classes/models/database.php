@@ -125,8 +125,6 @@ class ModelDatabase extends Model {
 
     public function find($conditions, $mode = null, $reset = true) {
 
-        var_dump($conditions, $mode, $reset);
-
         if ($reset) $this->reset();
 
         if (is_null($mode)) {

@@ -47,6 +47,14 @@ class Database {
             $args[] = [$prop => $name];
 
             return call_user_func_array(['self', 'query'], $args);
+        } else if (preg_match('/^func_/i', $name)) {
+            $name = substr($name, strlen('func_'));
+
+            return new Dynamic([
+                'type' => 'function',
+                'function' => $name,
+                'val' => $args[0]
+            ]);
         }
 
         return call_user_func_array([get_class($this->driver), $name], $args);

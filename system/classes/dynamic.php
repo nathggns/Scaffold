@@ -10,7 +10,7 @@ class Dynamic {
      */
     public function __construct(array $arr) {
         foreach ($arr as $key => $val) {
-            if (is_callable($val)) $val = $val->bindTo($this);
+            if (is_callable([$val, 'bindTo'])) $val = $val->bindTo($this);
 
             $this->$key = $val;
         }

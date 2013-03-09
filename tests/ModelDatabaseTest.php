@@ -6,7 +6,9 @@ class MDT_DatabaseDriverPDOTestClass extends DatabaseDriverPDO {
     }
 }
 
-class MDT_ModelUser extends ModelDatabase {}
+class MDT_ModelUser extends ModelDatabase {
+    var $table_name = 'users';
+}
 
 class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
 

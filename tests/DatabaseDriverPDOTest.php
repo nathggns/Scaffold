@@ -63,6 +63,16 @@ class DatabaseDriverPDOTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals('mysql:host=localhost;version=10;dbname=scaffold', $dsn);
     }
 
+    public function testDSNManual() {
+        $config = [
+            'dsn' => 'sqlite::memory:'
+        ];
+
+        $dsn = $this->driver->get_dsn($config);
+
+        $this->assertEquals('sqlite::memory:', $dsn);
+    }
+
     public function testFindWithJustTable() {
         $query = $this->driver->find('users');
 

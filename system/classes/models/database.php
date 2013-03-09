@@ -350,21 +350,8 @@ class ModelDatabase extends Model {
      * @todo Implement Iterator instead.
      */
     public function count() {
-
-        $count = null;
-
-        switch ($this->mode) {
-
-            case static::MODE_MULT:
-                $row = $this[0];
-                $count = count(array_filter($this->rows, function($row) {
-                    return !is_null($row);
-                }));
-            break;
-
-        }
-
-        return $count;
+        $this->__find();
+        return $this->driver->count();
     }
 
     /**
@@ -382,10 +369,7 @@ class ModelDatabase extends Model {
             return $this->data[$key];
         }
 
-        $this->driver->find(
-            $this->table_name,
-            $this->conditions()
-        );
+        $this->__find();
 
         $result = $this->driver->fetch();
 
@@ -491,6 +475,16 @@ class ModelDatabase extends Model {
         return $this->data[$key];    
     }
 
+    /**
+     * Real find
+     */
+    protected function __find($conditions = []) {
+        return $this->driver->find(
+            $this->table_name,
+            array_merge_recursive($conditions, $this->conditions())
+        );
+    }
+
     public function offsetGet($offset) {
         if ($this->mode != static::MODE_MULT) {
             throw new Exception('Cannot access row via index');
@@ -502,12 +496,9 @@ class ModelDatabase extends Model {
 
         $this->rows = [];
 
-        $this->driver->find(
-            $this->table_name,
-            array_merge_recursive([
-                'vals' => ['id']
-            ], $this->conditions())
-        );
+        $this->__find([
+            'vals' => ['id']
+        ]);
 
         $results = $this->driver->fetch_all();
         $class = $this->class_name;

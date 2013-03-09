@@ -175,7 +175,8 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
             'order' => [],
             'having' => [],
             'limit' => [],
-            'distinct' => false
+            'distinct' => false,
+            'count' => false
         ];
 
         $keys = array_keys($options);

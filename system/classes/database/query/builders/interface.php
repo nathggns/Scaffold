@@ -7,6 +7,7 @@
  */
 interface DatabaseQueryBuilderInterface {
     public function select();
+    public function count();
     public function insert($table, $data);
     public function update();
     public function structure($table);

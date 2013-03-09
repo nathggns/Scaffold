@@ -44,4 +44,14 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
             $this->assertEquals($val, $key);
         }
     }
+
+    public function testFindUserWithIdFromConstruct() {
+        $user = new MDT_ModelUser(1, $this->driver);
+
+        $this->equals([
+            $user->id => '1',
+            $user->name => 'Nat'
+        ]);
+    }
+
 }

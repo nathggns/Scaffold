@@ -9,8 +9,17 @@
  *       rather than just the argument shuffling part. 
  */
 class DatabaseDriverPDOTestClass extends DatabaseDriverPDO {
+
+    public $query_string;
+    var $query = true;
+
     function query($sql) {
-        return $sql;
+        $this->query_string = $sql;
+        return $this;
+    }
+
+    function fetch($table = null, $options = null) {
+        return $this;
     }
 
     public function get_dsn() {
@@ -54,7 +63,7 @@ class DatabaseDriverPDOTest extends PHPUnit_Framework_TestCase {
     public function testFindWithJustTable() {
         $query = $this->driver->find('users');
 
-        $this->assertEquals('SELECT * FROM `users`;', $query);
+        $this->assertEquals('SELECT * FROM `users`;', $query->query_string);
     }
 
     public function testFindWithVals() {
@@ -62,7 +71,7 @@ class DatabaseDriverPDOTest extends PHPUnit_Framework_TestCase {
             'vals' => ['id', 'name']
         ]);
 
-        $this->assertEquals('SELECT `id`, `name` FROM `users`;', $query);   
+        $this->assertEquals('SELECT `id`, `name` FROM `users`;', $query->query_string);   
     }
 
     public function testFindWithWhere() {
@@ -76,7 +85,7 @@ class DatabaseDriverPDOTest extends PHPUnit_Framework_TestCase {
             ]
         ]);
 
-        $this->assertEquals('SELECT * FROM `users` WHERE `name` = \'joe\' OR (`name` = \'nat\' AND `partner` = \'joe\');', $query);
+        $this->assertEquals('SELECT * FROM `users` WHERE `name` = \'joe\' OR (`name` = \'nat\' AND `partner` = \'joe\');', $query->query_string);
     }
 
     public function testFindWithOrder() {
@@ -84,7 +93,7 @@ class DatabaseDriverPDOTest extends PHPUnit_Framework_TestCase {
             'order' => [['name', 'DESC'], ['id', 'ASC']]
         ]);
 
-        $this->assertEquals('SELECT * FROM `users` ORDER BY `name` DESC, `id` ASC;', $query);   
+        $this->assertEquals('SELECT * FROM `users` ORDER BY `name` DESC, `id` ASC;', $query->query_string);   
     }
 
     public function testFindWithLimit() {
@@ -92,7 +101,7 @@ class DatabaseDriverPDOTest extends PHPUnit_Framework_TestCase {
             'limit' => [35, 56]
         ]);
 
-        $this->assertEquals('SELECT * FROM `users` LIMIT 35, 56;', $query); 
+        $this->assertEquals('SELECT * FROM `users` LIMIT 35, 56;', $query->query_string); 
     }
 
     public function testFindWithAll() {       
@@ -109,7 +118,7 @@ class DatabaseDriverPDOTest extends PHPUnit_Framework_TestCase {
             'limit' => [35, 56]
         ]);
 
-        $this->assertEquals('SELECT `id`, `name` FROM `users` WHERE `name` = \'joe\' OR (`name` = \'nat\' AND `partner` = \'joe\') ORDER BY `name` DESC, `id` ASC LIMIT 35, 56;', $query); 
+        $this->assertEquals('SELECT `id`, `name` FROM `users` WHERE `name` = \'joe\' OR (`name` = \'nat\' AND `partner` = \'joe\') ORDER BY `name` DESC, `id` ASC LIMIT 35, 56;', $query->query_string); 
     }
 
     public function testInsert() {
@@ -118,7 +127,7 @@ class DatabaseDriverPDOTest extends PHPUnit_Framework_TestCase {
             'partner' => 'SuperMegaHotGuy'
         ]);
 
-        $this->assertEquals('INSERT INTO `users` (`name`, `partner`) VALUES (\'Claudio\', \'SuperMegaHotGuy\');', $query);
+        $this->assertEquals('INSERT INTO `users` (`name`, `partner`) VALUES (\'Claudio\', \'SuperMegaHotGuy\');', $query->query_string);
     }
 
     public function testUpdate() {
@@ -128,13 +137,13 @@ class DatabaseDriverPDOTest extends PHPUnit_Framework_TestCase {
             'name' => 'Claudio'
         ]);
 
-        $this->assertEquals('UPDATE `users` SET `partner` = \'SuperMegaHotGuy\' WHERE `name` = \'Claudio\';', $query);
+        $this->assertEquals('UPDATE `users` SET `partner` = \'SuperMegaHotGuy\' WHERE `name` = \'Claudio\';', $query->query_string);
     }
 
     public function testDeleteWithoutWhere() {
         $query = $this->driver->delete('users');
 
-        $this->assertEquals('DELETE FROM `users`;', $query);
+        $this->assertEquals('DELETE FROM `users`;', $query->query_string);
     }
 
     public function testDeleteWithWhere() {
@@ -142,6 +151,12 @@ class DatabaseDriverPDOTest extends PHPUnit_Framework_TestCase {
             'inactive' => 1
         ]);
 
-        $this->assertEquals('DELETE FROM `users` WHERE `inactive` = 1;', $query);
+        $this->assertEquals('DELETE FROM `users` WHERE `inactive` = 1;', $query->query_string);
+    }
+
+    public function testCount() {
+        $query = $this->driver->find('users')->select_count();
+
+        $this->assertEquals('SELECT COUNT(*) FROM `users`;', $query->query_string);
     }
 }

@@ -2,8 +2,6 @@
 
 class DatabaseDriverPDO extends DatabaseDriver {
 
-    protected $conn = false;
-    public $query = false;
     protected $type = false;
 
     /**
@@ -93,7 +91,7 @@ class DatabaseDriverPDO extends DatabaseDriver {
         }
 
         // Call the builder select function
-        $query = $this->builder->select([
+        $this->query_opts = [
             'table' => $values['from'],
             'vals' => $values['vals'],
             'conds' => $values['where'],
@@ -101,7 +99,9 @@ class DatabaseDriverPDO extends DatabaseDriver {
             'group' => $values['group'],
             'having' => $values['having'],
             'limit' => $values['limit']
-        ]);
+        ];
+
+        $query = $this->builder->select($this->query_opts);
 
         // Return the query
         return $this->query($query);
@@ -217,11 +217,18 @@ class DatabaseDriverPDO extends DatabaseDriver {
         if (!$this->query || $this->type !== static::SELECT) return false;
 
         // Loop through all the rows, adding to the count
-        $count = 0;
-        while ($this->fetch()) $count++;
+        $opts = $this->query_opts;
+        $query = $this->builder->count($opts);
+        $this->query($query);
+        $results = $this->fetch();
 
-        // Return the count
-        return $count;
+        if (is_array($results)) {
+            $results = (int) current($results);
+
+            return $results;
+        }
+
+        return $results;
     }
 
     /**

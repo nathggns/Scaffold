@@ -39,8 +39,13 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
         return new MDT_ModelUser(null, $this->driver);
     }
 
-    public function equals($arr) {
+    public function equals($arr, $obj = false) {
         foreach ($key as $val) {
+
+            if ($obj) {
+                $key = $obj->key;
+            }
+
             $this->assertEquals($val, $key);
         }
     }
@@ -49,9 +54,9 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
         $user = new MDT_ModelUser(1, $this->driver);
 
         $this->equals([
-            $user->id => '1',
-            $user->name => 'Nat'
-        ]);
+            'id' => '1',
+            'name' => 'Nat'
+        ], $user);
     }
 
 }

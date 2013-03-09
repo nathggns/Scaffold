@@ -17,6 +17,23 @@ In order to contribute, please fork this repo. Every new feature must be made in
 must have a **PHPUnit** test written for it. You must follow the standard styleguide that is in place through
 Scaffold.
 
+Testing
+=======
+
+We use the **PHPUnit** testing framework to test Scaffold. To run these tests, simply run `phpunit .` in the root of Scaffold.
+
+Some of these tests have dependencies, these are:
+
+<ul>
+  <li>
+    SQLite PDO Driver
+
+    <ul>
+      <li>`ModelDatabas`</li>
+    </ul>
+  </li>
+</ul>
+
 Features
 ========
 

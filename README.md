@@ -29,7 +29,7 @@ Some of these tests have dependencies, these are:
     SQLite PDO Driver
 
     <ul>
-      <li>`ModelDatabas`</li>
+      <li><code>ModelDatabase</code></li>
     </ul>
   </li>
 </ul>

@@ -39,20 +39,4 @@ class DatabaseTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals('nat', $obj->val);
     }
 
-    public function testFuncCount() {
-        $obj = Database::func_count('*');
-
-        $this->assertEquals('*', $obj->val);
-        $this->assertEquals('function', $obj->type);
-        $this->assertEquals('count', $obj->function);
-    }
-
-    public function testFuncMinWithColA() {
-        $obj = Database::func_min('a');
-
-        $this->assertEquals('a', $obj->val);
-        $this->assertEquals('function', $obj->type);
-        $this->assertEquals('min', $obj->function);
-    }
-
 }

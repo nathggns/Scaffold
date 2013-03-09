@@ -155,8 +155,18 @@ class DatabaseDriverPDOTest extends PHPUnit_Framework_TestCase {
     }
 
     public function testCount() {
-        $query = $this->driver->find('users')->select_count();
+        $query = $this->driver->find('users')->count();
 
         $this->assertEquals('SELECT COUNT(*) FROM `users`;', $query->query_string);
+    }
+
+    public function testCountWithConds() {
+        $query = $this->driver->find('users', [
+            'where' => [
+                'id' => 5
+            ]
+        ])->count();
+
+        $this->assertEquals('SELECT COUNT(*) FROM `users` WHERE `id` = 5;', $query->query_string);
     }
 }

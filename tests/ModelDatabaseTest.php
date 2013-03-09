@@ -40,10 +40,10 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
     }
 
     public function equals($arr, $obj = false) {
-        foreach ($key as $val) {
+        foreach ($arr as $key => $val) {
 
             if ($obj) {
-                $key = $obj->key;
+                $key = $obj->$key;
             }
 
             $this->assertEquals($val, $key);

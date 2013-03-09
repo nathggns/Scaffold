@@ -27,15 +27,20 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
 
         $table = $this->table($table);
 
-        $vals = $this->backtick($vals);
+        if ($count) {
+            $val = 'COUNT(*)';
+        } else {
+            $vals = $this->backtick($vals);
 
-        foreach ($vals as $key => $val) {
-            if (!is_int($key)) {
-                $vals[$key] = $this->backtick($key) . ' AS ' . $val;
+            foreach ($vals as $key => $val) {
+                if (!is_int($key)) {
+                    $vals[$key] = $this->backtick($key) . ' AS ' . $val;
+                }
             }
+
+            $val = implode(', ', $vals);
         }
 
-        $val = implode(', ', $vals);
         $query = 'SELECT ';
 
         if ($distinct) $query .= 'DISTINCT ';
@@ -51,6 +56,14 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         $query .= ';';
 
         return $query;
+    }
+
+    public function count() {
+        $args = func_get_args();
+        $options = call_user_func_array([$this, 'extract_select'], $args);
+        $options['count'] = true;
+
+        return $this->select($options);
     }
 
     public function insert($table, $data = null) {

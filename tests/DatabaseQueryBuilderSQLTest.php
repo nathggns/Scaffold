@@ -11,6 +11,11 @@ class DatabaseQueryBuilderSQLTest extends PHPUnit_Framework_Testcase {
         $this->assertEquals($sql, 'SELECT * FROM `users`;');
     }
 
+    public function testBasicCount() {
+        $sql = $this->builder->count(['table' => 'users']);
+        $this->assertEquals($sql, 'SELECT COUNT(*) FROM `users`;');
+    }
+
     public function testBasicSelectDistinct() {
         $sql = $this->builder->select(['table' => 'users', 'distinct' => true]);
         $this->assertEquals($sql, 'SELECT DISTINCT * FROM `users`;');

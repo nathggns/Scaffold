@@ -27,9 +27,18 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
         $driver = static::$driver;
 
         $driver->manual_query('CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT);');
+    }
+
+    public function setUp() {
+        static::$driver->delete('users');
+        static::$driver->delete('SQLITE_SEQUENCE', [
+            'where' => [
+                'name' => 'users'
+            ]
+        ]);
 
         foreach (static::$names as $name) {
-            $driver->insert('users', [
+            static::$driver->insert('users', [
                 'name' => $name
             ]);
         }
@@ -77,7 +86,7 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
     }
 
     public function testFetchAllUsers() {
-        $users = $this->get();
+        $users = $this->get()->fetch_all();
 
         $this->assertEquals(8, count($users));
         $this->assertEquals(8, $users->count());

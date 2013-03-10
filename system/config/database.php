@@ -12,6 +12,11 @@ return [
         'password' => '',
         'database' => 'scaffold',
         'type' => 'mysql'
+    ],
+
+    'testing' => [
+        'dsn' => 'sqlite:test.db',
+        'type' => 'sqlite'
     ]
 
 ];

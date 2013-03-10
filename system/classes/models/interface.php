@@ -1,6 +1,6 @@
 <?php defined('SCAFFOLD') or die;
 
-interface ModelInterface extends ArrayAccess, Iterator {
+interface ModelInterface extends ArrayAccess, Iterator, Countable {
 
     public function __get($key);
     public function __set($key, $val);
@@ -14,4 +14,5 @@ interface ModelInterface extends ArrayAccess, Iterator {
     public function find($conditions, $mode = null);
     public function export($values = [], $level = 1);
     public function force_load();
+    public function count();
 }

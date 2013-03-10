@@ -30,8 +30,11 @@ class DDPT_DatabaseDriverPDOTestClass extends DatabaseDriverPDO {
 class DatabaseDriverPDOTest extends PHPUnit_Framework_TestCase {
 
     public function setUp() {
-        $config = Service::get('config')->get('database');
-        $builder = Service::get('database.builder', 'sql');
+        $config = [
+            'dsn' => 'sqlite::memory:'
+        ];
+
+        $builder = Service::get('database.builder', 'sqlite');
         $this->driver = new DDPT_DatabaseDriverPDOTestClass($builder, $config, false);
     }
 

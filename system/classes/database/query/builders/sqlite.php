@@ -9,4 +9,8 @@ class DatabaseQueryBuilderSqlite extends DatabaseQueryBuilderSQL {
         return 'PRAGMA table_info(' . $this->backtick($table) . ');';
     }
 
+    function prevent_locking() {
+        return 'PRAGMA journal_mode=WAL;';
+    }
+
 }

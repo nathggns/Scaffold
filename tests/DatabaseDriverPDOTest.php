@@ -8,7 +8,7 @@
  * @todo Work out how to write tests for the actual database interactions,
  *       rather than just the argument shuffling part. 
  */
-class DatabaseDriverPDOTestClass extends DatabaseDriverPDO {
+class DDPT_DatabaseDriverPDOTestClass extends DatabaseDriverPDO {
 
     public $query_string;
     var $query = true;

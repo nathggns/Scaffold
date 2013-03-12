@@ -68,12 +68,12 @@ class ModelDatabase extends Model {
     /**
      * Inital Setup
      */
-    public function __construct($id = null) {
+    public function __construct($id = null, $driver = null) {
 
         $this->properties = array_keys(get_object_vars($this));
 
         // Store our database connection
-        $this->driver = Service::get('database');
+        $this->driver = $driver ? $driver : Service::get('database');
 
         // Set all of our properties
         if (!$this->class_name) {

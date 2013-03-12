@@ -8,7 +8,7 @@
  * @todo Work out how to write tests for the actual database interactions,
  *       rather than just the argument shuffling part. 
  */
-class DatabaseDriverPDOTestClass extends DatabaseDriverPDO {
+class DDPT_DatabaseDriverPDOTestClass extends DatabaseDriverPDO {
 
     public $query_string;
     var $query = true;
@@ -30,9 +30,12 @@ class DatabaseDriverPDOTestClass extends DatabaseDriverPDO {
 class DatabaseDriverPDOTest extends PHPUnit_Framework_TestCase {
 
     public function setUp() {
-        $config = Service::get('config')->get('database');
-        $builder = Service::get('database.builder', 'sql');
-        $this->driver = new DatabaseDriverPDOTestClass($builder, $config, false);
+        $config = [
+            'dsn' => 'sqlite::memory:'
+        ];
+
+        $builder = Service::get('database.builder', 'sqlite');
+        $this->driver = new DDPT_DatabaseDriverPDOTestClass($builder, $config, false);
     }
 
     public function testDSN() {
@@ -58,6 +61,16 @@ class DatabaseDriverPDOTest extends PHPUnit_Framework_TestCase {
         $dsn = $this->driver->get_dsn($config);
 
         $this->assertEquals('mysql:host=localhost;version=10;dbname=scaffold', $dsn);
+    }
+
+    public function testDSNManual() {
+        $config = [
+            'dsn' => 'sqlite::memory:'
+        ];
+
+        $dsn = $this->driver->get_dsn($config);
+
+        $this->assertEquals('sqlite::memory:', $dsn);
     }
 
     public function testFindWithJustTable() {

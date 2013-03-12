@@ -29,26 +29,31 @@ class DatabaseDriverPDO extends DatabaseDriver {
      * @param array $config Config to base the DSN on. 
      */
     protected function dsn($config) {
-        $type = $config['type'];
-        $specials = ['username', 'password', 'type', 'database' => 'dbname'];
+        if (!isset($config['dsn'])) {
 
-        foreach ($specials as $key => $special) {
+            $type = $config['type'];
+            $specials = ['username', 'password', 'type', 'database' => 'dbname'];
 
-            if (!is_int($key)) {
-                list($key, $special) = [$special, $key];
-            }
-
-            if (isset($config[$special])) {
-                $val = $config[$special];
-                unset($config[$special]);
+            foreach ($specials as $key => $special) {
 
                 if (!is_int($key)) {
-                    $config[$key] = $val;
+                    list($key, $special) = [$special, $key];
+                }
+
+                if (isset($config[$special])) {
+                    $val = $config[$special];
+                    unset($config[$special]);
+
+                    if (!is_int($key)) {
+                        $config[$key] = $val;
+                    }
                 }
             }
-        }
 
-        $dsn = $type . ':' . key_implode('=', ';', $config);
+            $dsn = $type . ':' . key_implode('=', ';', $config);
+        } else {
+            $dsn = $config['dsn'];
+        }
 
         return $dsn;
     }

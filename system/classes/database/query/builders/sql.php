@@ -51,11 +51,21 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         if (!empty($group)) $query .= ' ' . $this->group_array($group);
         if (!empty($order)) $query .= ' ' . $this->order_array($order);
         if (!empty($having)) $query .= ' ' . $this->having($having);
-        if (!empty($limit)) $query .= ' ' . $this->limit_array($limit);
+        if (!empty($limit)) {
+            $query .= ' ' . $this->limit_array($limit, $offset);
+
+            if ($offset) {
+                $query .= ' ' . $this->offset_val($offset);
+            }
+        }
 
         $query .= ';';
 
         return $query;
+    }
+
+    public function offset_val($val) {
+        return 'OFFSET ' . $val;
     }
 
     public function count() {
@@ -142,7 +152,13 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
 
         if (!empty($where)) $query .= ' ' . $this->where_array($where);
         if (!empty($order)) $query .= ' ' . $this->order_array($order);
-        if (!empty($limit)) $query .= ' ' . $this->limit_array($limit);
+        if (!empty($limit)) {
+            $query .= ' ' . $this->limit_array($limit, $offset);
+
+            if ($offset) {
+                $query .= ' '. $this->offset_val($offset);
+            }
+        }
 
         $query .= ';';
 
@@ -169,7 +185,13 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
 
         if (!empty($where)) $query .= ' ' . $this->where_array($where);
         if (!empty($order)) $query .= ' ' . $this->order_array($order);
-        if (!empty($limit)) $query .= ' ' . $this->limit_array($limit);
+        if (!empty($limit)) {
+            $query .= ' ' . $this->limit_array($limit, $offset);
+
+            if ($offset) {
+                $query .= ' '. $this->offset_val($offset);
+            }
+        }
 
         $query .= ';';
 
@@ -340,10 +362,10 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         return $query;
     }
 
-    protected function limit_array($limit) {
+    protected function limit_array($limit, $offset = false) {
         $query = 'LIMIT ';
         if (!is_array($limit)) $limit = [$limit];
-        if (count($limit) < 2) $limit = array_merge([0], $limit);
+        if (!$offset && count($limit) < 2) $limit = array_merge([0], $limit);
 
         $query .= implode(', ', $limit);
 

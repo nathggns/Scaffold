@@ -568,4 +568,42 @@ class DatabaseQueryBuilderSQLTest extends PHPUnit_Framework_Testcase {
         $this->assertEquals('SELECT * FROM `users` WHERE `name` = \'nat\' OR (`id` = 2 OR `logins` > 5 AND (`name` = \'joe\'));', $sql);
     }
 
+    public function testLimitWithOffset() {
+        $sql = $this->builder->select('users', [
+            'limit' => 1,
+            'offset' => 1
+        ]);
+
+        $this->assertEquals('SELECT * FROM `users` LIMIT 1 OFFSET 1;', $sql);
+    }
+
+    public function testLimitWithOffsetChained() {
+        $sql = $this->builder->select('users')->limit(1)->offset(1)->end();
+
+        $this->assertEquals('SELECT * FROM `users` LIMIT 1 OFFSET 1;', $sql);
+    }
+
+    public function testLimitDeleteOffset() {
+        $sql = $this->builder->delete([
+            'table' => 'users',
+            'limit' => 1,
+            'offset' => 3
+        ]);
+
+        $this->assertEquals('DELETE FROM `users` LIMIT 1 OFFSET 3;', $sql);
+    }
+
+    public function testLimitUpdateOffset() {
+        $sql = $this->builder->update([
+            'table' => 'users',
+            'data' => [
+                'name' => 'Joe'
+            ],
+            'limit' => 1,
+            'offset' => 1
+        ]);
+
+        $this->assertEquals('UPDATE `users` SET `name` = \'Joe\' LIMIT 1 OFFSET 1;', $sql);
+    }
+
 }

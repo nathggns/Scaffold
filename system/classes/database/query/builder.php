@@ -160,6 +160,12 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
         return $this;
     }
 
+    public function offset($offset) {
+        $this->query_opts['offset'] = $offset;
+
+        return $this;
+    }
+
     /* Utility functions for the subclass */
 
     protected function extract_select() {
@@ -176,7 +182,8 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
             'having' => [],
             'limit' => [],
             'distinct' => false,
-            'count' => false
+            'count' => false,
+            'offset' => false
         ];
 
         $keys = array_keys($options);
@@ -210,7 +217,8 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
             'where',
             'conds',
             'limit',
-            'order'
+            'order',
+            'offset'
         ], func_get_args());
 
         if (isset($args['conds'])) {
@@ -229,7 +237,8 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
             'where',
             'conds',
             'limit',
-            'order'
+            'order',
+            'offset'
         ], func_get_args());
 
         if (isset($args['conds'])) {

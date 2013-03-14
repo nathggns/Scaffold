@@ -198,8 +198,10 @@ class DatabaseDriverPDO extends DatabaseDriver {
      * @return int|bool Count of affected rows from the last query, or false.
      */
     public function count() {
-        // If we don't have a query to operate from, die.
-        if (!$this->query) return false;
+        // If we don't have a query to operate from, just return 0
+        if (!$this->query) {
+            return 0;
+        }
 
         // If we're trying to get the count for a select statement, call the dedicated function
         if ($this->type === static::SELECT) {
@@ -219,7 +221,7 @@ class DatabaseDriverPDO extends DatabaseDriver {
      */
     public function select_count() {
         // If we don't have a query, or it isn't a select query, die.
-        if (!$this->query || $this->type !== static::SELECT) return false;
+        if (!$this->query || $this->type !== static::SELECT) return 0;
 
         // Loop through all the rows, adding to the count
         $opts = $this->query_opts;

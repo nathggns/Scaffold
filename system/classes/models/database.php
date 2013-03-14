@@ -66,6 +66,11 @@ class ModelDatabase extends Model {
     protected static $export_fields = true;
 
     /**
+     * The default fields that a value passed to the constructor could be
+     */
+    protected static $default_fields = ['id'];
+
+    /**
      * Inital Setup
      */
     public function __construct($id = null, $driver = null) {
@@ -103,7 +108,18 @@ class ModelDatabase extends Model {
 
         // If we have an id, 'become' it
         if (!is_null($id)) {
-            $this->fetch(['id' => $id]);
+            $fields = static::$default_fields;
+
+            if (!is_array($fields)) $fields = [$fields];
+
+            $id = Database::where_or($id);
+            $where = [];
+
+            foreach ($fields as $field) {
+                $where[$field] = $id;
+            }
+
+            $this->fetch($where);
         }
     }
 

@@ -252,11 +252,10 @@ class ModelDatabase extends Model {
         $data = [];
 
         if ($this->mode === static::MODE_MULT) {
-            for ($i = 0, $l = $this->count(); $i < $l; $i++) {
-                if (is_null($this[$i])) continue;
-
-                $data[] = $this[$i]->export($values, $level, $count_models);
+            foreach ($this as $item) {
+                $data[] = $item->export($values, $level, $count_models);
             }
+
         } else {
             $schema = array_keys($this->schema);
 

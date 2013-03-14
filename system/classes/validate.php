@@ -206,6 +206,8 @@ class Validate {
      * Alphanumeric test
      */
     public function check_alphanumeric($value) {
+        if (is_numeric($value)) $value = (string) $value;
+
         return ctype_alnum($value);
     }
 

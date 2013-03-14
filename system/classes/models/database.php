@@ -484,6 +484,37 @@ class ModelDatabase extends Model {
         );
     }
 
+    public function has($data, $value = null) {
+        if (!is_array($data)) {
+            $key = $data;
+
+            if (is_null($value)) {
+                $value = $key;
+                $key = 'id';
+            }
+
+            $data = [$key => $value];
+        }
+
+        $has = false;
+        $conds = $this->conditions();
+
+        foreach ($data as $key => $val) {
+
+            if (isset($conds['where'][$key])) {
+                $real_val = $conds['where'][$key];
+
+                if (!is_array($real_val)) $real_val = [$real_val];
+
+                $has = in_array($val, $real_val);
+            } else {
+                $has = false;
+            }
+        }
+
+        return $has;
+    }
+
     public function offsetGet($offset) {
         if ($this->mode != static::MODE_MULT) {
             throw new Exception('Cannot access row via index');

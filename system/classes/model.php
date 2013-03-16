@@ -57,6 +57,10 @@ abstract class Model implements ModelInterface {
         $this->position = 0;
     }
 
+    public function mode() {
+        return $this->mode;
+    }
+
     public function offsetSet($offset, $value) {
         return null;
     }

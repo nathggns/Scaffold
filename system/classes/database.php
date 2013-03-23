@@ -1,4 +1,4 @@
-<?php defined('SCAFFOLD') or die();
+<?php defined('SCAFFOLD') or die;
 
 /**
  * Wrapper for the specfic driver in use.

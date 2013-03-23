@@ -1,4 +1,4 @@
-<?php defined('SCAFFOLD') or die();
+<?php defined('SCAFFOLD') or die;
 
 abstract class Controller {
 

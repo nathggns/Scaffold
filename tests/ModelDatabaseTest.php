@@ -185,4 +185,11 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals('Joe', $user->name->short);
     }
 
+    public function testVirtualsSurviveAfterSave() {
+        $user = $this->get()->fetch(['id' => 1]);
+        $user->virtual('name', 'Joseph Hudson-Small')->save();
+
+        $this->assertEquals('Joseph Hudson-Small', $user->name);
+    }
+
 }

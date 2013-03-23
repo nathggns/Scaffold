@@ -101,4 +101,69 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
         }
     }
 
+    public function testScalarVirtual() {
+        $user = $this->get()->fetch(['id' => 1]);
+
+        $user->virtual('full_name', 'Joseph Hudson-Small');
+
+        $this->assertEquals('Joseph Hudson-Small', $user->full_name);
+    }
+
+    public function testClosureVirtualWithoutArguments() {
+        $user = $this->get()->fetch(['id' => 1]);
+
+        $user->first_name = 'Joseph';
+        $user->last_name = 'Hudson-Small';
+
+        $user->virtual('full_name', function() {
+            return $this->first_name . ' ' . $this->last_name;
+        });
+
+        $this->assertEquals('Joseph Hudson-Small', $user->full_name);
+    }
+
+    public function testClosureVirtualWithArguments() {
+        $user = $this->get()->fetch(['id' => 1]);
+
+        $user->virtual('field', function($field) {
+            return $field;
+        });
+
+        $this->assertEquals('field', $user->field);
+    }
+
+    public function testArrayVirtual() {
+        $user = $this->get()->fetch(['id' => 1]);
+
+        $user->first_name = 'Joseph';
+        $user->last_name = 'Hudson-Small';
+
+        $user->virtual('name', [
+            'short' => 'Joe',
+            'full_name' => function() {
+                return $this->first_name . ' ' . $this->last_name;
+            }
+        ]);
+
+        $this->assertEquals('Joe', $user->name['short']);
+        $this->assertEquals('Joseph Hudson-Small', $user->name['full_name']);
+    }
+
+    public function testObjectVirtual() {
+        $user = $this->get()->fetch(['id' => 1]);
+
+        $user->first_name = 'Joseph';
+        $user->last_name = 'Hudson-Small';
+
+        $user->virtual('name', new Dynamic([
+            'short' => 'Joe',
+            'full_name' => function() {
+                return $this->first_name . ' ' . $this->last_name;
+            }
+        ]));
+
+        $this->assertEquals('Joe', $user->name->short);
+        $this->assertEquals('Joseph Hudson-Small', $user->name->full_name);
+    }
+
 }

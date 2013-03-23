@@ -112,11 +112,8 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
     public function testClosureVirtualWithoutArguments() {
         $user = $this->get()->fetch(['id' => 1]);
 
-        $user->first_name = 'Joseph';
-        $user->last_name = 'Hudson-Small';
-
         $user->virtual('full_name', function() {
-            return $this->first_name . ' ' . $this->last_name;
+            return 'Joseph Hudson-Small';
         });
 
         $this->assertEquals('Joseph Hudson-Small', $user->full_name);
@@ -135,8 +132,8 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
     public function testArrayVirtualWithClosure() {
         $user = $this->get()->fetch(['id' => 1]);
 
-        $user->first_name = 'Joseph';
-        $user->last_name = 'Hudson-Small';
+        $user->virtual('first_name', 'Joseph');
+        $user->virtual('last_name', 'Hudson-Small');
 
         $user->virtual('name', function() {
             return [
@@ -152,8 +149,8 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
     public function testObjectVirtualWithClosure() {
         $user = $this->get()->fetch(['id' => 1]);
 
-        $user->first_name = 'Joseph';
-        $user->last_name = 'Hudson-Small';
+        $user->virtual('first_name', 'Joseph');
+        $user->virtual('last_name', 'Hudson-Small');
 
         $user->virtual('name', function() {
             return new Dynamic([

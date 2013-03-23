@@ -192,4 +192,15 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals('Joseph Hudson-Small', $user->name);
     }
 
+    public function testVirtualAfterFetch() {
+        $user = $this->get()->fetch(['id' => 1]);
+        $name = $user->name;
+
+        $user->virtual('other_name', function() use ($name) {
+            return $name;
+        });
+
+        $this->assertEquals($name, $user->other_name);
+    }
+
 }

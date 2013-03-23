@@ -60,6 +60,11 @@ class ModelDatabase extends Model {
     protected $relationships = [];
 
     /**
+     * Virtual fields
+     */
+    protected $virtual_fields = [];
+
+    /**
      * Default fields to export.
      * True means all. False, or empty array, means none.
      */
@@ -255,6 +260,29 @@ class ModelDatabase extends Model {
         ];
     }
 
+    public function virtual($field, $value) {
+        $this->virtual_fields[$field] = $value;
+        $this->schema[$field] = [
+            'field' => $field
+        ];
+
+        if (count($this->data) > 0) {
+            $this->data[$field] = $this->value($field, $value);
+        }
+
+        return $this;
+    }
+
+    protected function value($field, $value) {
+
+        if ($value instanceof Closure) {
+            $value = $value->bindTo($this);
+            $value = $value($field);
+        }
+        
+        return $value;
+    }
+
     public function export($values = null, $level = 1, $count_models = false) {
 
         if (is_null($values)) {
@@ -376,12 +404,12 @@ class ModelDatabase extends Model {
      */
     public function __get($key) {
 
-        if ($this->mode !== static::MODE_SINGLE || (count($this->data) > 0 && !array_key_exists($key, $this->data))) {
+        if ($this->mode !== static::MODE_SINGLE || (count($this->data) > 0 && (!isset($key, $this->data) || is_null($this->data[$key])))) {
             throw new Exception('Property ' . $key . ' does not exist on model ' . $this->name);
         }
 
         if (isset($this->data[$key])) {
-            return $this->data[$key];
+            return $this->value($key, $this->data[$key]);
         }
 
         $this->__find();
@@ -477,6 +505,10 @@ class ModelDatabase extends Model {
             }
         }
 
+        foreach ($this->virtual_fields as $field => $val) {
+            $result[$field] = $val;
+        }
+
         $schema = array_keys($this->schema);
 
         foreach ($schema as $field) {
@@ -487,7 +519,7 @@ class ModelDatabase extends Model {
 
         $this->data = $result;
 
-        return $this->data[$key];    
+        return $this->__get($key);  
     }
 
     /**

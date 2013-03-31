@@ -28,7 +28,7 @@ abstract class Model implements ModelInterface {
     const MODE_SINGLE = 4;
     const MODE_MULT = 5;
     const MODE_INSERT = 6;
-    protected $mode;
+    protected $mode = 5;
 
     /**
      * For the iterator

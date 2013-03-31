@@ -68,7 +68,7 @@ class ModelDatabase extends Model {
      * Default fields to export.
      * True means all. False, or empty array, means none.
      */
-    protected static $export_fields = true;
+    protected $export_fields = true;
 
     /**
      * The default fields that a value passed to the constructor could be
@@ -286,7 +286,7 @@ class ModelDatabase extends Model {
     public function export($values = null, $level = 1, $count_models = false) {
 
         if (is_null($values)) {
-            $values = static::$export_fields;
+            $values = $this->export_fields;
         }
 
         if ($values === false) $values = [];

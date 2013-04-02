@@ -182,7 +182,8 @@ class ModelDatabase extends Model {
 
             $this->driver->insert($this->table_name, $this->data);
             $this->reset();
-            $this->conditions = ['id' => $this->driver->id()];
+            $this->fetch(['id' => $this->driver->id()]);
+
         } else if (count($this->updated) > 0 && $this->mode === static::MODE_SINGLE) {
 
             if (isset($this->schema['updated'])) {

@@ -269,10 +269,6 @@ class ModelDatabase extends Model {
             'field' => $field
         ];
 
-        if (count($this->data) > 0) {
-            $this->data[$field] = $this->value($field, $value);
-        }
-
         return $this;
     }
 
@@ -411,14 +407,19 @@ class ModelDatabase extends Model {
             return $this->value($key, $this->data[$key]);
         }
 
-        // if ($this->mode !== static::MODE_SINGLE || (count($this->data) > 0 && (!isset($key, $this->data) || is_null($this->data[$key])))) {
-        //     throw new Exception('Property ' . $key . ' does not exist on model ' . $this->name);
-        // }
-
+        if ($this->mode !== static::MODE_SINGLE || !isset($this->schema[$key])) {
+            throw new Exception('Property ' . $key . ' does not exist on model ' . $this->name);
+        }
         
+        if (isset($this->virtual_fields[$key])) {
+            $this->data[$key] = $this->virtual_fields[$key];
+
+            return $this->__get($key);
+        }
+
         if ($key === 'id' || isset($this->schema_db[$key])) {
-            $this->find([
-                'vals' => $key
+            $this->__find([
+                'vals' => [$key]
             ]);
 
             $result = $this->driver->fetch();
@@ -592,6 +593,10 @@ class ModelDatabase extends Model {
             throw new Exception('Cannot access row via index');
         }
 
+        if (count($this->rows) > 0 && ($offset + 1 > count($this->rows))) {
+            throw new OutOfRangeException('Cannot get index ' . $offset);
+        }
+
         if (isset($this->rows[$offset])) {
             return $this->rows[$offset];
         }
@@ -611,11 +616,7 @@ class ModelDatabase extends Model {
             }
         }
 
-        if (!isset($this->rows[$offset])) {
-            $this->rows[$offset] = null;
-        }
-
-        return $this->rows[$offset];
+        return $this->offsetGet($offset);
     }
 
     public function conditions($others = []) {

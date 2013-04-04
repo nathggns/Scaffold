@@ -110,7 +110,7 @@ abstract class Model implements ModelInterface {
         switch ($this->mode) {
 
             case static::MODE_SINGLE:
-                return $this->data[$this->getSinglePosition()];
+                return $this->__get($this->getSinglePosition());
             break;
 
             case static::MODE_MULT:
@@ -127,7 +127,7 @@ abstract class Model implements ModelInterface {
         switch ($this->mode) {
 
             case static::MODE_SINGLE:
-                $keys = array_keys($this->data);
+                $keys = array_keys($this->schema);
                 return isset($keys[$this->position]);
             break;
 
@@ -155,7 +155,12 @@ abstract class Model implements ModelInterface {
     }
 
     private function getSinglePosition() {
-        $keys = array_keys($this->data);
+        $keys = array_keys($this->schema);
+
+        if ($this->position > count($keys)-1) {
+            throw new OutOfRangeException('Cannot get index ' . $this->position);
+        }
+
         $key = $keys[$this->position];
 
         return $key;

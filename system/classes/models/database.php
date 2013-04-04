@@ -32,6 +32,7 @@ class ModelDatabase extends Model {
      */
     protected static $static_schema = [];
     protected $schema;
+    protected $schema_db;
 
     /**
      * We need to know the class name in order to guess other properties if they're not provided.
@@ -107,6 +108,7 @@ class ModelDatabase extends Model {
         }
 
         $this->schema = static::$static_schema[$this->name];
+        $this->schema_db = static::$static_schema[$this->name];
 
         // Let the child class do custom stuff.
         $this->init();
@@ -405,13 +407,34 @@ class ModelDatabase extends Model {
      */
     public function __get($key) {
 
-        if ($this->mode !== static::MODE_SINGLE || (count($this->data) > 0 && (!isset($key, $this->data) || is_null($this->data[$key])))) {
-            throw new Exception('Property ' . $key . ' does not exist on model ' . $this->name);
-        }
-
         if (isset($this->data[$key])) {
             return $this->value($key, $this->data[$key]);
         }
+
+        // if ($this->mode !== static::MODE_SINGLE || (count($this->data) > 0 && (!isset($key, $this->data) || is_null($this->data[$key])))) {
+        //     throw new Exception('Property ' . $key . ' does not exist on model ' . $this->name);
+        // }
+
+        
+        if ($key === 'id' || isset($this->schema_db[$key])) {
+            $this->find([
+                'vals' => $key
+            ]);
+
+            $result = $this->driver->fetch();
+
+            var_dump($result);
+
+            if (isset($result[$key])) {
+                $this->data[$key] = $result[$key];
+            } else {
+                $this->data[$key] = null;
+            }
+
+            return $this->__get($key);
+        }
+
+        return null;
 
         $this->__find();
 

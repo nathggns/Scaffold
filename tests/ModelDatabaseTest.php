@@ -203,4 +203,12 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals($name, $user->other_name);
     }
 
+    public function testThatVirtualsOverwriteValues() {
+        $user = $this->get()->fetch(['id' => 1]);
+
+        $user->virtual('name', 'Joe');
+
+        $this->assertEquals('Joe', $user->name);
+    }
+
 }

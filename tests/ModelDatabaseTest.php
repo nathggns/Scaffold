@@ -1,6 +1,6 @@
 <?php
 
-class MDT_DatabaseDriverPDOTestClass extends DatabaseDriverPDO {
+class MDT_DatabaseDriverSqliteTestClass extends DatabaseDriverSqlite {
     public function manual_query() {
         return call_user_func_array([$this, 'query'], func_get_args());
     }
@@ -19,7 +19,7 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
 
         if (!static::$driver) {
             $builder = new DatabaseQueryBuilderSqlite();
-            static::$driver = new MDT_DatabaseDriverPDOTestClass($builder, [
+            static::$driver = new MDT_DatabaseDriverSqliteTestClass($builder, [
                 'dsn' => 'sqlite:test.db'
             ]);
         }

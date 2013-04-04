@@ -424,8 +424,6 @@ class ModelDatabase extends Model {
 
             $result = $this->driver->fetch();
 
-            var_dump($result);
-
             if (isset($result[$key])) {
                 $this->data[$key] = $result[$key];
             } else {

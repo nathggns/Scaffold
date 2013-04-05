@@ -50,7 +50,7 @@ abstract class Model implements ModelInterface {
     }
 
     public function reset() {
-        $this->mode = null;
+        $this->mode = static::MODE_MULT;
         $this->data = [];
         $this->rows = [];
         $this->updated = [];

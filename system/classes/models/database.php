@@ -456,23 +456,6 @@ class ModelDatabase extends Model {
             return $this->__get($key);
         }
 
-        // If key is a column in the database
-        if ($key === 'id' || isset($this->schema_db[$key])) {
-            $this->__find([
-                'vals' => [$key]
-            ]);
-
-            $result = $this->driver->fetch();
-
-            if (isset($result[$key])) {
-                $this->data[$key] = $result[$key];
-            } else {
-                $this->data[$key] = null;
-            }
-
-            return $this->__get($key);
-        }
-
         // Let's check relationships...
         foreach ($this->relationships as $type => $relationships) {
 
@@ -566,6 +549,20 @@ class ModelDatabase extends Model {
 
         // If the relationship stuff set it, return it
         if (isset($this->data[$key])) {
+            return $this->__get($key);
+        }
+
+        // If key is a column in the database
+        if ($key === 'id' || isset($this->schema_db[$key])) {
+            $this->__find();
+            $result = $this->driver->fetch();
+
+            if (!isset($result[$key])) {
+                $result[$key] = null;
+            }
+
+            $this->data = array_merge($this->data, $result);
+
             return $this->__get($key);
         }
     }

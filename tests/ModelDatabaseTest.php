@@ -1,14 +1,42 @@
 <?php
 
-class MDT_DatabaseDriverPDOTestClass extends DatabaseDriverPDO {
+class MDT_DatabaseDriverSqliteTestClass extends DatabaseDriverSqlite {
     public function manual_query() {
         return call_user_func_array([$this, 'query'], func_get_args());
     }
 }
 
 class MDT_ModelUser extends ModelDatabase {
-    var $table_name = 'users';
+    protected $class_name = 'MDT_ModelUser';
+    protected $table_name = 'users';
+    protected static $prefix = '';
+
+    public function init() {
+        $this->has_many('MDT_ModelPost', 'posts');
+        $this->has_one('MDT_ModelSettings', 'settings');
+        $this->habtm('MDT_ModelUser', 'followers', 'follower_id', 'id', 'user_id', 'friendships');
+    }
 }
+
+class MDT_ModelPost extends ModelDatabase {
+    protected $class_name = 'MDT_ModelPost';
+    protected $table_name = 'posts';
+    protected static $prefix = '';
+
+    static $default_fields = ['id', 'body'];
+    protected $export_fields = ['id', 'body'];
+}
+
+class MDT_ModelSettings extends ModelDatabase {
+    protected $class_name = 'MDT_ModelSettings';
+    protected $table_name = 'settings';
+    protected static $prefix = '';
+
+    public function init() {
+        $this->belongs_to('MDT_ModelUser', 'user');
+    }
+}
+
 
 class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
 
@@ -19,7 +47,7 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
 
         if (!static::$driver) {
             $builder = new DatabaseQueryBuilderSqlite();
-            static::$driver = new MDT_DatabaseDriverPDOTestClass($builder, [
+            static::$driver = new MDT_DatabaseDriverSqliteTestClass($builder, [
                 'dsn' => 'sqlite:test.db'
             ]);
         }
@@ -27,13 +55,19 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
         $driver = static::$driver;
 
         $driver->manual_query('CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT);');
+        $driver->manual_query('CREATE TABLE posts (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, body TEXT);');
+        $driver->manual_query('CREATE TABLE settings (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, key TEXT, value TEXT);');
+        $driver->manual_query('CREATE TABLE friendships (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, follower_id INTEGER);');
     }
 
     public function setUp() {
+        static::$driver->delete('posts');
+        static::$driver->delete('settings');
+        static::$driver->delete('friendships');
         static::$driver->delete('users');
         static::$driver->delete('SQLITE_SEQUENCE', [
             'where' => [
-                'name' => 'users'
+                'name' => ['users', 'posts', 'settings', 'friendships']
             ]
         ]);
 
@@ -42,6 +76,32 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
                 'name' => $name
             ]);
         }
+
+        static::$driver->insert('posts', [
+            'user_id' => 1,
+            'body' => 'Lorem ipsum...'
+        ]);
+        
+        static::$driver->insert('settings', [
+            'user_id' => 1,
+            'key' => 'privacy',
+            'value' => 'all'
+        ]);
+        
+        static::$driver->insert('friendships', [
+            'user_id' => 1,
+            'follower_id' => 2
+        ]);
+        
+        static::$driver->insert('friendships', [
+            'user_id' => 1,
+            'follower_id' => 3
+        ]);
+        
+        static::$driver->insert('friendships', [
+            'user_id' => 3,
+            'follower_id' => 1
+        ]);
     }
 
     public static function tearDownAfterClass() {
@@ -203,4 +263,278 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals($name, $user->other_name);
     }
 
+    public function testThatVirtualsOverwriteValues() {
+        $user = $this->get()->fetch(['id' => 1]);
+
+        $user->virtual('name', 'Joe');
+
+        $this->assertEquals('Joe', $user->name);
+    }
+
+    public function testRelationshipHasMany() {
+        $user = $this->get()->fetch(['id' => 1]);
+
+        $this->assertCount(1, $user->posts);
+        $this->assertCount(1, $user->posts[0]);
+        $this->assertEquals('Lorem ipsum...', $user->posts[0]->body);
+        $this->assertEquals(1, $user->posts[0]->id);
+    }
+
+    public function testRelationshipHasOne() {
+        $user = $this->get()->fetch(['id' => 1]);
+
+        $this->assertEquals(1, $user->settings->id);
+        $this->assertEquals('privacy', $user->settings->key);
+        $this->assertEquals('all', $user->settings->value);
+        $this->assertCount(1, $user->settings);
+    }
+
+    public function testRelationshipBelongsTo() {
+        $settings = new MDT_ModelSettings(1);
+
+        $this->assertEquals(1, $settings->user->id);
+        $this->assertEquals('Nat', $settings->user->name);
+        $this->assertCount(1, $settings->user);
+    }
+
+    public function testRelationshipHABTM() {
+        $user = $this->get()->fetch(['id' => 1]);
+
+        $this->assertCount(2, $user->followers);
+        $this->assertCount(1, $user->followers[0]);
+        $this->assertCount(1, $user->followers[1]);
+        $this->assertEquals('2', $user->followers[0]->id);
+        $this->assertEquals('3', $user->followers[1]->id);
+        $this->assertEquals('Joe', $user->followers[0]->name);
+        $this->assertEquals('Andrew', $user->followers[1]->name);
+        $this->assertCount(0, $user->followers[0]->followers);
+        $this->assertCount(1, $user->followers[1]->followers);
+        $this->assertCount(1, $user->followers[1]->followers[0]);
+        $this->assertEquals('1', $user->followers[1]->followers[0]->id);
+        $this->assertEquals('Nat', $user->followers[1]->followers[0]->name);
+    }
+
+    public function testModelCount() {
+        $users = $this->get()->fetch_all();
+        $this->assertCount(8, $users);
+
+        $users = $this->get()->fetch_all(['id' => 1]);
+        $this->assertCount(1, $users);
+
+        $users = $this->get()->fetch(['id' => 1]);
+        $this->assertCount(1, $users);
+    }
+
+    public function loopThroughModels() {
+        $users = $this->get()->fetch_all();
+
+        $i = 0;
+
+        foreach ($users as $key => $user) {
+            $this->assertEquals($i, $key);
+            $this->assertEquals((string)$i, $user->id);
+            $this->assertEquals(static::$names[$i], $user->name);
+
+            $i++;
+        }
+
+        $this->assertEquals(8, $i);
+    }
+
+    /**
+     * @expectedException       OutOfRangeException
+     * @expectedExceptioMessage Cannot get index 8
+     */
+    public function testGettingIndexOutOfRange() {
+        $user = $this->get()->fetch_all()[8];
+    }
+
+    public function testLoopingThroughSingle() {
+        $user = $this->get()->fetch(['id' => 1]);
+
+        $keys = ['id', 'name', 'posts', 'settings', 'followers'];
+        $values = ['1', 'Nat', $user->posts, $user->settings, $user->followers];
+        $i = 0;
+
+        foreach ($user as $key => $val) {
+            $this->assertEquals($keys[$i], $key);
+            $this->assertEquals($values[$i], $val);
+
+            $i++;
+        }
+
+        $this->assertEquals(count($keys), $i);
+    }
+
+    /**
+     * @expectedException       Exception
+     * @expectedExceptioMessage Property id does not exist on model MDT_ModelUser
+     */
+    public function testExceptionWhenGettingPropertyFromMultiModel() {
+        $user = $this->get()->fetch_all();
+
+        $id = $user->id;
+    }
+
+    /**
+     * @expectedException       Exception
+     * @expectedExceptioMessage Property full_name does not exist on model MDT_ModelUser
+     */
+    public function testExceptionWhenGettingPropertyThatDoesntExist() {
+        $user = $this->get()->fetch(['id' => 1]);
+
+        $id = $user->full_name;
+    }
+
+    /**
+     * @expectedException       Exception
+     * @expectedExceptioMessage Cannot access row via index
+     */
+    public function testExceptionWhenGettingIndexFromSingleModel() {
+        $user = $this->get()->fetch(['id' => 1]);
+
+        $id = $user[0];
+    }
+
+    public function testExportUserBasic() {
+        $user = $this->get()->fetch(['id' => 1]);
+
+        $data = $user->export();
+
+        $expected = [
+            'id' => $user->id,
+            'name' => $user->name,
+            'posts' => [
+                [
+                    'id' => 1,
+                    'body' => 'Lorem ipsum...'
+                ]
+            ],
+            'settings' => [
+                'id' => 1,
+                'user_id' => 1,
+                'key' => 'privacy',
+                'value' => 'all'
+            ],
+            'followers' => [
+                [
+                    'id' => 2,
+                    'name' => 'Joe'
+                ],
+
+                [
+                    'id' => 3,
+                    'name' => 'Andrew'
+                ]
+            ]
+        ];
+
+        $keys = array_keys($expected);
+
+        $this->assertCount(count($keys), $data);
+
+        foreach ($expected as $key => $val) {
+            $this->assertArrayHasKey($key, $data);
+            $this->assertEquals($val, $data[$key]);
+        }
+
+        $this->assertEquals($expected, $data);
+    }
+
+    public function testExportSettingFields() {
+        $user = $this->get()->fetch(['id' => 1]);
+
+        $data = $user->export(['id', 'name']);
+
+        $this->assertEquals([
+            'id' => 1,
+            'name' => 'Nat'
+        ], $data);
+    }
+
+    public function testExportSettingLevelAndFields() {
+        $user = $this->get()->fetch(['id' => 1]);
+
+        $data = $user->export(['id', 'name', 'followers'], 2);
+
+        $this->assertEquals([
+            'id' => 1,
+            'name' => 'Nat',
+            'followers' => [
+                [
+                    'id' => 2,
+                    'name' => 'Joe'
+                ],
+                [
+                    'id' => 3,
+                    'name' => 'Andrew'
+                ]
+            ]
+        ], $data);
+    }
+
+    public function testExportSettingLevelAndFieldsAndCountModels() {
+        $user = $this->get()->fetch(['id' => 1]);
+
+        $data = $user->export(['id', 'name', 'followers'], 2, true);
+
+        $this->assertEquals([
+            'id' => 1,
+            'name' => 'Nat',
+            'followers' => 2
+        ], $data);
+    }
+
+    public function testStartingWithNonId() {
+        $post = new MDT_ModelPost('Lorem ipsum...');
+
+        $this->assertCount(1, $post);
+        $this->assertEquals('1', $post->id);
+        $this->assertEquals('1', $post->user_id);
+        $this->assertEquals('Lorem ipsum...', $post->body);
+    }
+
+    /**
+     * @expectedException       Exception
+     * @expectedExceptionMessage Property id does not exist on model MDT_ModelUser
+     */
+    public function testFindNothing() {
+        $user = new MDT_ModelUser(['id' => 9]);
+
+        $this->assertCount(0, $user);
+
+        $user->id;
+    }
+     
+    
+    /**
+     * @expectedException        Exception
+     * @expectedExceptionMessage Cannot export this model
+     */
+    public function testExceptionWhenExportingCreatedModel() {
+        $user = new MDT_ModelUser();
+        $user->create();
+
+        $user->export();
+    }
+
+    public function testBasicExport() {
+        $post = new MDT_ModelPost(1);
+
+        $data = $post->export();
+
+        $this->assertCount(2, $data);
+        $this->assertEquals(1, $data['id']);
+        $this->assertEquals('Lorem ipsum...', $data['body']);
+    }
+
+    public function testBasicExportMult() {
+        $post = new MDT_ModelPost;
+        $data = $post->export();       
+
+        $this->assertCount(1, $data);
+        $this->assertCount(2, $data[0]);
+        $this->assertEquals(1, $data[0]['id']);
+        $this->assertEquals('Lorem ipsum...', $data[0]['body']);
+    }
 }

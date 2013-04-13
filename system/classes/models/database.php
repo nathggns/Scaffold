@@ -32,6 +32,7 @@ class ModelDatabase extends Model {
      */
     protected static $static_schema = [];
     protected $schema;
+    protected $schema_db;
 
     /**
      * We need to know the class name in order to guess other properties if they're not provided.
@@ -107,6 +108,7 @@ class ModelDatabase extends Model {
         }
 
         $this->schema = static::$static_schema[$this->name];
+        $this->schema_db = static::$static_schema[$this->name];
 
         // Let the child class do custom stuff.
         $this->init();
@@ -267,10 +269,6 @@ class ModelDatabase extends Model {
             'field' => $field
         ];
 
-        if (count($this->data) > 0) {
-            $this->data[$field] = $this->value($field, $value);
-        }
-
         return $this;
     }
 
@@ -286,71 +284,106 @@ class ModelDatabase extends Model {
 
     public function export($values = null, $level = 1, $count_models = false) {
 
-        if (is_null($values)) {
-            $values = $this->export_fields;
+        if ($this->count() < 1) {
+            throw new Exception('No data to export');
         }
-
-        if ($values === false) $values = [];
-
-        if (!is_bool($values) && !is_array($values)) $values = [$values];
 
         $data = [];
 
-        if ($this->mode === static::MODE_MULT) {
-            foreach ($this as $item) {
-                $data[] = $item->export($values, $level, $count_models);
-            }
+        switch ($this->mode) {
 
-        } else {
-            $schema = array_keys($this->schema);
+            case static::MODE_MULT:
+                foreach ($this as $item) {
+                    $data[] = $item->export($values, $level - 1, $count_models);
+                }
+            break;
 
-            if ($values !== true) {
-                $new = [];
+            case static::MODE_SINGLE:
 
-                foreach ($values as $key => $value) {
-                    if (!is_array($value) && $key !== $value) {
-                        $key = $value;
-                    }
-                    $new[$key] = $value;
+                if (is_null($values)) {
+                    $values = $this->export_fields;
                 }
 
-                $values = $new;
-            } else {
-                $keys = array_keys($this->schema);
-                $values = array_combine($keys, $keys);
-            }
+                if ($values === false) $values = [];
 
-            $schema = array_intersect($schema, array_keys($values));
+                if (!is_bool($values) && !is_array($values)) $values = [$values];
 
-            foreach ($schema as $key) {
-                $value = $this->__get($key);
+                $schema = array_keys($this->schema);
 
-                if ($value instanceof Model) {
+                if ($values !== true) {
+                    $new = [];
 
-                    if ($count_models) {
-                        $value = $value->count();
-                    } else if ($level > 0) {
-                        $value = $value->export(is_array($values[$key]) ? $values[$key] : null, $level - 1, $count_models);
-
-                        if (is_array($value) && count($value) > 0) {
-                            $is_null = true;
-
-                            foreach ($value as $part) {
-                                if (!is_null($part)) {
-                                    $is_null = false;
-                                    break;
-                                }
-                            }
-
-                            if ($is_null) continue;
+                    foreach ($values as $key => $value) {
+                        if (!is_array($value) && $key !== $value) {
+                            $key = $value;
                         }
-                    } else {
-                        continue;
+                        $new[$key] = $value;
                     }
+
+                    $values = $new;
+                } else {
+                    $keys = array_keys($this->schema);
+                    $values = array_combine($keys, $keys);
                 }
 
-                $data[$key] = $value;
-            }
+                $schema = array_intersect($schema, array_keys($values));
+
+                foreach ($schema as $key){
+                    $value = $this->__get($key);
+
+                    if ($value instanceof Model) {
+                        if ($count_models) {
+                            $value = $value->count();
+                        } else if ($level > 0) {
+                            $value = $value->export(is_array($values[$key]) ? $values[$key] : null, $level - 1, $count_models);
+                        } else {
+                            continue;
+                        }
+                    }
+
+                    $data[$key] = $value;
+                }
+
+                if (false) {
+                    
+
+                    foreach ($schema as $key) {
+                        $value = $this->__get($key);
+
+                        if ($value instanceof Model) {
+
+                            if ($count_models) {
+                                $value = $value->count();
+                            } else if ($level > 0) {
+                                $value = $value->export(is_array($values[$key]) ? $values[$key] : null, $level - 1, $count_models);
+
+                                if (is_array($value) && count($value) > 0) {
+                                    $is_null = true;
+
+                                    foreach ($value as $part) {
+                                        if (!is_null($part)) {
+                                            $is_null = false;
+                                            break;
+                                        }
+                                    }
+
+                                    if ($is_null) continue;
+                                }
+                            } else {
+                                continue;
+                            }
+                        }
+
+                        $data[$key] = $value;
+                    }     
+                }
+
+               
+            break;
+
+            default:
+                throw new Exception('Cannot export this model');
+            break;
         }
 
         return $data;
@@ -395,6 +428,7 @@ class ModelDatabase extends Model {
      */
     public function count() {
         $this->__find();
+
         return $this->driver->count();
     }
 
@@ -405,18 +439,24 @@ class ModelDatabase extends Model {
      */
     public function __get($key) {
 
-        if ($this->mode !== static::MODE_SINGLE || (count($this->data) > 0 && (!isset($key, $this->data) || is_null($this->data[$key])))) {
-            throw new Exception('Property ' . $key . ' does not exist on model ' . $this->name);
-        }
-
+        // If we already have it, return it
         if (isset($this->data[$key])) {
             return $this->value($key, $this->data[$key]);
         }
 
-        $this->__find();
+        // If we won't be able to get it, throw an exception
+        if ($this->mode !== static::MODE_SINGLE || !isset($this->schema[$key]) || array_key_exists($key, $this->data)) {
+            throw new Exception('Property ' . $key . ' does not exist on model ' . $this->name);
+        }
+        
+        // If we have a virtual field for this
+        if (isset($this->virtual_fields[$key])) {
+            $this->data[$key] = $this->virtual_fields[$key];
 
-        $result = $this->driver->fetch();
+            return $this->__get($key);
+        }
 
+        // Let's check relationships...
         foreach ($this->relationships as $type => $relationships) {
 
             // Test the type..
@@ -435,7 +475,10 @@ class ModelDatabase extends Model {
 
             foreach ($relationships as $model => $rels) {
                 foreach ($rels as $rel) {
-                    
+
+                    // Only do the relationship if it's the key we're looking for
+                    if ($rel['alias'] !== $key) continue;
+
                     $class_name = static::$prefix . $model;
 
                     $obj = new $class_name;
@@ -461,19 +504,19 @@ class ModelDatabase extends Model {
                     switch ($type) {
                         case static::HAS_MANY:
                             $obj->fetch_all([
-                                $foreign_key => $result[$local_key]
+                                $foreign_key => $this->__get($local_key)
                             ]);
                         break;
 
                         case static::HAS_ONE:
                             $obj->fetch([
-                                $foreign_key => $result[$local_key]
+                                $foreign_key => $this->__get($local_key)
                             ]);
                         break;
 
                         case static::BELONGS_TO:
                             $obj->fetch([
-                                $local_key => $result[$foreign_key]
+                                $local_key => $this->__get($foreign_key)
                             ]);
                         break;
 
@@ -482,7 +525,7 @@ class ModelDatabase extends Model {
                             $this->driver->find($rel['table'], [
                                 'vals' => [$foreign_key],
                                 'where' => [
-                                    $rel['table_foreign_key'] => $result[$local_key]
+                                    $rel['table_foreign_key'] => $this->__get($local_key)
                                 ]
                             ]);
 
@@ -499,28 +542,29 @@ class ModelDatabase extends Model {
                         break;
                     }
 
-                    $alias = $rel['alias'];
-
-                    $result[$alias] = $obj;
+                    $this->data[$rel['alias']] = $obj;
                 }
             }
         }
 
-        foreach ($this->virtual_fields as $field => $val) {
-            $result[$field] = $val;
+        // If the relationship stuff set it, return it
+        if (isset($this->data[$key])) {
+            return $this->__get($key);
         }
 
-        $schema = array_keys($this->schema);
+        // If key is a column in the database
+        if ($key === 'id' || isset($this->schema_db[$key])) {
+            $this->__find();
+            $result = $this->driver->fetch();
 
-        foreach ($schema as $field) {
-            if (!isset($result[$field])) {
-                $result[$field] = null;
+            if (!isset($result[$key])) {
+                $result[$key] = null;
             }
+
+            $this->data = array_merge($this->data, $result);
+
+            return $this->__get($key);
         }
-
-        $this->data = $result;
-
-        return $this->__get($key);  
     }
 
     /**
@@ -569,6 +613,10 @@ class ModelDatabase extends Model {
             throw new Exception('Cannot access row via index');
         }
 
+        if (count($this->rows) > 0 && ($offset + 1 > count($this->rows))) {
+            throw new OutOfRangeException('Cannot get index ' . $offset);
+        }
+
         if (isset($this->rows[$offset])) {
             return $this->rows[$offset];
         }
@@ -580,6 +628,12 @@ class ModelDatabase extends Model {
         ]);
 
         $results = $this->driver->fetch_all();
+
+        if (is_null($results)) {
+            // @todo Determine error
+            throw new Exception('Unknown Error');
+        }
+
         $class = $this->class_name;
 
         if (is_array($results)) {
@@ -588,11 +642,7 @@ class ModelDatabase extends Model {
             }
         }
 
-        if (!isset($this->rows[$offset])) {
-            $this->rows[$offset] = null;
-        }
-
-        return $this->rows[$offset];
+        return $this->offsetGet($offset);
     }
 
     public function conditions($others = []) {

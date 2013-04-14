@@ -562,4 +562,16 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
 
         $this->assertEquals($expected, $data);
     }
+
+    public function testLoopingOverModelWithNoData() {
+        $user = new MDT_ModelUser(2);
+
+        $passed = true;
+
+        foreach ($user->posts as $post) {
+            $passed = false;
+        }
+
+        $this->assertTrue($passed);
+    }
 }

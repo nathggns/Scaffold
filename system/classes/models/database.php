@@ -285,7 +285,12 @@ class ModelDatabase extends Model {
     public function export($values = null, $level = 1, $count_models = false) {
 
         if ($this->count() < 1) {
-            throw new Exception('No data to export');
+
+            if ($this->mode === static::MODE_MULT) {
+                return [];
+            } else {
+                return null;
+            }
         }
 
         $data = [];
@@ -621,6 +626,10 @@ class ModelDatabase extends Model {
             return $this->rows[$offset];
         }
 
+        if (is_null($this->rows)) {
+            return null;
+        }
+
         $this->rows = [];
 
         $this->__find([
@@ -628,6 +637,12 @@ class ModelDatabase extends Model {
         ]);
 
         $results = $this->driver->fetch_all();
+
+        if (count($results) === 0) {
+            $this->rows = null;
+
+            return $this->offsetGet($offset);
+        }
 
         if (is_null($results)) {
             // @todo Determine error

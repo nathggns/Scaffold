@@ -537,4 +537,41 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals(1, $data[0]['id']);
         $this->assertEquals('Lorem ipsum...', $data[0]['body']);
     }
+
+    public function testExportWithRelationshipsWithoutData() {
+        $user = new MDT_ModelUser(2);
+
+        $data = $user->export();
+
+        $expected = [
+            'id' => $user->id,
+            'name' => $user->name,
+            'posts' => [],
+            'settings' => null,
+            'followers' => []
+        ];
+
+        $keys = array_keys($expected);
+
+        $this->assertCount(count($keys), $data);
+
+        foreach ($expected as $key => $val) {
+            $this->assertArrayHasKey($key, $data);
+            $this->assertEquals($val, $data[$key]);
+        }
+
+        $this->assertEquals($expected, $data);
+    }
+
+    public function testLoopingOverModelWithNoData() {
+        $user = new MDT_ModelUser(2);
+
+        $passed = true;
+
+        foreach ($user->posts as $post) {
+            $passed = false;
+        }
+
+        $this->assertTrue($passed);
+    }
 }

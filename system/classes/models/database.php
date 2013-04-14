@@ -626,6 +626,10 @@ class ModelDatabase extends Model {
             return $this->rows[$offset];
         }
 
+        if (is_null($this->rows)) {
+            return null;
+        }
+
         $this->rows = [];
 
         $this->__find([
@@ -633,6 +637,12 @@ class ModelDatabase extends Model {
         ]);
 
         $results = $this->driver->fetch_all();
+
+        if (count($results) === 0) {
+            $this->rows = null;
+
+            return $this->offsetGet($offset);
+        }
 
         if (is_null($results)) {
             // @todo Determine error

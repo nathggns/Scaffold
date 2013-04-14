@@ -66,6 +66,7 @@ class Validate {
      */
     public function args($name, $value = null) {
         $rules = [];
+
         if (is_null($value) && (is_string($name) || !is_hash($name))) {
             $value = is_string($name) ? [$name] : $name;
             $name = false;
@@ -75,7 +76,14 @@ class Validate {
         if ((is_null($name) || is_string($name)) && (is_string($value) || !is_hash($value))) {
             $value = is_string($value) ? [$value] : $value;
             if (is_null($name)) $name = false;
-            $rules[$name] = $value;
+
+            $values = [];
+
+            foreach ($value as $item) {
+                $values = array_merge($values, explode(' ', $item));
+            }
+
+            $rules[$name] = $values;
         } else if (is_array($name) && is_null($value)) {
             foreach ($name as $k => $v) {
                 if ($k === '') $k = null;

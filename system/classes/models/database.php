@@ -542,10 +542,6 @@ class ModelDatabase extends Model {
                         break;
                     }
 
-                    if ($obj->count() === 0) {
-                        continue;
-                    }
-
                     $this->data[$rel['alias']] = $obj;
                 }
             }

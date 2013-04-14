@@ -285,7 +285,12 @@ class ModelDatabase extends Model {
     public function export($values = null, $level = 1, $count_models = false) {
 
         if ($this->count() < 1) {
-            throw new Exception('No data to export');
+
+            if ($this->mode === static::MODE_MULT) {
+                return [];
+            } else {
+                return null;
+            }
         }
 
         $data = [];

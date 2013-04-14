@@ -21,13 +21,22 @@ class Config {
         }
 
         foreach ($config as $name => $part) {
-            $real = $part['default'];
+
+            $global = [];
+
+            if (isset($part['global'])) {
+                $global = $part['global'];
+            }
+
+            $real = [];
 
             if (ENVIROMENT && isset($part[ENVIROMENT])) {
                 $real = $part[ENVIROMENT];
+            } else if (isset($part['default'])) {
+                $real = $part['default'];
             }
 
-            $config[$name] = $real;
+            $config[$name] = recursive_overwrite($global, $real);
         }
 
         $this->config = $config;

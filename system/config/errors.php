@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'default' => [
+    'global' => [
         'ignore' => E_NOTICE | E_WARNING,
         'debug' => true
     ],

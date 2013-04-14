@@ -179,7 +179,7 @@ function get_files($pattern, $recursive = true) {
 function recursive_overwrite($parent, $child) {
 
     foreach ($child as $key => $val) {
-        if (isset($parent[$key]) && is_array($parent[$key])) {
+        if (isset($parent[$key]) && is_array($parent[$key]) && is_array($val)) {
             $val = recursive_overwrite($parent[$key], $val);
         }
 

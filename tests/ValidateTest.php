@@ -70,7 +70,10 @@ class ValidateTest extends PHPUnit_Framework_Testcase {
         $validator->set([
             'name' => '/[A-Za-z\s]/',
             'status' => 'numeric',
-            'username' => 'alphanumeric not_email'
+            'username' => 'alphanumeric not_email',
+            'password' => function($pass) {
+                return strlen($pass) >= 6;
+            }
         ]);
 
         $this->assertTrue($validator->test([
@@ -78,7 +81,8 @@ class ValidateTest extends PHPUnit_Framework_Testcase {
             'name' => 'Nathaniel Higgins',
             'email' => 'nat@nath.is',
             'status' => 1,
-            'username' => 'nathggns'
+            'username' => 'nathggns',
+            'password' => 'abcdef'
         ]));
     }
 
@@ -94,7 +98,10 @@ class ValidateTest extends PHPUnit_Framework_Testcase {
         $validator->set([
             'name' => '/[A-Za-z\s]/',
             'status' => 'numeric',
-            'username' => 'alphanumeric not_email'
+            'username' => 'alphanumeric not_email',
+            'password' => function($pass) {
+                return strlen($pass) >= 6;
+            }
         ]);
 
         $validator->test([
@@ -102,7 +109,8 @@ class ValidateTest extends PHPUnit_Framework_Testcase {
             'name' => 'Nathaniel Higgins!',
             'email' => 'nat',
             'status' => '1a',
-            'username' => 'nat@nath.is'
+            'username' => 'nat@nath.is',
+            'password' => 'abc'
         ]); 
     }
 
@@ -123,5 +131,28 @@ class ValidateTest extends PHPUnit_Framework_Testcase {
         ]);
 
         $validator->test(['value' => 'TestA']);
+    }
+
+    /**
+     * @expectedException ExceptionValidate
+     */
+    public function testWithFunctionFails() {
+        $validator = new Validate([
+            'custom' => function() {
+                return false;
+            }
+        ]);
+
+        $validator->test(['custom' => 'abc']);
+    }
+
+    public function testWithFunctionPasses() {
+        $validator = new Validate([
+            'custom' => function($val) {
+                return $val === 'abc';
+            }
+        ]);
+
+        $validator->test(['custom' => 'abc']);
     }
 }

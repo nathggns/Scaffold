@@ -65,6 +65,7 @@ class Validate {
      * Argument shuffling
      */
     public function args($name, $value = null) {
+
         $rules = [];
 
         if (is_null($value) && (is_string($name) || !is_hash($name))) {
@@ -73,14 +74,15 @@ class Validate {
             $rules[$name] = $value;
         }
 
-        if ((is_null($name) || is_string($name)) && (is_string($value) || !is_hash($value))) {
-            $value = is_string($value) ? [$value] : $value;
+        if ((is_null($name) || is_string($name)) && (is_string($value) || !is_hash($value) || is_callable($value))) {
+            if (!is_array($value)) $value = [$value];
             if (is_null($name)) $name = false;
 
             $values = [];
 
             foreach ($value as $item) {
-                $values = array_merge($values, explode(' ', $item));
+                $item = is_string($item) ? explode(' ', $item) : [$item];
+                $values = array_merge($values, $item);
             }
 
             $rules[$name] = $values;

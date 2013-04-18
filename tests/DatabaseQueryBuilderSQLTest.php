@@ -606,4 +606,10 @@ class DatabaseQueryBuilderSQLTest extends PHPUnit_Framework_Testcase {
         $this->assertEquals('UPDATE `users` SET `name` = \'Joe\' LIMIT 1 OFFSET 1;', $sql);
     }
 
+    public function testWhereValIsNull() {
+        $sql = $this->builder->select('users')->where('name', 'Nat')->where('suspended', null)->end();
+
+        $this->assertEquals('SELECT * FROM `users` WHERE `name` = \'Nat\' AND `suspend` IS NULL', $sql);
+    }
+
 }

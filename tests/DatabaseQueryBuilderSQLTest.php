@@ -609,7 +609,7 @@ class DatabaseQueryBuilderSQLTest extends PHPUnit_Framework_Testcase {
     public function testWhereValIsNull() {
         $sql = $this->builder->select('users')->where('name', 'Nat')->where('suspended', null)->end();
 
-        $this->assertEquals('SELECT * FROM `users` WHERE `name` = \'Nat\' AND `suspend` IS NULL', $sql);
+        $this->assertEquals('SELECT * FROM `users` WHERE `name` = \'Nat\' AND `suspended` IS NULL', $sql);
     }
 
 }

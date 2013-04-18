@@ -445,12 +445,12 @@ class ModelDatabase extends Model {
     public function __get($key) {
 
         // If we already have it, return it
-        if (isset($this->data[$key])) {
+        if (array_key_exists($key, $this->data)) {
             return $this->value($key, $this->data[$key]);
         }
 
         // If we won't be able to get it, throw an exception
-        if ($this->mode !== static::MODE_SINGLE || !isset($this->schema[$key]) || array_key_exists($key, $this->data)) {
+        if ($this->mode !== static::MODE_SINGLE || (!array_key_exists($key, $this->schema) || $this->count() === 0)) {
             throw new Exception('Property ' . $key . ' does not exist on model ' . $this->name);
         }
         

@@ -37,6 +37,11 @@ class MDT_ModelSettings extends ModelDatabase {
     }
 }
 
+class MDT_ModelData extends ModelDatabase {
+    protected $table_name = 'data';
+    protected static $prefix = '';
+}
+
 
 class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
 
@@ -58,6 +63,7 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
         $driver->manual_query('CREATE TABLE posts (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, body TEXT);');
         $driver->manual_query('CREATE TABLE settings (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, key TEXT, value TEXT);');
         $driver->manual_query('CREATE TABLE friendships (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, follower_id INTEGER);');
+        $driver->manual_query('CREATE TABLE data (id INTEGER PRIMARY KEY AUTOINCREMENT, value TEXT);');
     }
 
     public function setUp() {
@@ -65,9 +71,10 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
         static::$driver->delete('settings');
         static::$driver->delete('friendships');
         static::$driver->delete('users');
+        static::$driver->delete('data');
         static::$driver->delete('SQLITE_SEQUENCE', [
             'where' => [
-                'name' => ['users', 'posts', 'settings', 'friendships']
+                'name' => ['users', 'posts', 'settings', 'friendships', 'data']
             ]
         ]);
 
@@ -86,6 +93,10 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
             'user_id' => 1,
             'key' => 'privacy',
             'value' => 'all'
+        ]);
+
+        static::$driver->insert('data', [
+            'id' => 1
         ]);
         
         static::$driver->insert('friendships', [
@@ -573,5 +584,15 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
         }
 
         $this->assertTrue($passed);
+    }
+
+    public function testThatNullDataReturnsNull() {
+        $data = new MDT_ModelData(1);
+
+        $this->assertNull($data->value);
+        $this->assertEquals([
+            'id' => 1,
+            'value' => null
+        ], $data->export());
     }
 }

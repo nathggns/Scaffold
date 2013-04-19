@@ -256,7 +256,6 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
     }
 
     protected function where_part($key, $val, $first = false, $level = 0, $meta = false) {
-
         $query = '';
 
         // Initial call, loops through all items in the conditions
@@ -312,6 +311,12 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
             if (is_array($val) && !is_hash($val)) {
                 $operator = 'IN';
                 $val = '(' . implode(', ', array_map([$this, 'escape'], $val)) . ')';
+            }
+
+            // Null values
+            if (is_null($val)) {
+                $operator = 'IS';
+                $val = 'NULL';
             }
 
             // Operator based queries (including IN queries)

@@ -595,4 +595,14 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
             'value' => null
         ], $data->export());
     }
+
+    public function testSavingByPassingArray() {
+        $setting = new MDT_ModelSettings(1);
+
+        $setting->save([
+            'value' => 'none'
+        ]);
+
+        $this->assertEquals('none', $setting->value);
+    }
 }

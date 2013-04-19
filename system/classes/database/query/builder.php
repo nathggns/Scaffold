@@ -74,9 +74,6 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
                 $key = null;
 
 
-            } else {
-                // @todo Should probably work something out here, maybe throw an exception?
-                return $this;
             }
         }
 

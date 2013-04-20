@@ -605,4 +605,32 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
 
         $this->assertEquals('none', $setting->value);
     }
+
+    public function testCreateByPassingArrayToSave() {
+        $setting = new MDT_ModelSettings(null, static::$driver);
+
+        $setting->create()->save($data = [
+            'user_id' => 1,
+            'key' => 'blah',
+            'value' => 'blah2'
+        ]);
+
+        foreach ($data as $key => $val) {
+            $this->assertEquals($val, $setting->$key);
+        }
+    }
+
+    public function testCreateByPassingArray() {
+        $setting = new MDT_ModelSettings(null, static::$driver);
+
+        $setting->create($data = [
+            'user_id' => 1,
+            'key' => 'blah',
+            'value' => 'blah2'
+        ]);
+
+        foreach ($data as $key => $val) {
+            $this->assertEquals($val, $setting->$key);
+        }
+    }
 }

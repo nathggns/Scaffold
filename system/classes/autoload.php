@@ -63,7 +63,7 @@ class Autoload {
         if (class_exists($class)) return true;
 
         // For manual paths
-        if (isset(static::$paths[$class]) && $result = static::$load_file(static::$paths[$class])) return $result;
+        if (isset(static::$paths[$class]) && $result = static::load_file(static::$paths[$class])) return $result;
 
         $parts = preg_split('/([[:upper:]][[:lower:]]+)/', $class, null, PREG_SPLIT_DELIM_CAPTURE|PREG_SPLIT_NO_EMPTY);
         $parts = array_map('strtolower', $parts);
@@ -113,6 +113,8 @@ class Autoload {
 
         if (is_array($path)) {
             $path = implode(DS, $path) . '.php';
+        } else {
+            $path = implode(DS, array_slice(explode(DS, substr($path, strlen(ROOT))), 2));
         }
 
         return load_file('classes' . DS . $path);

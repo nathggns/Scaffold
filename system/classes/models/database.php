@@ -166,9 +166,11 @@ class ModelDatabase extends Model {
         return $this;
     }
 
-    public function create() {
+    public function create($data = null) {
         $this->reset();
         $this->mode = static::MODE_INSERT;
+
+        if (!is_null($data)) return $this->save($data);
 
         return $this;
     }

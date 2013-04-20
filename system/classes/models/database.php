@@ -176,7 +176,7 @@ class ModelDatabase extends Model {
     /**
      * Save data.
      */
-    public function save() {
+    public function save($data = []) {
 
         if (!parent::save()) {
             return false;
@@ -188,19 +188,24 @@ class ModelDatabase extends Model {
                 $this->data['created'] = time();
             }
 
-            $this->driver->insert($this->table_name, $this->data);
+            $this->driver->insert($this->table_name, $data = array_merge($this->data, $data));
             $this->reset();
             $this->fetch(['id' => $this->driver->id()]);
 
-        } else if (count($this->updated) > 0 && $this->mode === static::MODE_SINGLE) {
+        } else if ((count($this->updated) > 0 || count($data) > 0) && $this->mode === static::MODE_SINGLE) {
 
             if (isset($this->schema['updated'])) {
                 $this->updated['updated'] = time();
             }
 
-            $this->driver->update($this->table_name, $this->updated, [
+            $this->driver->update($this->table_name, $data = array_merge($this->updated, $data), [
                 'id' => $this->id
-            ]);
+            ]); 
+
+            foreach ($data as $key => $val) {
+                $this->data[$key] = $val;
+            }
+
         }
 
         return $this;

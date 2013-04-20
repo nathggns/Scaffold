@@ -30,7 +30,6 @@ class Shutdown {
     }
 
     public static function get() {
-        var_dump('Hi');
         return static::$func;
     }
 

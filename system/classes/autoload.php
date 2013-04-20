@@ -15,6 +15,11 @@ class Autoload {
     public static $parents = [];
 
     /**
+     * List of manually registered paths
+     */
+    public static $paths = [];
+
+    /**
      * Register with PHP's spl_autoload
      */
     public static function run() {
@@ -57,6 +62,9 @@ class Autoload {
     public static function load($class) {
         if (class_exists($class)) return true;
 
+        // For manual paths
+        if (isset(static::$paths[$class]) && $result = static::load_file(static::$paths[$class])) return $result;
+
         $parts = preg_split('/([[:upper:]][[:lower:]]+)/', $class, null, PREG_SPLIT_DELIM_CAPTURE|PREG_SPLIT_NO_EMPTY);
         $parts = array_map('strtolower', $parts);
 
@@ -79,9 +87,36 @@ class Autoload {
     }
 
     /**
+     * Manually register classes with the Autoloader.
+     *
+     * @param string $class Class name
+     * @param string $path Path to class
+     *
+     * or
+     *
+     * @param array $class Array of class paths
+     */
+    public static function register($class, $path = null) {
+        if (is_array($class)) {
+            foreach ($class as $k => $v) {
+                static::register($k, $v);
+            }
+        } else {
+            static::$paths[$class] = $path;
+        }
+    }
+
+    /**
      * Gets the file name from a parts list
      */
-    private static function load_file($parts) {
-        return load_file('classes' . DS . implode(DS, $parts) . '.php');
+    private static function load_file($path) {
+
+        if (is_array($path)) {
+            $path = implode(DS, $path) . '.php';
+        } else {
+            $path = implode(DS, array_slice(explode(DS, substr($path, strlen(ROOT))), 2));
+        }
+
+        return load_file('classes' . DS . $path);
     }
 }

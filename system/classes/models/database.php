@@ -77,6 +77,12 @@ class ModelDatabase extends Model {
     protected static $default_fields = ['id'];
 
     /**
+     * Data that has been fetched from the database but has not yet been added
+     * to the database
+     */
+    protected $db_data = [];
+
+    /**
      * Inital Setup
      */
     public function __construct($id = null, $driver = null) {
@@ -160,9 +166,11 @@ class ModelDatabase extends Model {
         return $this;
     }
 
-    public function create() {
+    public function create($data = null) {
         $this->reset();
         $this->mode = static::MODE_INSERT;
+
+        if (!is_null($data)) return $this->save($data);
 
         return $this;
     }
@@ -170,7 +178,7 @@ class ModelDatabase extends Model {
     /**
      * Save data.
      */
-    public function save() {
+    public function save($data = []) {
 
         if (!parent::save()) {
             return false;
@@ -182,19 +190,24 @@ class ModelDatabase extends Model {
                 $this->data['created'] = time();
             }
 
-            $this->driver->insert($this->table_name, $this->data);
+            $this->driver->insert($this->table_name, $data = array_merge($this->data, $data));
             $this->reset();
             $this->fetch(['id' => $this->driver->id()]);
 
-        } else if (count($this->updated) > 0 && $this->mode === static::MODE_SINGLE) {
+        } else if ((count($this->updated) > 0 || count($data) > 0) && $this->mode === static::MODE_SINGLE) {
 
             if (isset($this->schema['updated'])) {
                 $this->updated['updated'] = time();
             }
 
-            $this->driver->update($this->table_name, $this->updated, [
+            $this->driver->update($this->table_name, $data = array_merge($this->updated, $data), [
                 'id' => $this->id
-            ]);
+            ]); 
+
+            foreach ($data as $key => $val) {
+                $this->data[$key] = $val;
+            }
+
         }
 
         return $this;
@@ -215,6 +228,7 @@ class ModelDatabase extends Model {
     public function reset() {
         parent::reset();
         $this->conditions = [];
+        $this->db_data = [];
 
         return $this;
     }
@@ -547,13 +561,22 @@ class ModelDatabase extends Model {
                         break;
                     }
 
-                    $this->data[$rel['alias']] = $obj;
+                    if (!isset($this->data[$rel['alias']])) {
+                        $this->data[$rel['alias']] = $obj;
+                    }
                 }
             }
         }
 
         // If the relationship stuff set it, return it
         if (isset($this->data[$key])) {
+            return $this->__get($key);
+        }
+
+        // If we have already fetched it from the database
+        if (array_key_exists($key, $this->db_data)) {
+            $this->data[$key] = $this->db_data[$key];
+
             return $this->__get($key);
         }
 
@@ -566,7 +589,7 @@ class ModelDatabase extends Model {
                 $result[$key] = null;
             }
 
-            $this->data = array_merge($this->data, $result);
+            $this->db_data = array_merge($this->db_data, $result);
 
             return $this->__get($key);
         }

@@ -301,7 +301,7 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
     }
 
     public function testRelationshipBelongsTo() {
-        $settings = new MDT_ModelSettings(1);
+        $settings = new MDT_ModelSettings(1, static::$driver);
 
         $this->assertEquals(1, $settings->user->id);
         $this->assertEquals('Nat', $settings->user->name);
@@ -497,7 +497,7 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
     }
 
     public function testStartingWithNonId() {
-        $post = new MDT_ModelPost('Lorem ipsum...');
+        $post = new MDT_ModelPost('Lorem ipsum...', static::$driver);
 
         $this->assertCount(1, $post);
         $this->assertEquals('1', $post->id);
@@ -510,7 +510,7 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
      * @expectedExceptionMessage Property id does not exist on model MDT_ModelUser
      */
     public function testFindNothing() {
-        $user = new MDT_ModelUser(['id' => 9]);
+        $user = new MDT_ModelUser(['id' => 9], static::$driver);
 
         $this->assertCount(0, $user);
 
@@ -523,14 +523,14 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
      * @expectedExceptionMessage Cannot export this model
      */
     public function testExceptionWhenExportingCreatedModel() {
-        $user = new MDT_ModelUser();
+        $user = new MDT_ModelUser(null, static::$driver);
         $user->create();
 
         $user->export();
     }
 
     public function testBasicExport() {
-        $post = new MDT_ModelPost(1);
+        $post = new MDT_ModelPost(1, static::$driver);
 
         $data = $post->export();
 
@@ -540,7 +540,7 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
     }
 
     public function testBasicExportMult() {
-        $post = new MDT_ModelPost;
+        $post = new MDT_ModelPost(null, static::$driver);
         $data = $post->export();       
 
         $this->assertCount(1, $data);
@@ -550,7 +550,7 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
     }
 
     public function testExportWithRelationshipsWithoutData() {
-        $user = new MDT_ModelUser(2);
+        $user = new MDT_ModelUser(2, static::$driver);
 
         $data = $user->export();
 
@@ -575,7 +575,7 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
     }
 
     public function testLoopingOverModelWithNoData() {
-        $user = new MDT_ModelUser(2);
+        $user = new MDT_ModelUser(2, static::$driver);
 
         $passed = true;
 
@@ -587,12 +587,50 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
     }
 
     public function testThatNullDataReturnsNull() {
-        $data = new MDT_ModelData(1);
+        $data = new MDT_ModelData(1, static::$driver);
 
         $this->assertNull($data->value);
         $this->assertEquals([
             'id' => 1,
             'value' => null
         ], $data->export());
+    }
+
+    public function testSavingByPassingArray() {
+        $setting = new MDT_ModelSettings(1, static::$driver);
+
+        $setting->save([
+            'value' => 'none'
+        ]);
+
+        $this->assertEquals('none', $setting->value);
+    }
+
+    public function testCreateByPassingArrayToSave() {
+        $setting = new MDT_ModelSettings(null, static::$driver);
+
+        $setting->create()->save($data = [
+            'user_id' => 1,
+            'key' => 'blah',
+            'value' => 'blah2'
+        ]);
+
+        foreach ($data as $key => $val) {
+            $this->assertEquals($val, $setting->$key);
+        }
+    }
+
+    public function testCreateByPassingArray() {
+        $setting = new MDT_ModelSettings(null, static::$driver);
+
+        $setting->create($data = [
+            'user_id' => 1,
+            'key' => 'blah',
+            'value' => 'blah2'
+        ]);
+
+        foreach ($data as $key => $val) {
+            $this->assertEquals($val, $setting->$key);
+        }
     }
 }

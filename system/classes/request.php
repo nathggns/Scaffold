@@ -174,10 +174,19 @@ class Request {
             case 'put':
             case 'delete':
             default:
-                $input = file_get_contents('php://input');
+                $input = static::raw_body();
                 parse_str($input, $body);
                 return $body;
         }
+    }
+
+    /**
+     * Get raw body of request
+     *
+     * @return string raw body
+     */
+    public static function raw_body() {
+        return file_get_contents('php://input');
     }
 
     /**

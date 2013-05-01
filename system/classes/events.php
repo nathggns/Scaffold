@@ -27,7 +27,7 @@ trait Events {
             $event = '';
         }
 
-        $events = $this->getEvents($event);
+        $events = $this->get_events($event);
 
         if (is_null($callback)) {
             foreach ($events as $event) {
@@ -44,7 +44,7 @@ trait Events {
         return $this;
     }
 
-    public function getEvents($search = null) {
+    public function get_events($search = null) {
         $events = array_keys($this->events);
 
         if (is_null($search)) return $events;
@@ -62,9 +62,9 @@ trait Events {
         return $events;
     }
 
-    public function getCallbacks($search = null) {
+    public function get_callbacks($search = null) {
         $callbacks = [];
-        $events    = $this->getEvents($search);
+        $events    = $this->get_events($search);
 
         foreach ($events as $event) {
             $callbacks = array_merge($callbacks, $this->events[$event]);
@@ -79,7 +79,7 @@ trait Events {
         // remove event name from arguments
         $arguments = array_slice($arguments, 1);
 
-        $callbacks = $this->getCallbacks($event);
+        $callbacks = $this->get_callbacks($event);
 
         foreach ($callbacks as $callback) {
             call_user_func_array($callback, $arguments);

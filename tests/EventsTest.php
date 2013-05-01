@@ -90,7 +90,7 @@ class EventsTest extends PHPUnit_Framework_TestCase {
     $this->test->on('foo', $this->callback);
     $this->test->off('foo');
 
-    $events = $this->test->getEvents('foo');
+    $events = $this->test->get_events('foo');
 
     $this->assertEmpty($events);
   }
@@ -102,7 +102,7 @@ class EventsTest extends PHPUnit_Framework_TestCase {
     $this->test->on('foo.bar', $this->callback);
     $this->test->off('foo.bar');
 
-    $events = $this->test->getEvents('foo.bar');
+    $events = $this->test->get_events('foo.bar');
 
     $this->assertEmpty($events);
   }
@@ -114,7 +114,7 @@ class EventsTest extends PHPUnit_Framework_TestCase {
     $this->test->on('foo.bar', $this->callback);
     $this->test->off('foo');
 
-    $events = $this->test->getEvents('foo');
+    $events = $this->test->get_events('foo');
 
     $this->assertEmpty($events);
   }
@@ -128,7 +128,7 @@ class EventsTest extends PHPUnit_Framework_TestCase {
 
     $this->test->off('foo', $this->callback);
 
-    $callbacks = $this->test->getCallbacks();
+    $callbacks = $this->test->get_callbacks();
 
     $this->assertCount(1, $callbacks);
   }
@@ -141,7 +141,7 @@ class EventsTest extends PHPUnit_Framework_TestCase {
     $this->test->on('foo', $this->callback);
     $this->test->off();
 
-    $events = $this->test->getEvents();
+    $events = $this->test->get_events();
 
     $this->assertCount(1, $events);
   }
@@ -158,7 +158,7 @@ class EventsTest extends PHPUnit_Framework_TestCase {
     $this->test->on('bar', $this->callback);
     $this->test->on('bar.foo', $this->callback);
 
-    $events = $this->test->getEvents('foo');
+    $events = $this->test->get_events('foo');
 
     $this->assertEquals(['foo', 'foo.bar', 'foo.bar.baz'], $events);
   }
@@ -175,7 +175,7 @@ class EventsTest extends PHPUnit_Framework_TestCase {
     $this->test->on('bar', $this->callback);
     $this->test->on('bar.foo', $this->callback);
 
-    $events = $this->test->getEvents();
+    $events = $this->test->get_events();
 
     $this->assertEquals(['', 'foo', 'foo.bar', 'foo.bar.baz', 'bar', 'bar.foo'], $events);
   }
@@ -188,7 +188,7 @@ class EventsTest extends PHPUnit_Framework_TestCase {
     $this->test->on('foo', $this->callback);
     $this->test->on('foo.bar', $this->callback);
 
-    $callbacks = $this->test->getCallbacks();
+    $callbacks = $this->test->get_callbacks();
 
     $this->assertCount(3, $callbacks);
   }

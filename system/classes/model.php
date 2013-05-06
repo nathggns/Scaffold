@@ -44,7 +44,19 @@ abstract class Model implements ModelInterface {
      */
     public function save($data = []) {
         $validator = new Validate($this->rules);
-        $data = array_merge($this->mode === static::MODE_INSERT ? $this->data : $this->updated, $data);
+        $model_data = $this->data;
+
+        if ($this->mode !== static::MODE_INSERT) {
+            $keys = array_keys($this->rules);
+
+            foreach ($keys as $key) {
+                $model_data[$key] = $this->__get($key);
+            }
+
+            $model_data = array_merge($model_data, $this->updated);
+        }
+
+        $data = array_merge($model_data, $data);
 
         $validator->test($data);
 

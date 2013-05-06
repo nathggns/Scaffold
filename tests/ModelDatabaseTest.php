@@ -600,7 +600,7 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
         ], $data->export());
     }
 
-    public function testSavingByPassingArray() {
+    public function testUpdatingByPasingArray() {
         $setting = new MDT_ModelSettings(1, static::$driver);
 
         $setting->save([

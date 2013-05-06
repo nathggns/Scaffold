@@ -38,6 +38,11 @@ class MDT_ModelSettings extends ModelDatabase {
 
     public function init() {
         $this->belongs_to('MDT_ModelUser', 'user');
+
+        $this->rules = [
+            'key' => 'alphanumeric',
+            'value' => 'alphanumeric'
+        ];
     }
 }
 
@@ -600,7 +605,7 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
         ], $data->export());
     }
 
-    public function testSavingByPassingArray() {
+    public function testUpdatingByPasingArray() {
         $setting = new MDT_ModelSettings(1, static::$driver);
 
         $setting->save([

@@ -155,4 +155,19 @@ class ValidateTest extends PHPUnit_Framework_Testcase {
 
         $validator->test(['custom' => 'abc']);
     }
+
+    /**
+     * @expectedException ExceptionValidate
+     */
+    public function testWithNamedTests() {
+        $validator = new Validate([
+            'custom' => [
+                'equals_abc' => function($val) {
+                    return $val === 'abc';
+                }
+            ]
+        ]);
+
+        $validator->test(['custom' => 'abcd']);
+    }
 }

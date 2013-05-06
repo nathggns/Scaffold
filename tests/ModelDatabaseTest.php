@@ -38,6 +38,11 @@ class MDT_ModelSettings extends ModelDatabase {
 
     public function init() {
         $this->belongs_to('MDT_ModelUser', 'user');
+
+        $this->rules = [
+            'key' => 'alphanumeric',
+            'value' => 'alphanumeric'
+        ];
     }
 }
 

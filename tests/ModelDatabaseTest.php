@@ -654,4 +654,70 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
         $user->name = 'Charlie';
         $user->save();
     }
+
+    /**
+     * @expectedException ExceptionValidate
+     */
+    public function testValidationWhenCreatingViaArrayFail() {
+        $user = new MDT_ModelUser();
+        $user->create([
+            'name' => 'nat@nath.is'
+        ]);
+    }
+
+    /**
+     * @expectedException ExceptionValidate
+     */
+    public function testValidationWhenCreatingAndSavingViaArrayFail() {
+        $user = new MDT_ModelUser();
+        $user->create()->save([
+            'name' => 'nat@nath.is'
+        ]);
+    }
+
+    public function testValidationWhenCreatingViaArray() {
+        $user = new MDT_ModelUser();
+        $user->create([
+            'name' => 'Charlie'
+        ]);
+    }
+
+    public function testValidationWhenCreatingAndSavingViaArray() {
+        $user = new MDT_ModelUser();
+        $user->create()->save([
+            'name' => 'Charlie'
+        ]);
+    }
+
+    /**
+     * @expectedException ExceptionValidate
+     */
+    public function testValidationWhenUpdatingViaPropertyFail() {
+        $user = new MDT_ModelUser(1);
+        $user->name = 'nat@nath.is';
+        $user->save();
+    }
+
+    public function testValidationWhenUpdatingViaProperty() {
+        $user = new MDT_ModelUser(1);
+        $user->name = 'Charlie';
+        $user->save();
+    }
+
+    /**
+     * @expectedException ExceptionValidate
+     */
+    public function testValidationWhenUpdatingViaArrayFail() {
+        $user = new MDT_ModelUser(1);
+        $user->save([
+            'name' => 'nat@nath.is'
+        ]);
+    }
+
+    public function testValidationWhenUpdatingViaArray() {
+        $user = new MDT_ModelUser(1);
+        $user->save([
+            'name' => 'Charlie'
+        ]);
+    }
 }

@@ -42,9 +42,11 @@ abstract class Model implements ModelInterface {
      * Doesn't actually save anything, this should be implemented by an extending
      * class.
      */
-    public function save() {
+    public function save($data = []) {
         $validator = new Validate($this->rules);
-        $validator->test($this->data);
+        $data = array_merge($this->mode === static::MODE_INSERT ? $this->data : $this->updated, $data);
+
+        $validator->test($data);
 
         return true;
     }

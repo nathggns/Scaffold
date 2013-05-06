@@ -180,7 +180,7 @@ class ModelDatabase extends Model {
      */
     public function save($data = []) {
 
-        if (!parent::save()) {
+        if (!parent::save($data)) {
             return false;
         }
 

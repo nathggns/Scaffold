@@ -11,6 +11,10 @@ class MDT_ModelUser extends ModelDatabase {
     protected $table_name = 'users';
     protected static $prefix = '';
 
+    protected $rules = [
+        'name' => ['not_email']
+    ];
+
     public function init() {
         $this->has_many('MDT_ModelPost', 'posts');
         $this->has_one('MDT_ModelSettings', 'settings');
@@ -632,5 +636,22 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
         foreach ($data as $key => $val) {
             $this->assertEquals($val, $setting->$key);
         }
+    }
+
+    /**
+     * @expectedException ExceptionValidate
+     */
+    public function testValidationWhenCreatingViaPropertyFail() {
+        $user = new MDT_ModelUser();
+        $user->create();
+        $user->name = 'nat@nath.is';
+        $user->save();
+    }
+
+    public function testValidationWhenCreatingViaProperty() {
+        $user = new MDT_ModelUser();
+        $user->create();
+        $user->name = 'Charlie';
+        $user->save();
     }
 }

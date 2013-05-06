@@ -51,6 +51,14 @@ abstract class Model implements ModelInterface {
         return true;
     }
 
+    public function __get($key) {
+        if (array_key_exists($key, $this->data)) {
+            return $this->data[$key];
+        }
+
+        return null;
+    }
+
     public function reset() {
         $this->mode = static::MODE_MULT;
         $this->data = [];

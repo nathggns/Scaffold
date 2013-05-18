@@ -5,6 +5,11 @@ class DatabaseDriverPDO extends DatabaseDriver {
     protected $type = false;
 
     /**
+     * Store the last table used
+     */
+    protected $table;
+
+    /**
      * Connect to the database via PDO
      *
      * @return DatabaseDriverPDO this
@@ -88,6 +93,9 @@ class DatabaseDriverPDO extends DatabaseDriver {
             'limit' => []
         ];
 
+        // Set the table property
+        $this->table = $table;
+
         // Add our options to the param array
         foreach ($options as $key => $val) {
             if (isset($values[$key])) {
@@ -119,6 +127,9 @@ class DatabaseDriverPDO extends DatabaseDriver {
      * @param array $data Data to insert
      */
     public function insert($table, $data) {
+        // Set the table property
+        $this->table = $table;
+
         // Store the query type in the object.
         $this->type = static::INSERT;
 
@@ -157,6 +168,9 @@ class DatabaseDriverPDO extends DatabaseDriver {
 
         // Set the type to update
         $this->type = static::UPDATE;
+
+        // Set the table property
+        $this->table = $table;
 
         // Generate the query
         $query = $this->builder->update($table, $data, $where);
@@ -244,6 +258,9 @@ class DatabaseDriverPDO extends DatabaseDriver {
      * @todo Make this more testable
      */
     public function structure($table) {
+        // Set the table property
+        $this->table = $table;
+
         $result = $this->query($this->builder->structure($table))->fetch_all();
 
         $struct = [];
@@ -265,6 +282,9 @@ class DatabaseDriverPDO extends DatabaseDriver {
     }
 
     public function delete($table, $where = []) {
+        // Set the table property
+        $this->table = $table;
+
         $query = $this->builder->delete($table, $where);
 
         return $this->query($query);
@@ -294,6 +314,6 @@ class DatabaseDriverPDO extends DatabaseDriver {
      * @return string Table the last query was ran on.
      */
     protected function table() {
-        return $this->query->getColumnMeta(0)['table'];
+        return $this->table;
     }
 }

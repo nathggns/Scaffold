@@ -295,15 +295,20 @@ class DatabaseDriverPDO extends DatabaseDriver {
      *
      * @param string $sql sql to run
      */
-    protected function query($sql) {
+    protected function query($sql, $ret = false) {
         // Die if we're not connected
         if (!$this->connection) return false;
 
-        // Run the query, and save it.
-        $this->query = $this->connection->query($sql);
+        // Run the query
+        $query = $this->connection->query($sql);
 
-        // Return ourself for chaining
-        return $this;
+        if ($ret) {
+            return $query;
+        } else {
+            $this->query = $query;
+
+            return $this;
+        }
     }
 
     /**

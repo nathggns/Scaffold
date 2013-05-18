@@ -13,7 +13,7 @@ class DDPT_DatabaseDriverPDOTestClass extends DatabaseDriverPDO {
     public $query_string;
     var $query = true;
 
-    function query($sql) {
+    function query($sql, $ret = false) {
         $this->query_string = $sql;
         return $this;
     }

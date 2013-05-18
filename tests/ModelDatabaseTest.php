@@ -725,4 +725,13 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
             'name' => 'Charlie'
         ]);
     }
+
+    public function testGettingIdAfterCreating() {
+        $user = new MDT_ModelUser();
+        $user->create([
+            'name' => 'Charlie'
+        ]);
+
+        $this->assertEquals('9', $user->id);
+    }
 }

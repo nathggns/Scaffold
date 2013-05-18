@@ -2,7 +2,7 @@
 
 class DatabaseDriverSqlite extends DatabaseDriverPDO {
 
-    function connect() {
+    public function connect() {
         call_user_func_array(['parent', 'connect'], func_get_args());
 
         $this->query($this->builder->prevent_locking());

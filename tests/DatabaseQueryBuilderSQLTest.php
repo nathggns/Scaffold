@@ -612,4 +612,35 @@ class DatabaseQueryBuilderSQLTest extends PHPUnit_Framework_Testcase {
         $this->assertEquals('SELECT * FROM `users` WHERE `name` = \'Nat\' AND `suspended` IS NULL;', $sql);
     }
 
+    public function testSelectWithValChained() {
+        $sql = $this->builder->select('users')
+            ->val('id')
+        ->end();
+
+        $this->assertEquals('SELECT `id` FROM `users`;', $sql);
+    }
+
+    public function testSelectWithValsInArrayChained() {
+        $sql = $this->builder->select('users')
+            ->val(['id', 'name'])
+        ->end();
+
+        $this->assertEquals('SELECT `id`, `name` FROM `users`;', $sql);
+    }
+
+    public function testSelectWithValsMultipleTimesChained() {
+        $sql = $this->builder->select('users')
+            ->val('id')->val('name')
+        ->end();
+
+        $this->assertEquals('SELECT `id`, `name` FROM `users`;', $sql);
+    }
+
+    public function testSelectWithValAndNotOverwritingStarChained() {
+        $sql = $this->builder->select('users')
+            ->val('id', false)
+        ->end();
+
+        $this->assertEquals('SELECT *, `id` FROM `users`;', $sql);
+    }
 }

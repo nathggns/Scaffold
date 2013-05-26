@@ -163,6 +163,24 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
         return $this;
     }
 
+    public function val($val, $clear_star = true) {
+        if (is_array($val)) {
+            while ($item = array_shift($val)) {
+                $this->val($item, $clear_star);
+            }
+        } else {
+
+            if ($clear_star && $this->query_opts['vals'] === ['*']) {
+                $this->query_opts['vals'] = [];
+            }
+
+            $this->query_opts['vals'][] = $val;
+        }
+
+        return $this;
+    }
+
+
     /* Utility functions for the subclass */
 
     protected function extract_select() {

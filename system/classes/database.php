@@ -12,10 +12,15 @@ class Database {
      */
     protected $driver;
 
-
-    public function __construct($config) {
-        $this->driver = Service::get('database.driver', $config->get('database'));
+    public function __construct(Config $config = null) {
+        if (is_null($config)) {
+            $config = Service::get('config');
+            $this->driver = Service::get('database.driver', $config->get('database'));
+        } else {
+            $this->driver = Service::get('database.driver');
+        }
     }
+
 
     /* Query Helpers */
     public static function __callStatic($name, $args = []) {
@@ -47,9 +52,56 @@ class Database {
             $args[] = [$prop => $name];
 
             return call_user_func_array(['self', 'query'], $args);
+        } else if (preg_match('/^func/i', $name)) {
+
+            $name = substr($name, strlen('func'));
+
+            if (empty($name)) {
+                if (empty($args)) {
+                    // @todo Maybe throw exception
+                    return null;
+                } else {
+                    $name = array_shift($args);
+                }
+            } else {
+                $name = substr($name, 1);
+            }
+
+            if ($name instanceof Closure) {
+                return static::__call_closure_with_dynamic($name, $args);
+            }
+
+            foreach ($args as &$arg) {
+                if ($arg instanceof Closure) {
+                    $arg = static::__call_closure_with_dynamic($arg);
+                }
+            }
+
+            return new Dynamic([
+                'type' => 'function',
+                'name' => $name,
+                'args' => $args
+            ]);
         }
 
-        return call_user_func_array([get_class($this->driver), $name], $args);
+        $db = new Database();
+
+        return call_user_func_array([$db->driver, $name], $args);
+    }
+
+    protected static function __call_closure_with_dynamic($closure, $args = []) {
+        $class = get_called_class();
+
+        $dynamic = new Dynamic(function() use ($class) {
+            $args = func_get_args();
+            $name = array_shift($args);
+
+            return call_user_func_array([$class, 'func_' . $name], $args);
+        });
+
+        $closure = $closure->bindTo($dynamic);
+
+        return call_user_func_array($closure, $args);
     }
 
     /**

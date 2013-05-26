@@ -39,4 +39,37 @@ class DatabaseTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals('nat', $obj->val);
     }
 
+    public function testFuncCountPassingName() {
+        $obj = Database::func_count('id');
+
+        $this->assertEquals('function', $obj->type);
+        $this->assertEquals('count', $obj->name);
+        $this->assertCount(1, $obj->args);
+        $this->assertEquals('id', $obj->args[0]);
+    }
+
+    public function testFuncPassingCallback() {
+        $obj = Database::func(function() {
+            return $this->count('id');
+        });
+
+        $this->assertEquals('function', $obj->type);
+        $this->assertEquals('count', $obj->name);
+        $this->assertCount(1, $obj->args);
+        $this->assertEquals('id', $obj->args[0]);
+    }
+
+    public function testFuncPassingCallbackInArgs() {
+        $main = Database::func_count(function() {
+            return $this->max('id');
+        });
+
+        foreach (['count' => $main, 'max' => $main->args[0]] as $name => $obj) {
+            $this->assertEquals('function', $obj->type);
+            $this->assertEquals($name, $obj->name);
+            $this->assertCount(1, $obj->args);
+        }
+        
+        $this->assertEquals('id', $main->args[0]->args[0]);
+    }
 }

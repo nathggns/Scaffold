@@ -643,4 +643,17 @@ class DatabaseQueryBuilderSQLTest extends PHPUnit_Framework_Testcase {
 
         $this->assertEquals('SELECT *, `id` FROM `users`;', $sql);
     }
+
+    public function testSelectWithFunctionChained() {
+        $sql = $this->builder->select('users')
+            ->val(Database::func_count('*'))
+            ->val(Database::func_count('id'))
+            ->where('id', Database::func_count(function() {
+                return $this->max('id');
+            }))
+        ->end();
+
+        $this->assertEquals('SELECT COUNT(*), COUNT(`id`) FROM `users` WHERE `id` = COUNT(MAX(\'id\'));', $sql);
+    }
+
 }

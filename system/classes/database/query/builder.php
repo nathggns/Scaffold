@@ -308,4 +308,29 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
             (!is_null($data) && count($data) === 1 && is_string(current($data)));
     }
 
+    protected function is_func($obj) {
+        return is_object($obj) && $obj->type === 'function';
+    }
+
+    public function func($obj, $callback = false, $deep = false) {
+        if (!$this->is_func($obj)) {
+            if ($deep && is_callable($callback)) {
+                $obj = call_user_func($callback, $obj);
+            }
+
+            return $obj;
+        }
+
+        $self = [$this, 'func'];
+
+        $args = array_map(function($arg) use ($callback, $self) {
+            return call_user_func($self, $arg, $callback, true);
+        }, $obj->args);
+        $name = $obj->name;
+        $func = Service::get('database.query.builder.function', $name, $args);
+        $resp = $func->generate($this->type);
+
+        return $resp;
+    }
+
 }

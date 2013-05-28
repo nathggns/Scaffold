@@ -3,6 +3,7 @@
 interface ModelInterface extends ArrayAccess, Iterator, Countable {
 
     public function __get($key);
+    public function value($key);
     public function __set($key, $val);
 
     public function save();

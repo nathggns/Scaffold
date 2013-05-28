@@ -286,16 +286,6 @@ class ModelDatabase extends Model {
         return $this;
     }
 
-    protected function value($field, $value) {
-
-        if ($value instanceof Closure) {
-            $value = $value->bindTo($this);
-            $value = $value($field);
-        }
-        
-        return $value;
-    }
-
     public function export($values = null, $level = 1, $count_models = false) {
 
         if ($this->count() < 1) {
@@ -452,15 +442,27 @@ class ModelDatabase extends Model {
     }
 
     /**
-     * Handle gets
-     * 
-     * @todo Lazy load all properties
+     * Alias for ModelDatabase::value
      */
     public function __get($key) {
+        return $this->value($key);
+    }
+
+    /**
+     * Handle gets
+     */
+    public function value($key) {
 
         // If we already have it, return it
         if (array_key_exists($key, $this->data)) {
-            return $this->value($key, $this->data[$key]);
+            $value = $this->data[$key];
+
+            if ($value instanceof Closure) {
+                $value = $value->bindTo($this);
+                $this->data[$key] = $value = call_user_func($value, $key);
+            }
+
+            return $value;
         }
 
         // If we won't be able to get it, throw an exception
@@ -472,7 +474,7 @@ class ModelDatabase extends Model {
         if (isset($this->virtual_fields[$key])) {
             $this->data[$key] = $this->virtual_fields[$key];
 
-            return $this->__get($key);
+            return $this->value($key);
         }
 
         // Let's check relationships...
@@ -523,19 +525,19 @@ class ModelDatabase extends Model {
                     switch ($type) {
                         case static::HAS_MANY:
                             $obj->fetch_all([
-                                $foreign_key => $this->__get($local_key)
+                                $foreign_key => $this->value($local_key)
                             ]);
                         break;
 
                         case static::HAS_ONE:
                             $obj->fetch([
-                                $foreign_key => $this->__get($local_key)
+                                $foreign_key => $this->value($local_key)
                             ]);
                         break;
 
                         case static::BELONGS_TO:
                             $obj->fetch([
-                                $local_key => $this->__get($foreign_key)
+                                $local_key => $this->value($foreign_key)
                             ]);
                         break;
 
@@ -544,7 +546,7 @@ class ModelDatabase extends Model {
                             $this->driver->find($rel['table'], [
                                 'vals' => [$foreign_key],
                                 'where' => [
-                                    $rel['table_foreign_key'] => $this->__get($local_key)
+                                    $rel['table_foreign_key'] => $this->value($local_key)
                                 ]
                             ]);
 
@@ -570,14 +572,14 @@ class ModelDatabase extends Model {
 
         // If the relationship stuff set it, return it
         if (isset($this->data[$key])) {
-            return $this->__get($key);
+            return $this->value($key);
         }
 
         // If we have already fetched it from the database
         if (array_key_exists($key, $this->db_data)) {
             $this->data[$key] = $this->db_data[$key];
 
-            return $this->__get($key);
+            return $this->value($key);
         }
 
         // If key is a column in the database
@@ -591,7 +593,7 @@ class ModelDatabase extends Model {
 
             $this->db_data = array_merge($this->db_data, $result);
 
-            return $this->__get($key);
+            return $this->value($key);
         }
     }
 

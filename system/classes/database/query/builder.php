@@ -308,7 +308,7 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
             (!is_null($data) && count($data) === 1 && is_string(current($data)));
     }
 
-    protected function is_func($obj) {
+    public function is_func($obj) {
         return is_object($obj) && $obj->type === 'function';
     }
 

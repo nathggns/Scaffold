@@ -21,9 +21,9 @@ class DatabaseQueryBuilderFunction {
 
             $found = false;
 
-            foreach ($fallbacks as $fallback => $types) {
+            foreach ($this->fallbacks as $fallback => $types) {
                 if (in_array($type, $types)) {
-                    if (in_array('generate_' . $fallback)) {
+                    if (in_array('generate_' . $fallback, get_class_methods($this))) {
                         $type = $fallback;
                         $found = true;
                         break;

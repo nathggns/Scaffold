@@ -75,4 +75,16 @@ class DynamicTest extends PHPUnit_Framework_TestCase {
         }
     }
 
+    public function testUsingThis() {
+        $dynamic = new Dynamic([
+            'a' => function() {
+                $this->b = 'c';
+            }
+        ]);
+
+        $dynamic->a();
+
+        $this->assertEquals('c', $dynamic->b);
+    }
+
 }

@@ -463,6 +463,11 @@ class ModelDatabase extends Model {
             $key = $this->aliases[$key];
         }
 
+        // Is it a function?
+        if ($this->driver->builder->is_func($key)) {
+            return $this->func($key);
+        }
+
         // If we already have it, return it
         if (array_key_exists($key, $this->data)) {
             $value = $this->data[$key];
@@ -704,6 +709,27 @@ class ModelDatabase extends Model {
      */
     public function alias($alias, $key) {
         $this->aliases[$alias] = $key;
+    }
+
+    /** Get functions */
+    protected function func($key) {
+
+        if (!$this->driver->builder->is_func($key)) return;
+
+        $conditions = $this->conditions();
+        $alias = false;
+
+        while (!$alias || in_array($alias, array_values($conditions['vals'])) || in_array($alias, array_keys($conditions['vals']))) {
+            $alias = 'function_' . uniqid();
+        }
+
+        $key->as($alias);
+
+        $conditions['vals'][] = $key;
+
+        $result = $this->driver->find($this->table_name, $conditions)->fetch();
+
+        return $result[$alias];
     }
 
 }

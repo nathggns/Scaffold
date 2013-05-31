@@ -733,6 +733,8 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
         ]);
 
         $this->assertEquals('9', $user->id);
+
+        $user->delete();
     }
 
     public function testCountingUsingFunction() {

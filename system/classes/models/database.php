@@ -83,6 +83,11 @@ class ModelDatabase extends Model {
     protected $db_data = [];
 
     /**
+     * Aliases
+     */
+    protected $aliases = [];
+
+    /**
      * Inital Setup
      */
     public function __construct($id = null, $driver = null) {
@@ -453,6 +458,11 @@ class ModelDatabase extends Model {
      */
     public function value($key) {
 
+        // Check for aliases
+        if (isset($this->aliases[$key])) {
+            $key = $this->aliases[$key];
+        }
+
         // If we already have it, return it
         if (array_key_exists($key, $this->data)) {
             $value = $this->data[$key];
@@ -687,6 +697,13 @@ class ModelDatabase extends Model {
 
     public function conditions($others = []) {
         return array_merge_recursive($this->defaults, $this->conditions);
+    }
+
+    /**
+     * Set aliases
+     */
+    public function alias($alias, $key) {
+        $this->aliases[$alias] = $key;
     }
 
 }

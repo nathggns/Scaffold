@@ -734,4 +734,18 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
 
         $this->assertEquals('9', $user->id);
     }
+
+    public function testAliasing() {
+        $user = new MDT_ModelUser(1);
+        $user->alias('alias_id', 'id');
+
+        $this->assertEquals($user->id, $user->alias_id);
+    }
+
+    public function testAliasingForFunction() {
+        $user = new MDT_ModelUser();
+        $user->alias('count', Database::func_count('*'));
+
+        $this->assertEquals(8, $user->count);
+    }
 }

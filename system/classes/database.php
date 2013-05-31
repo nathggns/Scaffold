@@ -80,7 +80,13 @@ class Database {
             return new Dynamic([
                 'type' => 'function',
                 'name' => $name,
-                'args' => $args
+                'args' => $args,
+                'column_name' => null,
+                'as' => function($dynamic, $column_name) {
+                    $dynamic->column_name = $column_name;
+
+                    return $dynamic;
+                }
             ]);
         }
 

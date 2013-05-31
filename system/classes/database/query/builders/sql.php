@@ -32,11 +32,33 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         if ($count) {
             $val = 'COUNT(*)';
         } else {
-            $vals = $this->backtick($vals);
+
+            $maps = [];
+
+            $vals = $this->backtick($vals, function($obj, $value) use (&$maps) {
+                $maps[$value] = $obj;
+
+                return $value;
+            });
 
             foreach ($vals as $key => $val) {
+
+                $alias = null;
+                $column = $key;
+
                 if (!is_int($key)) {
-                    $vals[$key] = $this->backtick($key) . ' AS ' . $val;
+                    $alias = $val;
+                    $column = $this->backtick($key);
+                }
+
+                if (isset($maps[$val]) && !is_null($maps[$val]->column_name)) {
+                    $alias = $this->backtick($maps[$val]->column_name);
+                }
+
+                $vals[$key] = $val;
+
+                if (!is_null($alias)) {
+                    $vals[$key] .= ' AS ' . $alias;
                 }
             }
 
@@ -379,12 +401,22 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         return $query;
     }
 
-    protected function backtick($value) {
-        if (is_array($value)) return array_map([$this, 'backtick'], $value);
+    protected function backtick($value, $callback = null) {
+        $_this = $this;
+
+        if (is_array($value)) return array_map(function($item) use ($_this, $callback) {
+            return $_this->backtick($item, $callback);
+        }, $value);
+
         if ($value === '*') return $value;
 
         if ($this->is_func($value)) {
+            $obj = $value;
             $value = $this->func($value, [$this, 'backtick']);
+
+            if (!is_null($callback)) {
+                $value = call_user_func_array($callback, [$obj, $value]);
+            }
         } else {
             if (strpos($value, '(') !== false && substr($value, -1, 1) === ')') {
                 preg_match('/(.*?)\((.*)\)/', $value, $matches);

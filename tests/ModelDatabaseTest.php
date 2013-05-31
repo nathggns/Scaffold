@@ -737,6 +737,23 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
         $user->delete();
     }
 
+    public function testNonCachingofAliasedFunctions() {
+        $users = new MDT_ModelUser();
+        $users->alias('count', Database::func_count('*'));
+        $count = $users->count;
+
+        $user = new MDT_ModelUser();
+        $user->create([
+            'name' => 'Charlie'
+        ]);
+
+        $this->assertEquals('9', $user->id);
+        $this->assertEquals($count + 1, $users->count);        
+
+        $user->delete();
+    }
+
+
     public function testCountingUsingFunction() {
         $user = new MDT_ModelUser();
         $count = $user->value(Database::func_count('*'));

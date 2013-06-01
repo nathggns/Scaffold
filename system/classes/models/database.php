@@ -747,4 +747,15 @@ class ModelDatabase extends Model {
         return $this->func($obj);
     }
 
+    public function random() {
+        $conditions = $this->conditions();
+        $this->reset();
+        $conditions['order'] = [ Database::func_random() ];
+        $conditions['limit'] = 1;
+
+        $this->find($conditions, Model::MODE_SINGLE);
+        
+        return $this;
+    }
+
 }

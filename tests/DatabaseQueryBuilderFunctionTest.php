@@ -18,8 +18,8 @@ class DatabaseQueryBuilderFunctionTest extends PHPUnit_Framework_TestCase {
     }
 
     public function testFallingBackToSQLFromSQLite() {
-        $func = Service::get('database.query.builder.function', 'random', []);
-        $this->assertEquals('RAND()', $func->generate('sqlite'));
+        $func = Service::get('database.query.builder.function', 'max', []);
+        $this->assertEquals('MAX()', $func->generate('sqlite'));
     }
 
 }

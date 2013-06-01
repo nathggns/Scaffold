@@ -6,4 +6,8 @@ class DatabaseQueryBuilderFunctionRandom extends DatabaseQueryBuilderFunction {
         return 'RAND(' . implode(', ' . $args) . ')';
     }
 
+    public function generate_sqlite($name, $args) {
+        return 'RANDOM(' . implode(', '. $args) . ')';
+    }
+
 }

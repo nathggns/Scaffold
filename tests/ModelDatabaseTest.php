@@ -781,4 +781,18 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals(8, $user->max('id'));
         $this->assertEquals(1, $user->min('id'));
     }
+
+    public function testRandom() {
+        $user = new MDT_ModelUser();
+
+        $ids = [];
+        $max = $user->count();
+        $i = 0;
+
+        while ($i++ < $max) {
+            $ids[] = $user->random()->id;
+        }
+
+        $this->assertNotEquals(1, count(array_unique($ids)));
+    }
 }

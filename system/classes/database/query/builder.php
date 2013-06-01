@@ -163,6 +163,24 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
         return $this;
     }
 
+    public function val($val, $clear_star = true) {
+        if (is_array($val)) {
+            while ($item = array_shift($val)) {
+                $this->val($item, $clear_star);
+            }
+        } else {
+
+            if ($clear_star && $this->query_opts['vals'] === ['*']) {
+                $this->query_opts['vals'] = [];
+            }
+
+            $this->query_opts['vals'][] = $val;
+        }
+
+        return $this;
+    }
+
+
     /* Utility functions for the subclass */
 
     protected function extract_select() {
@@ -288,6 +306,31 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
     protected function chained($data = null) {
         return $this->mode === static::MODE_CHAINED ||
             (!is_null($data) && count($data) === 1 && is_string(current($data)));
+    }
+
+    public function is_func($obj) {
+        return is_object($obj) && $obj->type === 'function';
+    }
+
+    public function func($obj, $callback = false, $deep = false) {
+        if (!$this->is_func($obj)) {
+            if ($deep && is_callable($callback)) {
+                $obj = call_user_func($callback, $obj);
+            }
+
+            return $obj;
+        }
+
+        $self = [$this, 'func'];
+
+        $args = array_map(function($arg) use ($callback, $self) {
+            return call_user_func($self, $arg, $callback, true);
+        }, $obj->args);
+        $name = $obj->name;
+        $func = Service::get('database.query.builder.function', $name, $args);
+        $resp = $func->generate($this->type);
+
+        return $resp;
     }
 
 }

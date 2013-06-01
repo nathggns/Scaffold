@@ -11,6 +11,8 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
     protected $joins = ['AND', 'OR'];
     protected $default_meta = ['connector' => 'AND', 'operator' => '='];
 
+    public $type = 'sql';
+
     public function select() {
         $args = func_get_args();
         $options = call_user_func_array([$this, 'extract_select'], $args);
@@ -30,11 +32,33 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         if ($count) {
             $val = 'COUNT(*)';
         } else {
-            $vals = $this->backtick($vals);
+
+            $maps = [];
+
+            $vals = $this->backtick($vals, function($obj, $value) use (&$maps) {
+                $maps[$value] = $obj;
+
+                return $value;
+            });
 
             foreach ($vals as $key => $val) {
+
+                $alias = null;
+                $column = $key;
+
                 if (!is_int($key)) {
-                    $vals[$key] = $this->backtick($key) . ' AS ' . $val;
+                    $alias = $val;
+                    $column = $this->backtick($key);
+                }
+
+                if (isset($maps[$val]) && !is_null($maps[$val]->column_name)) {
+                    $alias = $this->backtick($maps[$val]->column_name);
+                }
+
+                $vals[$key] = $val;
+
+                if (!is_null($alias)) {
+                    $vals[$key] .= ' AS ' . $alias;
                 }
             }
 
@@ -276,7 +300,7 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
             $obj = false;
 
             // Keep a reference to our object for later
-            if (is_object($val)) {
+            if (is_object($val) && !$this->is_func($val)) {
                 $obj = $val;
                 $val = $obj->val;
             }
@@ -303,7 +327,7 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
             if (!$first || $level < 2) $query .= ' ';
 
             // Let's escape val and stuff
-            if (is_scalar($val)) {
+            if (is_scalar($val) || $this->is_func($val)) {
                 $val = $this->escape($val);
             }
 
@@ -377,23 +401,37 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         return $query;
     }
 
-    protected function backtick($value) {
-        if (is_array($value)) return array_map([$this, 'backtick'], $value);
+    protected function backtick($value, $callback = null) {
+        $_this = $this;
+
+        if (is_array($value)) return array_map(function($item) use ($_this, $callback) {
+            return $_this->backtick($item, $callback);
+        }, $value);
+
         if ($value === '*') return $value;
 
-        if (strpos($value, '(') !== false && substr($value, -1, 1) === ')') {
-            preg_match('/(.*?)\((.*)\)/', $value, $matches);
+        if ($this->is_func($value)) {
+            $obj = $value;
+            $value = $this->func($value, [$this, 'backtick']);
 
-            $func = $matches[1];
-            $inside = $matches[2];
-            $parts = $this->split($inside);
-            $parts = $this->backtick($parts);
+            if (!is_null($callback)) {
+                $value = call_user_func_array($callback, [$obj, $value]);
+            }
+        } else {
+            if (strpos($value, '(') !== false && substr($value, -1, 1) === ')') {
+                preg_match('/(.*?)\((.*)\)/', $value, $matches);
 
-            return $func . '(' . implode(', ', $parts) . ')';
+                $func = $matches[1];
+                $inside = $matches[2];
+                $parts = $this->split($inside);
+                $parts = $this->backtick($parts);
+
+                return $func . '(' . implode(', ', $parts) . ')';
+            }
+
+            $value = str_replace('.', '`.`', $value);
+            $value = '`' . $value . '`';   
         }
-
-        $value = str_replace('.', '`.`', $value);
-        $value = '`' . $value . '`';
 
         return $value;
     }
@@ -432,16 +470,22 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
     }
 
     protected function escape($value) {
+
         if (is_array($value)) {
             return array_map([$this, 'escape'], $value);
         }
 
-        $validator = new Validate(['val' => 'numeric']);
+        if ($this->is_func($value)) {
+            $value = $this->func($value, [$this, 'escape']);
+        } else {
 
-        try {
-            $validator->test(['val' => $value]);
-        } catch (ExceptionValidate $e) {
-            $value = '\'' . $value . '\'';
+            $validator = new Validate(['val' => 'numeric']);
+
+            try {
+                $validator->test(['val' => $value]);
+            } catch (ExceptionValidate $e) {
+                $value = '\'' . $value . '\'';
+            }
         }
 
         return $value;

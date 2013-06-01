@@ -125,6 +125,17 @@ Service::singleton('database', function() {
     return new Database(Service::get('config'));
 });
 
+Service::register('database.query.builder.function', function($name, $args) {
+    $class = 'DatabaseQueryBuilderFunction';
+
+    if (Autoload::load($class . ucfirst($name))) {
+        $class = $class . ucfirst($name);
+    }
+
+
+    return new $class($name, $args);
+});
+
 // If we have a custom bootloader for the application, load that.
 if (file_exists(APPLICATION . 'bootstrap.php')) {
     include APPLICATION . 'bootstrap.php';

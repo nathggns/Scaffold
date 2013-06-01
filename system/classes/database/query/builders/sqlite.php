@@ -5,6 +5,8 @@
  */
 class DatabaseQueryBuilderSqlite extends DatabaseQueryBuilderSQL {
 
+    public $type = 'sqlite';
+
     function structure($table) {
         return 'PRAGMA table_info(' . $this->backtick($table) . ');';
     }

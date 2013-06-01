@@ -612,4 +612,67 @@ class DatabaseQueryBuilderSQLTest extends PHPUnit_Framework_Testcase {
         $this->assertEquals('SELECT * FROM `users` WHERE `name` = \'Nat\' AND `suspended` IS NULL;', $sql);
     }
 
+    public function testSelectWithValChained() {
+        $sql = $this->builder->select('users')
+            ->val('id')
+        ->end();
+
+        $this->assertEquals('SELECT `id` FROM `users`;', $sql);
+    }
+
+    public function testSelectWithValsInArrayChained() {
+        $sql = $this->builder->select('users')
+            ->val(['id', 'name'])
+        ->end();
+
+        $this->assertEquals('SELECT `id`, `name` FROM `users`;', $sql);
+    }
+
+    public function testSelectWithValsMultipleTimesChained() {
+        $sql = $this->builder->select('users')
+            ->val('id')->val('name')
+        ->end();
+
+        $this->assertEquals('SELECT `id`, `name` FROM `users`;', $sql);
+    }
+
+    public function testSelectWithValAndNotOverwritingStarChained() {
+        $sql = $this->builder->select('users')
+            ->val('id', false)
+        ->end();
+
+        $this->assertEquals('SELECT *, `id` FROM `users`;', $sql);
+    }
+
+    public function testSelectWithFunctionChained() {
+        $sql = $this->builder->select('users')
+            ->val(Database::func_count('*'))
+            ->val(Database::func_count('id'))
+            ->where('id', Database::func_count(function() {
+                return $this->max('id');
+            }))
+        ->end();
+
+        $this->assertEquals('SELECT COUNT(*), COUNT(`id`) FROM `users` WHERE `id` = COUNT(MAX(\'id\'));', $sql);
+    }
+
+    public function testSelectWithFunction() {
+        $sql = $this->builder->select([
+            'table' => 'users',
+            'vals' => [
+                Database::func_count('*')
+            ]
+        ]);
+
+        $this->assertEquals('SELECT COUNT(*) FROM `users`;', $sql);
+    }
+
+    public function testSelectWithFunctionAsColumnChained() {
+        $sql = $this->builder->select('users')
+            ->val(Database::func_count('*')->as('count'))
+        ->end();
+
+        $this->assertEquals('SELECT COUNT(*) AS `count` FROM `users`;', $sql);
+    }
+
 }

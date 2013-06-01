@@ -83,6 +83,11 @@ class ModelDatabase extends Model {
     protected $db_data = [];
 
     /**
+     * Aliases
+     */
+    protected $aliases = [];
+
+    /**
      * Inital Setup
      */
     public function __construct($id = null, $driver = null) {
@@ -237,23 +242,32 @@ class ModelDatabase extends Model {
         // Here to be overwritten
     }
 
-    protected function has_many($model, $alias = null, $foreign_key = null, $local_key = 'id') {
-        $this->relationship(static::HAS_MANY, $model, $alias, $foreign_key, $local_key);
+    public function has_many() {
+        $args = func_get_args();
+        array_unshift($args, static::HAS_MANY);
+
+        return call_user_func_array([$this, 'relationship'], $args);
     }
 
-    protected function has_one($model, $alias = null, $foreign_key = null, $local_key = 'id') {
-        $this->relationship(static::HAS_ONE, $model, $alias, $foreign_key, $local_key);
+    public function has_one() {
+        $args = func_get_args();
+        array_unshift($args, static::HAS_ONE);
+
+        return call_user_func_array([$this, 'relationship'], $args);
     }
 
-    protected function belongs_to($model, $alias = null, $foreign_key = null, $local_key = 'id') {
-        $this->relationship(static::BELONGS_TO, $model, $alias, $foreign_key, $local_key);
+    public function belongs_to() {
+        $args = func_get_args();
+        array_unshift($args, static::BELONGS_TO);
+
+        return call_user_func_array([$this, 'relationship'], $args);
     }
 
-    protected function habtm($model, $alias = null, $foreign_key, $local_key, $table_foreign_key, $table) {
+    public function habtm($model, $alias = null, $foreign_key, $local_key, $table_foreign_key, $table) {
         $this->relationship(static::HABTM, $model, $alias, $foreign_key, $local_key, ['table' => $table, 'table_foreign_key' => $table_foreign_key]);
     }
 
-    protected function relationship($type, $model, $alias = null, $foreign_key = null, $local_key = 'id', $other = []) {
+    public function relationship($type, $model, $alias = null, $foreign_key = null, $local_key = 'id', $other = []) {
 
         if (!$alias) {
 
@@ -284,16 +298,6 @@ class ModelDatabase extends Model {
         ];
 
         return $this;
-    }
-
-    protected function value($field, $value) {
-
-        if ($value instanceof Closure) {
-            $value = $value->bindTo($this);
-            $value = $value($field);
-        }
-        
-        return $value;
     }
 
     public function export($values = null, $level = 1, $count_models = false) {
@@ -452,15 +456,37 @@ class ModelDatabase extends Model {
     }
 
     /**
-     * Handle gets
-     * 
-     * @todo Lazy load all properties
+     * Alias for ModelDatabase::value
      */
     public function __get($key) {
+        return $this->value($key);
+    }
+
+    /**
+     * Handle gets
+     */
+    public function value($key) {
+
+        // Check for aliases
+        if (isset($this->aliases[$key])) {
+            $key = $this->aliases[$key];
+        }
+
+        // Is it a function?
+        if ($this->driver->builder->is_func($key)) {
+            return $this->func($key);
+        }
 
         // If we already have it, return it
         if (array_key_exists($key, $this->data)) {
-            return $this->value($key, $this->data[$key]);
+            $value = $this->data[$key];
+
+            if ($value instanceof Closure) {
+                $value = $value->bindTo($this);
+                $this->data[$key] = $value = call_user_func($value, $key);
+            }
+
+            return $value;
         }
 
         // If we won't be able to get it, throw an exception
@@ -472,7 +498,7 @@ class ModelDatabase extends Model {
         if (isset($this->virtual_fields[$key])) {
             $this->data[$key] = $this->virtual_fields[$key];
 
-            return $this->__get($key);
+            return $this->value($key);
         }
 
         // Let's check relationships...
@@ -523,19 +549,19 @@ class ModelDatabase extends Model {
                     switch ($type) {
                         case static::HAS_MANY:
                             $obj->fetch_all([
-                                $foreign_key => $this->__get($local_key)
+                                $foreign_key => $this->value($local_key)
                             ]);
                         break;
 
                         case static::HAS_ONE:
                             $obj->fetch([
-                                $foreign_key => $this->__get($local_key)
+                                $foreign_key => $this->value($local_key)
                             ]);
                         break;
 
                         case static::BELONGS_TO:
                             $obj->fetch([
-                                $local_key => $this->__get($foreign_key)
+                                $local_key => $this->value($foreign_key)
                             ]);
                         break;
 
@@ -544,7 +570,7 @@ class ModelDatabase extends Model {
                             $this->driver->find($rel['table'], [
                                 'vals' => [$foreign_key],
                                 'where' => [
-                                    $rel['table_foreign_key'] => $this->__get($local_key)
+                                    $rel['table_foreign_key'] => $this->value($local_key)
                                 ]
                             ]);
 
@@ -570,14 +596,14 @@ class ModelDatabase extends Model {
 
         // If the relationship stuff set it, return it
         if (isset($this->data[$key])) {
-            return $this->__get($key);
+            return $this->value($key);
         }
 
         // If we have already fetched it from the database
         if (array_key_exists($key, $this->db_data)) {
             $this->data[$key] = $this->db_data[$key];
 
-            return $this->__get($key);
+            return $this->value($key);
         }
 
         // If key is a column in the database
@@ -591,7 +617,7 @@ class ModelDatabase extends Model {
 
             $this->db_data = array_merge($this->db_data, $result);
 
-            return $this->__get($key);
+            return $this->value($key);
         }
     }
 
@@ -684,7 +710,52 @@ class ModelDatabase extends Model {
     }
 
     public function conditions($others = []) {
-        return array_merge_recursive($this->defaults, $this->conditions);
+        return array_merge_recursive($this->defaults, $this->conditions, $others);
+    }
+
+    /**
+     * Set aliases
+     */
+    public function alias($alias, $key) {
+        $this->aliases[$alias] = $key;
+    }
+
+    /** Get functions */
+    protected function func($key) {
+
+        if (!$this->driver->builder->is_func($key)) return;
+
+        $conditions = $this->conditions();
+        $alias = false;
+
+        while (!$alias || in_array($alias, array_values($conditions['vals'])) || in_array($alias, array_keys($conditions['vals']))) {
+            $alias = 'function_' . uniqid();
+        }
+
+        $key->as($alias);
+
+        $conditions['vals'][] = $key;
+
+        $result = $this->driver->find($this->table_name, $conditions)->fetch();
+
+        return $result[$alias];
+    }
+
+    public function __call($name, $args) {
+        $obj = call_user_func_array(['Database', 'func_' . $name], $args);
+
+        return $this->func($obj);
+    }
+
+    public function random() {
+        $conditions = $this->conditions();
+        $this->reset();
+        $conditions['order'] = [ Database::func_random() ];
+        $conditions['limit'] = 1;
+
+        $this->find($conditions, Model::MODE_SINGLE);
+        
+        return $this;
     }
 
 }

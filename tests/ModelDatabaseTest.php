@@ -733,5 +733,66 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
         ]);
 
         $this->assertEquals('9', $user->id);
+
+        $user->delete();
+    }
+
+    public function testNonCachingofAliasedFunctions() {
+        $users = new MDT_ModelUser();
+        $users->alias('count', Database::func_count('*'));
+        $count = $users->count;
+
+        $user = new MDT_ModelUser();
+        $user->create([
+            'name' => 'Charlie'
+        ]);
+
+        $this->assertEquals('9', $user->id);
+        $this->assertEquals($count + 1, $users->count);        
+
+        $user->delete();
+    }
+
+
+    public function testCountingUsingFunction() {
+        $user = new MDT_ModelUser();
+        $count = $user->value(Database::func_count('*'));
+
+        $this->assertEquals(8, $count);
+    }
+
+    public function testAliasing() {
+        $user = new MDT_ModelUser(1);
+        $user->alias('alias_id', 'id');
+
+        $this->assertEquals($user->id, $user->alias_id);
+    }
+
+    public function testAliasingForFunction() {
+        $user = new MDT_ModelUser();
+        $user->alias('count', Database::func_count('*'));
+
+        $this->assertEquals(8, $user->count);
+    }
+
+    public function testUsingCall() {
+        $user = new MDT_ModelUser();
+
+        $this->assertEquals(8, $user->max('id'));
+        $this->assertEquals(1, $user->min('id'));
+    }
+
+    public function testRandom() {
+        $user = new MDT_ModelUser();
+
+        $ids = [];
+        $max = $user->count();
+        $i = 0;
+
+        while ($i++ < $max) {
+            $ids[] = $user->random()->id;
+        }
+
+        $this->assertNotEquals(1, count(array_unique($ids)));
     }
 }

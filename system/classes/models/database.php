@@ -366,41 +366,6 @@ class ModelDatabase extends Model {
 
                     $data[$key] = $value;
                 }
-
-                if (false) {
-                    
-
-                    foreach ($schema as $key) {
-                        $value = $this->__get($key);
-
-                        if ($value instanceof Model) {
-
-                            if ($count_models) {
-                                $value = $value->count();
-                            } else if ($level > 0) {
-                                $value = $value->export(is_array($values[$key]) ? $values[$key] : null, $level - 1, $count_models);
-
-                                if (is_array($value) && count($value) > 0) {
-                                    $is_null = true;
-
-                                    foreach ($value as $part) {
-                                        if (!is_null($part)) {
-                                            $is_null = false;
-                                            break;
-                                        }
-                                    }
-
-                                    if ($is_null) continue;
-                                }
-                            } else {
-                                continue;
-                            }
-                        }
-
-                        $data[$key] = $value;
-                    }     
-                }
-
                
             break;
 

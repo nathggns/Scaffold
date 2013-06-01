@@ -732,4 +732,10 @@ class ModelDatabase extends Model {
         return $result[$alias];
     }
 
+    public function __call($name, $args) {
+        $obj = call_user_func_array(['Database', 'func_' . $name], $args);
+
+        return $this->func($obj);
+    }
+
 }

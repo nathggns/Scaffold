@@ -774,4 +774,11 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
 
         $this->assertEquals(8, $user->count);
     }
+
+    public function testUsingCall() {
+        $user = new MDT_ModelUser();
+
+        $this->assertEquals(8, $user->max('id'));
+        $this->assertEquals(1, $user->min('id'));
+    }
 }

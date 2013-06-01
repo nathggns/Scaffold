@@ -63,16 +63,20 @@ class Autoload {
         if (class_exists($class)) return true;
 
         // For manual paths
-        if (isset(static::$paths[$class]) && $result = static::load_file(static::$paths[$class])) return $result;
+        if (isset(static::$paths[$class]) && $result = static::load_file(static::$paths[$class], $class)) {
+            return $result;
+        }
 
         $parts = preg_split('/([[:upper:]][[:lower:]]+)/', $class, null, PREG_SPLIT_DELIM_CAPTURE|PREG_SPLIT_NO_EMPTY);
         $parts = array_map('strtolower', $parts);
 
-        if ($result = static::load_file($parts)) return $result;
+        if ($result = static::load_file($parts, $class)) {
+            return $result;
+        }
 
         $previous_parts = [];
 
-        foreach($parts as $key => $part) {
+        foreach ($parts as $key => $part) {
             $plural_directory = Inflector::pluralize($part);
 
 
@@ -82,8 +86,12 @@ class Autoload {
 
             $previous_parts[] = $parts[$key];
 
-            if ($result = static::load_file($parts)) return $result;
+            if ($result = static::load_file($parts, $class)) {
+                return $result;
+            }
         }
+
+        return false;
     }
 
     /**
@@ -109,7 +117,7 @@ class Autoload {
     /**
      * Gets the file name from a parts list
      */
-    private static function load_file($path) {
+    private static function load_file($path, $class) {
 
         if (is_array($path)) {
             $path = implode(DS, $path) . '.php';
@@ -117,6 +125,6 @@ class Autoload {
             $path = implode(DS, array_slice(explode(DS, substr($path, strlen(ROOT))), 2));
         }
 
-        return load_file('classes' . DS . $path);
+        return load_file('classes' . DS . $path) && class_exists($class);
     }
 }

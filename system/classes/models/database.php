@@ -242,23 +242,32 @@ class ModelDatabase extends Model {
         // Here to be overwritten
     }
 
-    protected function has_many($model, $alias = null, $foreign_key = null, $local_key = 'id') {
-        $this->relationship(static::HAS_MANY, $model, $alias, $foreign_key, $local_key);
+    public function has_many() {
+        $args = func_get_args();
+        array_unshift($args, static::HAS_MANY);
+
+        return call_user_func_array([$this, 'relationship'], $args);
     }
 
-    protected function has_one($model, $alias = null, $foreign_key = null, $local_key = 'id') {
-        $this->relationship(static::HAS_ONE, $model, $alias, $foreign_key, $local_key);
+    public function has_one() {
+        $args = func_get_args();
+        array_unshift($args, static::HAS_ONE);
+
+        return call_user_func_array([$this, 'relationship'], $args);
     }
 
-    protected function belongs_to($model, $alias = null, $foreign_key = null, $local_key = 'id') {
-        $this->relationship(static::BELONGS_TO, $model, $alias, $foreign_key, $local_key);
+    public function belongs_to() {
+        $args = func_get_args();
+        array_unshift($args, static::BELONGS_TO);
+
+        return call_user_func_array([$this, 'relationship'], $args);
     }
 
-    protected function habtm($model, $alias = null, $foreign_key, $local_key, $table_foreign_key, $table) {
+    public function habtm($model, $alias = null, $foreign_key, $local_key, $table_foreign_key, $table) {
         $this->relationship(static::HABTM, $model, $alias, $foreign_key, $local_key, ['table' => $table, 'table_foreign_key' => $table_foreign_key]);
     }
 
-    protected function relationship($type, $model, $alias = null, $foreign_key = null, $local_key = 'id', $other = []) {
+    public function relationship($type, $model, $alias = null, $foreign_key = null, $local_key = 'id', $other = []) {
 
         if (!$alias) {
 

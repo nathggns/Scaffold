@@ -137,20 +137,20 @@ class DatabaseDriverPDOTest extends PHPUnit_Framework_TestCase {
     public function testInsert() {
         $query = $this->driver->insert('users', [
             'name' => 'Claudio',
-            'partner' => 'SuperMegaHotGuy'
+            'partner' => 'Person'
         ]);
 
-        $this->assertEquals('INSERT INTO `users` (`name`, `partner`) VALUES (\'Claudio\', \'SuperMegaHotGuy\');', $query->query_string);
+        $this->assertEquals('INSERT INTO `users` (`name`, `partner`) VALUES (\'Claudio\', \'Person\');', $query->query_string);
     }
 
     public function testUpdate() {
         $query = $this->driver->update('users', [
-            'partner' => 'SuperMegaHotGuy'
+            'partner' => 'Person'
         ], [
             'name' => 'Claudio'
         ]);
 
-        $this->assertEquals('UPDATE `users` SET `partner` = \'SuperMegaHotGuy\' WHERE `name` = \'Claudio\';', $query->query_string);
+        $this->assertEquals('UPDATE `users` SET `partner` = \'Person\' WHERE `name` = \'Claudio\';', $query->query_string);
     }
 
     public function testDeleteWithoutWhere() {

@@ -15,4 +15,5 @@ interface DatabaseDriverInterface {
     public function update($table, $data = false, $where = false);
     public function delete($table, $where = []);
     public function id();
+    public function clear($table);
 }

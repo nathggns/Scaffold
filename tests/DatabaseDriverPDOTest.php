@@ -186,6 +186,6 @@ class DatabaseDriverPDOTest extends PHPUnit_Framework_TestCase {
     public function testEmpty() {
         $query = $this->driver->clear('users');
 
-        $this->assertEquals('DELETE FROM `users`;', $query);
+        $this->assertEquals('DELETE FROM `users`;', $query->query_string);
     }
 }

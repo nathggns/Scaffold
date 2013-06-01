@@ -483,11 +483,22 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
             'followers' => [
                 [
                     'id' => 2,
-                    'name' => 'Joe'
+                    'name' => 'Joe',
+                    'posts' => [],
+                    'settings' => null,
+                    'followers' => []
                 ],
                 [
                     'id' => 3,
-                    'name' => 'Andrew'
+                    'name' => 'Andrew',
+                    'posts' => [],
+                    'settings' => null,
+                    'followers' => [
+                        [
+                            'id' => 1,
+                            'name' => 'Nat'
+                        ]
+                    ]
                 ]
             ]
         ], $data);

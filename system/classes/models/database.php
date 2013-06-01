@@ -317,7 +317,7 @@ class ModelDatabase extends Model {
 
             case static::MODE_MULT:
                 foreach ($this as $item) {
-                    $data[] = $item->export($values, $level - 1, $count_models);
+                    $data[] = $item->export($values, $level, $count_models);
                 }
             break;
 

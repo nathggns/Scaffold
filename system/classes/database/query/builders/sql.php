@@ -216,6 +216,10 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         return 'SHOW FULL COLUMNS FROM ' . $this->backtick($table) . ';';
     }
 
+    public function clear($table) {
+        return 'TRUNCATE TABLE ' . $this->backtick($table) . ';';
+    }
+
     public function offset_val($val) {
         return 'OFFSET ' . $val;
     }

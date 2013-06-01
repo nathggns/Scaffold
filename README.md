@@ -1,6 +1,8 @@
 Scaffold [![Build Status](https://travis-ci.org/Scaffold/Scaffold.png?branch=development)](https://travis-ci.org/Scaffold/Scaffold)
 ========
 
+** THIS README IS SEVERELY OUT OF DATE. NEW DOCUMENTATION AND A GETTING STARTED GUIDE AND BEING WORKED ON **
+
 Lightweight PHP API Framework
 
 **Note:** This is not a usable state yet.

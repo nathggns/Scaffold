@@ -710,7 +710,7 @@ class ModelDatabase extends Model {
     }
 
     public function conditions($others = []) {
-        return array_merge_recursive($this->defaults, $this->conditions);
+        return array_merge_recursive($this->defaults, $this->conditions, $others);
     }
 
     /**

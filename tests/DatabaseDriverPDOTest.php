@@ -11,7 +11,7 @@
 class DDPT_DatabaseDriverPDOTestClass extends DatabaseDriverPDO {
 
     public $query_string;
-    var $query = true;
+    public $query = true;
 
     function query($sql, $ret = false) {
         $this->query_string = $sql;
@@ -181,5 +181,11 @@ class DatabaseDriverPDOTest extends PHPUnit_Framework_TestCase {
         ])->count();
 
         $this->assertEquals('SELECT COUNT(*) FROM `users` WHERE `id` = 5;', $query->query_string);
+    }
+
+    public function testEmpty() {
+        $query = $this->driver->clear('users');
+
+        $this->assertEquals('DELETE FROM `users`;', $query);
     }
 }

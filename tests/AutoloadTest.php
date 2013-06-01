@@ -2,26 +2,41 @@
 
 class AutoloadTest extends PHPUnit_Framework_TestCase {
 
-    static $paths = [];
-
     public function testNormalAutoloading() {
         $this->assertFalse(class_exists('Test', false));
+
         file_put_contents($path = SYSTEM . 'classes' . DS . 'test.php', '<?php class Test {}');
-        static::$paths[] = $path;
+
         $this->assertTrue(class_exists('Test'));
+
+        unlink($path);
     }
 
     public function testCustomAutoloading() {
         $this->assertFalse(class_exists('TestClass', false));
+
         file_put_contents($path = SYSTEM . 'classes' . DS . 'test_class.php', '<?php class TestClass {}');
-        static::$paths[] = $path;
         Autoload::register(['TestClass' => $path]);
+
         $this->assertEquals($path, Autoload::$paths['TestClass']);
         $this->assertTrue(class_exists('TestClass'));
+
+        unlink($path);
     }
 
-    public static function tearDownAfterClass() {
-        foreach (static::$paths as $path) unlink($path);
+    public function testThatFileExistingButClassNotReturnsFalse() {
+
+        $id = uniqid();
+
+        $this->assertFalse(class_exists('TestClass_' . $id, false));
+        $this->assertFalse(Autoload::load('TestClass_' . $id));
+
+        file_put_contents($path = SYSTEM . 'classes' . DS . 'test_' . $id . '.php', '');
+        
+        $this->assertFalse(class_exists('TestClass_' . $id, false));
+        $this->assertFalse(Autoload::load('TestClass_' . $id));
+
+        unlink($path);
     }
 
 }

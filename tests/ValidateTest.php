@@ -155,4 +155,48 @@ class ValidateTest extends PHPUnit_Framework_Testcase {
 
         $validator->test(['custom' => 'abc']);
     }
+
+    /**
+     * @expectedException ExceptionValidate
+     */
+    public function testWithNamedTests() {
+        $validator = new Validate([
+            'custom' => [
+                'equals_abc' => function($val) {
+                    return $val === 'abc';
+                },
+
+                'bigger_than_one' => function($val) {
+                    return false;
+                }
+            ]
+        ]);
+
+        $validator->test(['custom' => 'abcd']);
+    }
+
+    public function testWithNamedTestsFailAndCheckExc() {
+        $validator = new Validate([
+            'custom' => 'not_empty',
+            'abcd' => [
+                'not_abc' => function($val) {
+                    return $val !== 'abc';
+                }
+            ]
+        ]);
+
+        $failed = true;
+
+        try {
+            $validator->test(['custom' => 'abcd', 'abcd' => 'abc']);
+        } catch (ExceptionValidate $e) {
+            $failed = array_search('not_abc', array_map(function($error) {
+                return array_map(function($error) {
+                    return $error['rule'];
+                }, $error['errors'])[0];
+            }, $e->errors));
+        }
+
+        $this->assertNotEquals(-1, $failed);
+    }
 }

@@ -23,6 +23,11 @@ class Validate {
     private $modifiers = ['not'];
 
     /**
+     * Test specific checks
+     */
+    private $test_checks = [];
+
+    /**
      * Test statuses
      */
     const TEST_FAILED = 1;
@@ -44,6 +49,7 @@ class Validate {
      * Set rules
      */
     public function set($name, $value = null) {
+
         $rules = $this->args($name, $value);
 
         foreach ($rules as $k => $v) {
@@ -64,24 +70,34 @@ class Validate {
     /**
      * Argument shuffling
      */
-    public function args($name, $value = null) {
+    public function args($name, $value = null, $root = true) {
 
         $rules = [];
 
-        if (is_null($value) && (is_string($name) || !is_hash($name))) {
+        if (is_null($value) && (is_string($name) || (!is_hash($name)))) {
             $value = is_string($name) ? [$name] : $name;
             $name = false;
+
             $rules[$name] = $value;
         }
 
-        if ((is_null($name) || is_string($name)) && (is_string($value) || !is_hash($value) || is_callable($value))) {
+        if ((is_null($name) || is_string($name)) && (is_string($value) || !is_hash($value) || is_callable($value) || (is_hash($value) && !$root))) {
+
             if (!is_array($value)) $value = [$value];
             if (is_null($name)) $name = false;
 
             $values = [];
+            $is_hash = is_array($value);
 
-            foreach ($value as $item) {
-                $item = is_string($item) ? explode(' ', $item) : [$item];
+            foreach ($value as $test_name => $item) {
+
+                if (is_hash($value)) {
+                    $this->test_checks[$name][$test_name] = $item;
+                    $item = [$test_name];
+                } else {
+                    $item = is_string($item) ? explode(' ', $item) : [$item];
+                }
+
                 $values = array_merge($values, $item);
             }
 
@@ -89,7 +105,7 @@ class Validate {
         } else if (is_array($name) && is_null($value)) {
             foreach ($name as $k => $v) {
                 if ($k === '') $k = null;
-                $rules = array_merge($rules, $this->args($k, $v));
+                $rules = array_merge($rules, $this->args($k, $v, false));
             }
         }
 
@@ -112,6 +128,8 @@ class Validate {
         } else {
 
             foreach ($this->_rules as $field => $rules) {
+
+
                 $c_data = [];
 
                 if (!$field) {
@@ -133,11 +151,18 @@ class Validate {
 
                     foreach ($rules as $original_rule) {
                         $rule = $original_rule;
+                        $rule_name = null;
+
+                        if (isset($this->test_checks[$field][$rule])) {
+                            $rule_name = $rule;
+                            $rule = $this->test_checks[$field][$rule];
+                        }
+
                         $mods = [];
 
                         if (is_callable($rule)) {
                             $result = $rule($value);
-                            $rule = 'custom';
+                            $rule = $rule_name ? $rule_name : 'closure';
                         } else if (is_string($rule)) {
                             if ($this->check_is_regex($rule)) {
                                 $rule = 'regex';

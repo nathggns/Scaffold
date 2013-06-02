@@ -3,7 +3,7 @@ RewriteEngine On
 
 # Set the RewriteBase.
 # This needs to be the path to this folder from your document root.
-RewriteBase /Scaffold/
+RewriteBase /
 
 # Protect application and system files from being viewed
 RewriteRule ^(?:application|system|tests)\b.* index.php/$0 [L]

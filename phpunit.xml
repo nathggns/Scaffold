@@ -8,13 +8,13 @@
     <filter>
        <whitelist>
            <directory>./system</directory>
-           <directory>./application</directory>
            <exclude>
                <directory>./build</directory>
                <directory>./composer</directory>
                <directory>./tests</directory>
                <directory>./travis</directory>
                <directory>./vendor</directory>
+               <directory>./application</directory>
            </exclude>
        </whitelist>
    </filter>

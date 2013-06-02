@@ -7,19 +7,6 @@ class RequestTest extends PHPUnit_Framework_Testcase {
     }
 
     /**
-     * @covers Request::$supported_methods
-     */
-    public function testSupportedMethods() {
-        $this->assertEquals(Request::$supported_methods, array(
-            'get',
-            'post',
-            'put',
-            'delete',
-            'head'
-        ));
-    }
-
-    /**
      * @covers Request::detect_uri
      */
     public function testDetectUri() {

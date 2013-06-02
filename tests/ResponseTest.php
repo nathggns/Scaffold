@@ -7,13 +7,6 @@ class ResponseTest extends PHPUnit_Framework_Testcase {
     }
 
     /**
-     * @covers Response::$codes
-     */
-    public function testCodes() {
-        $this->assertEquals(Response::$codes[200], 'OK');
-    }
-
-    /**
      * @covers Response::encoder
      */
     public function testEncoder() {

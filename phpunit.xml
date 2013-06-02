@@ -1,3 +1,27 @@
-<phpunit bootstrap="tests/bootstrap.php"
-         backupGlobals="false">
+<phpunit bootstrap="tests/bootstrap.php" backupGlobals="false">
+    <testsuites>
+        <testsuite name="Scaffold Test Suite">
+            <directory>./tests/</directory>
+        </testsuite>
+    </testsuites>
+
+    <filter>
+       <whitelist>
+           <directory>./system</directory>
+           <directory>./application</directory>
+           <exclude>
+               <directory>./build</directory>
+               <directory>./composer</directory>
+               <directory>./tests</directory>
+               <directory>./travis</directory>
+               <directory>./vendor</directory>
+           </exclude>
+       </whitelist>
+   </filter>
+
+   <logging>
+       <log type="coverage-clover" target="build/logs/clover.xml"/>
+   </logging>
+
+
 </phpunit>

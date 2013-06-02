@@ -1,4 +1,4 @@
-Scaffold [![Build Status](https://travis-ci.org/Scaffold/Scaffold.png?branch=development)](https://travis-ci.org/Scaffold/Scaffold)
+Scaffold [![Build Status](https://travis-ci.org/Scaffold/Scaffold.png?branch=development)](https://travis-ci.org/Scaffold/Scaffold) [![Coverage Status](https://coveralls.io/repos/Scaffold/Scaffold/badge.png?branch=development)](https://coveralls.io/r/Scaffold/Scaffold?branch=development)
 ========
 
 **THIS README IS SEVERELY OUT OF DATE. NEW DOCUMENTATION AND A GETTING STARTED GUIDE ARE BEING WORKED ON**

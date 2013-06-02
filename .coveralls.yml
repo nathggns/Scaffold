@@ -1,0 +1,3 @@
+coverage_clover: build/logs/clover.xml
+src_dir: .
+service_name: travis

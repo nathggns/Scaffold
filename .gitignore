@@ -2,3 +2,6 @@
 .DS_Store
 application/config
 build
+vendor
+composer.*
+!composer.json

@@ -13,7 +13,7 @@ script:
  - phpunit -c phpunit.xml
 
 after_script:
- - 
+ - php vendor/bin/coveralls -v
 
 notifications:
  email:

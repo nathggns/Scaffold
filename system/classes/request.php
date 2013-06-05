@@ -132,7 +132,20 @@ class Request {
      * @return string URI
      */
     public static function detect_uri() {
-        return isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : '/';
+
+        if (isset($_SERVER['PATH_INFO'])) {
+            return $_SERVER['PATH_INFO'];
+        }
+
+        if (CONSOLE) {
+            $argv = static::detect_argv();
+
+            if (isset($argv['uri'])) {
+                return $argv['uri'];
+            }
+        }
+
+        return '/';
     }
 
     /**

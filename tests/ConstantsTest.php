@@ -12,4 +12,10 @@ class ConstantsTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals(DIRECTORY_SEPARATOR, DS);
     }
 
+    public function testConsoleConstant() {
+        $this->assertTrue(defined('CONSOLE'));
+        $this->assertTrue(CONSOLE);
+    }
+
+
 }

@@ -12,6 +12,7 @@ class Request {
     const PUT    = 'put';
     const DELETE = 'delete';
     const HEAD   = 'head';
+    const CONSOLE = 'console';
 
     /**
      * HTTP methods supported by this class
@@ -23,7 +24,8 @@ class Request {
         self::POST,
         self::PUT,
         self::DELETE,
-        self::HEAD
+        self::HEAD,
+        self::CONSOLE
     ];
 
     /**
@@ -198,7 +200,15 @@ class Request {
      * @return string Request method
      */
     public static function detect_request_method() {
-        return isset($_SERVER['REQUEST_METHOD']) ? strtolower($_SERVER['REQUEST_METHOD']) : 'get';
+        if (isset($_SERVER['REQUEST_METHOD'])) {
+            return strtolower($_SERVER['REQUEST_METHOD']);
+        }
+
+        if (CONSOLE) {
+            return 'console';
+        }
+
+        return 'get';
     }
 
     /**
@@ -214,7 +224,8 @@ class Request {
                 return $_POST;
 
             case 'get':
-                // GET requests don't have a body
+            case 'console':
+                // GET and CONSOLE requests don't have a body
                 return [];
 
             case 'post':

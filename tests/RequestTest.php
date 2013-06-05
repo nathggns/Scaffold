@@ -100,7 +100,8 @@ class RequestTest extends PHPUnit_Framework_Testcase {
             '--ab=def',
             '--ab=fe',
             'acdef',
-            '--xz=cy'
+            '--xz=cy',
+            '--=abcdef'
         ];
 
         $argv = Request::detect_argv();
@@ -111,7 +112,8 @@ class RequestTest extends PHPUnit_Framework_Testcase {
             'abcdefg',
             'ab' => 'fe',
             'acdef',
-            'xz' => 'cy'
+            'xz' => 'cy',
+            '--=abcdef'
         ], $argv);
     }
 

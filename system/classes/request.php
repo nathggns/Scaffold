@@ -41,6 +41,15 @@ class Request {
     protected $query = [];
 
     /**
+
+    /**
+     * The regex pattern used to parse CLI arguments.
+     *
+     * Group one should be key, group two should be value
+     *
+     * @var string
+     */
+    protected static $argv_pattern = '/^(?:--(.*?)=)?(.+)$/i';
      * Route parameters
      *
      * @var array
@@ -114,6 +123,36 @@ class Request {
      */
     public static function detect_uri() {
         return isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : '/';
+    }
+
+    /**
+     * Detect and parse command line arguments
+     */
+    public static function detect_argv() {
+
+        if (!CONSOLE) return [];
+
+        $argv = array_slice($_SERVER['argv'], 1);
+
+        $pattern = static::$argv_pattern;
+
+        $parts = array_map(function($item) use ($pattern) {
+            preg_match($pattern, $item, $matches);
+
+            return array_slice($matches, 1);
+        }, $argv);
+
+        $args = [];
+
+        foreach ($parts as $part) {
+            if (!empty($part[0])) {
+                $args[$part[0]] = $part[1];
+            } else {
+                $args[] = $part[1];
+            }
+        }
+
+        return $args;
     }
 
     /**

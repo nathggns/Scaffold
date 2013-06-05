@@ -41,6 +41,11 @@ class Request {
     protected $query = [];
 
     /**
+     * Parsed CLI arguments
+     *
+     * @var array
+     */
+    protected $argv = [];
 
     /**
      * The regex pattern used to parse CLI arguments.
@@ -50,6 +55,8 @@ class Request {
      * @var string
      */
     protected static $argv_pattern = '/^(?:--(.*?)=)?(.+)$/i';
+
+    /**
      * Route parameters
      *
      * @var array
@@ -88,6 +95,7 @@ class Request {
         $this->query    = static::detect_query();
         $this->body     = static::detect_body();
         $this->headers  = static::detect_headers();
+        $this->argv     = static::detect_argv();
     }
 
     /**

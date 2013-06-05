@@ -48,7 +48,7 @@ class RequestTest extends PHPUnit_Framework_Testcase {
         $this->assertEquals(Request::detect_request_method(), 'post');
 
         unset($_SERVER['REQUEST_METHOD']);
-        $this->assertEquals(Request::detect_request_method(), 'get');
+        $this->assertEquals(Request::detect_request_method(), 'console');
     }
 
     /**

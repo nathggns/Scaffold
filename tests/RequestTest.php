@@ -87,4 +87,32 @@ class RequestTest extends PHPUnit_Framework_Testcase {
         $this->assertEquals($request->method, $method);
     }
 
+    /**
+     * @covers Request::detect_argv
+     */
+    public function testArgv() {
+
+        $_argv = $_SERVER['argv'];
+
+        $_SERVER['argv'] = [
+            'THIS GETS REMOVED',
+            'abcdefg',
+            '--ab=def',
+            '--ab=fe',
+            'acdef',
+            '--xz=cy'
+        ];
+
+        $argv = Request::detect_argv();
+
+        $_SERVER['argv'] = $_argv;
+
+        $this->assertEquals([
+            'abcdefg',
+            'ab' => 'fe',
+            'acdef',
+            'xz' => 'cy'
+        ], $argv);
+    }
+
 }

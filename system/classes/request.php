@@ -56,7 +56,7 @@ class Request {
      *
      * @var string
      */
-    protected static $argv_pattern = '/^(?:--(.*?)=)?(.+)$/i';
+    protected static $argv_pattern = '/^(?:--(.+?)=)?(.+)$/i';
 
     /**
      * Route parameters

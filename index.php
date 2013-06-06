@@ -27,7 +27,7 @@ defined('SCAFFOLD') or define('SCAFFOLD', true);
 /**
  * What enviroment are we working with?
  */
-defined('ENVIROMENT') or define('ENVIROMENT', getenv('SCAFFOLD_ENV'));
+defined('ENVIRONMENT') or define('ENVIRONMENT', getenv('SCAFFOLD_ENV'));
 
 /**
  * Standard directory seperator.

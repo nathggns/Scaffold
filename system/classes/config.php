@@ -30,8 +30,8 @@ class Config {
 
             $real = [];
 
-            if (ENVIROMENT && isset($part[ENVIROMENT])) {
-                $real = $part[ENVIROMENT];
+            if (ENVIRONMENT && isset($part[ENVIRONMENT])) {
+                $real = $part[ENVIRONMENT];
             } else if (isset($part['default'])) {
                 $real = $part['default'];
             }

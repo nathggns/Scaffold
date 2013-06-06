@@ -247,7 +247,9 @@ class Router {
 
         $route = $this->find_route($request);
 
-        if (!$route) static::throw_error($request->method, $request->uri);
+        if (!$route || (!CONSOLE && $request->method === Request::CONSOLE)) {
+            static::throw_error($request->method, $request->uri);
+        }
 
         // parse URI and add defaults
         $params = static::parse_uri($request->uri, $route['path']);

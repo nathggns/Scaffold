@@ -96,12 +96,20 @@ class RequestTest extends PHPUnit_Framework_Testcase {
 
         $_SERVER['argv'] = [
             'THIS GETS REMOVED',
-            'abcdefg',
-            '--ab=def',
-            '--ab=fe',
-            'acdef',
-            '--xz=cy',
-            '--=abcdef'
+            '--key=val',
+            '--key2=val2',
+            '--key3',
+            '-k',
+            '--key4=val4',
+            '--key5 val5',
+            '--key6 "val 6"',
+            '--k2 "val 7\'"',
+            '--k3 "val \\"5\\""',
+            'abc',
+            'def',
+            '--filter RequestTest::testArgv',
+            '--k4 a\ b',
+            '"abc def"'
         ];
 
         $argv = Request::detect_argv();
@@ -109,11 +117,20 @@ class RequestTest extends PHPUnit_Framework_Testcase {
         $_SERVER['argv'] = $_argv;
 
         $this->assertEquals([
-            'abcdefg',
-            'ab' => 'fe',
-            'acdef',
-            'xz' => 'cy',
-            '--=abcdef'
+            'abc',
+            'def',
+            '"abc def"',
+            'key' => 'val',
+            'key2' => 'val2',
+            'key3' => '',
+            'k' => '',
+            'key4' => 'val4',
+            'key5' => 'val5',
+            'key6' => 'val 6',
+            'k2' => 'val 7\'',
+            'k3' => 'val "5"',
+            'filter' => 'RequestTest::testArgv',
+            'k4' => 'a b'
         ], $argv);
     }
 

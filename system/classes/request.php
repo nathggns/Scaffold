@@ -52,11 +52,70 @@ class Request {
     /**
      * The regex pattern used to parse CLI arguments.
      *
-     * Group one should be key, group two should be value
-     *
      * @var string
      */
-    protected static $argv_pattern = '/^(?:--(.+?)=)?(.+)$/i';
+    protected static $argv_pattern = <<<'EOT'
+/
+    (?:                                                     # start parameter
+        (?:                                                     # start key value section
+            (                                                       # start key
+                (?:                                                     # start long key
+                    --[^=\s]+                                               # long key
+                )                                                       # end long key
+                |
+                (?:                                                     # start short key
+                    -[^=]                                                   # short key
+                )                                                       # end short key
+            )                                                       # end key
+
+            (?:                                                     # start value
+                [=\s]                                                   # key value seperator
+                (                                                       # start real value
+                    (?:                                                     # start simple values (not inside quotes)
+                        \\.                                                     # escaped characters
+                        |
+                        [^\s\-"']                                               # normal characters
+                    )+                                                      # end simple values
+                    |
+                    (?:                                                     # start advances values (inside quotes)
+                        (["'])                                                  # start quote
+                        (?:
+                            \\.                                                     # escaped characters
+                            |
+                            (?!\3)                                                  # any character
+                            .                                                       # besides end quote
+                        )*?  
+                        \3                                                      # end quote
+                    )                                                       # end adances
+                )
+            )?                                                       # end value
+        )                                                        # end key val section
+        |
+        (                                                        # start keyless parameter section
+            (?:                                                      # start simple section (not inside quotes)
+                (?:
+                    \\.                                                  # escaped characters
+                    |
+                    [^\s\-"']                                            # normal characters
+                )+
+            )                                                        # end simple section
+            |
+            (?:                                                      # start advanced values (inside quotes)
+                (["'])                                                   # start quote
+                (?:
+                    \\.                                                      # escaped character
+                    |
+                    (?!\5)                                                   # anything but end quote
+                    .
+                )*?
+                \5                                                       # end quote
+            )                                                        # end advanced values
+        )                                                        # end key less parameter section
+    )                                                        # end parameter
+
+    \s?                                                      # parameter seperator
+/x
+EOT;
 
     /**
      * Route parameters
@@ -150,32 +209,55 @@ class Request {
 
     /**
      * Detect and parse command line arguments
+     *
+     * @param string $pattern Expression used to decode arguments.
      */
-    public static function detect_argv() {
+    public static function detect_argv($pattern = null) {
 
         if (!CONSOLE) return [];
 
-        $argv = array_slice($_SERVER['argv'], 1);
-
-        $pattern = static::$argv_pattern;
-
-        $parts = array_map(function($item) use ($pattern) {
-            preg_match($pattern, $item, $matches);
-
-            return array_slice($matches, 1);
-        }, $argv);
-
-        $args = [];
-
-        foreach ($parts as $part) {
-            if (!empty($part[0])) {
-                $args[$part[0]] = $part[1];
-            } else {
-                $args[] = $part[1];
-            }
+        if (is_null($pattern)) {
+            $pattern = static::$argv_pattern;
         }
 
-        return $args;
+        $argv = array_slice($_SERVER['argv'], 1);
+        $string = implode(' ', $argv);
+
+        preg_match_all($pattern, $string, $matches);
+
+        $matches[1] = array_map(function($item) {
+            return ltrim($item, '-');
+        }, $matches[1]);
+
+        $matches[4] = array_filter($matches[4], function($item) {
+            return !empty($item);
+        });
+
+        $matches[2] = array_map(function($item) {
+
+            if (
+                ($item[0] === '"' || $item[0] === chr(39)) &&
+                $item[0] === substr($item, -1)
+            ) {
+                $item = substr($item, 1, strlen($item) - 2);
+            }
+
+            $item = preg_replace('/\\\\(.)/', '$1', $item);
+
+            return $item;
+        }, $matches[2]);
+
+        $matches[4] = array_map(function($item) {
+            $item = preg_replace('/\\\\(.)/', '$1', $item);
+
+            return $item;
+        }, $matches[4]);
+
+        $params = array_merge($matches[4], array_combine($matches[1], $matches[2]));
+
+        unset($params['']);
+
+        return $params;
     }
 
     /**
@@ -269,5 +351,4 @@ class Request {
     public function __get($property) {
         return $this->$property;
     }
-
 }

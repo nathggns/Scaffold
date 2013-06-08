@@ -419,7 +419,7 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
     public function testExportUserBasic() {
         $user = $this->get()->fetch(['id' => 1]);
 
-        $data = $user->export();
+        $data = $user->export(null, 1);
 
         $expected = [
             'id' => $user->id,
@@ -572,7 +572,7 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
     public function testExportWithRelationshipsWithoutData() {
         $user = new MDT_ModelUser(2, static::$driver);
 
-        $data = $user->export();
+        $data = $user->export(null, 1);
 
         $expected = [
             'id' => $user->id,

@@ -300,7 +300,7 @@ class ModelDatabase extends Model {
         return $this;
     }
 
-    public function export($values = null, $level = 1, $count_models = false) {
+    public function export($values = null, $level = 0, $count_models = false) {
 
         if ($this->count() < 1) {
 

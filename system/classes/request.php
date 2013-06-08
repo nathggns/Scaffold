@@ -58,7 +58,7 @@ class Request {
 /
     (?:                                                     # start parameter
         (?:                                                     # start key value section
-            (                                                       # start key
+            (?<keys>                                                # start key
                 (?:                                                     # start long key
                     --[^=\s]+                                               # long key
                 )                                                       # end long key
@@ -70,7 +70,7 @@ class Request {
 
             (?:                                                     # start value
                 [=\s]                                                   # key value seperator
-                (                                                       # start real value
+                (?<values>                                               # start real value
                     (?:                                                     # start simple values (not inside quotes)
                         \\.                                                     # escaped characters
                         |
@@ -91,7 +91,7 @@ class Request {
             )?                                                       # end value
         )                                                        # end key val section
         |
-        (                                                        # start keyless parameter section
+        (?<others>                                               # start keyless parameter section
             (?:                                                      # start simple section (not inside quotes)
                 (?:
                     \\.                                                  # escaped characters
@@ -116,6 +116,13 @@ class Request {
     \s?                                                      # parameter seperator
 /x
 EOT;
+
+    /**
+     * The function to handle the results from the regex pattern matching
+     *
+     * @var Closure
+     */
+    protected static $argv_callback;
 
     /**
      * Route parameters
@@ -212,12 +219,16 @@ EOT;
      *
      * @param string $pattern Expression used to decode arguments.
      */
-    public static function detect_argv($pattern = null) {
+    public static function detect_argv($pattern = null, $closure = null) {
 
         if (!CONSOLE) return [];
 
+        if (is_null($closure)) {
+            $closure = static::get_argv_callback();
+        }
+
         if (is_null($pattern)) {
-            $pattern = static::$argv_pattern;
+            $pattern = static::get_argv_pattern();
         }
 
         $argv = array_slice($_SERVER['argv'], 1);
@@ -225,38 +236,8 @@ EOT;
 
         preg_match_all($pattern, $string, $matches);
 
-        $matches[1] = array_map(function($item) {
-            return ltrim($item, '-');
-        }, $matches[1]);
-
-        $matches[4] = array_filter($matches[4], function($item) {
-            return !empty($item);
-        });
-
-        $matches[2] = array_map(function($item) {
-
-            if (
-                ($item[0] === '"' || $item[0] === chr(39)) &&
-                $item[0] === substr($item, -1)
-            ) {
-                $item = substr($item, 1, strlen($item) - 2);
-            }
-
-            $item = preg_replace('/\\\\(.)/', '$1', $item);
-
-            return $item;
-        }, $matches[2]);
-
-        $matches[4] = array_map(function($item) {
-            $item = preg_replace('/\\\\(.)/', '$1', $item);
-
-            return $item;
-        }, $matches[4]);
-
-        $params = array_merge($matches[4], array_combine($matches[1], $matches[2]));
-
-        unset($params['']);
-
+        $params = call_user_func($closure, $matches);
+       
         return $params;
     }
 
@@ -350,5 +331,79 @@ EOT;
      */
     public function __get($property) {
         return $this->$property;
+    }
+
+    /**
+     * Getter for argv_pattern
+     *
+     * @return string argv_pattern
+     */
+    public static function get_argv_pattern() {
+        return static::$argv_pattern;
+    }
+
+    /**
+     * Setter for argv_pattern
+     *
+     * @param string $pattern New argv_pattern
+     */
+    public static function set_argv_pattern($pattern) {
+        static::$argv_pattern = $pattern;
+    }
+
+    /**
+     * Getter for argv_callback
+     * 
+     * @return Closure argv_callback
+     */
+    public static function get_argv_callback() {
+        if (!static::$argv_callback) {
+            static::$argv_callback = function($matches) {
+                $matches['keys'] = array_map(function($item) {
+                    return ltrim($item, '-');
+                }, $matches['keys']);
+
+                $matches['others'] = array_filter($matches['others'], function($item) {
+                    return !empty($item);
+                });
+
+                $matches['values'] = array_map(function($item) {
+
+                    if (
+                        ($item[0] === '"' || $item[0] === chr(39)) &&
+                        $item[0] === substr($item, -1)
+                    ) {
+                        $item = substr($item, 1, strlen($item) - 2);
+                    }
+
+                    $item = preg_replace('/\\\\(.)/', '$1', $item);
+
+                    return $item;
+                }, $matches['values']);
+
+                $matches['others'] = array_map(function($item) {
+                    $item = preg_replace('/\\\\(.)/', '$1', $item);
+
+                    return $item;
+                }, $matches['others']);
+
+                $params = array_merge($matches['others'], array_combine($matches['keys'], $matches['values']));
+
+                unset($params['']);
+
+                return $params;
+            };
+        }
+
+        return static::$argv_callback;
+    }
+
+    /**
+     * Setter for argv_callback
+     *
+     * @param closure Closure new argv_callback
+     */
+    public static function set_argv_callback($callback) {
+        static::$argv_callback = $callback;
     }
 }

@@ -78,14 +78,14 @@ class Request {
                     )+                                                      # end simple values
                     |
                     (?:                                                     # start advances values (inside quotes)
-                        (["'])                                                  # start quote
+                        (?<start>["'])                                          # start quote
                         (?:
                             \\.                                                     # escaped characters
                             |
-                            (?!\3)                                                  # any character
+                            (?!\<start>)                                            # any character
                             .                                                       # besides end quote
                         )*?  
-                        \3                                                      # end quote
+                        \k<start>                                               # end quote
                     )                                                       # end adances
                 )
             )?                                                       # end value
@@ -101,14 +101,14 @@ class Request {
             )                                                        # end simple section
             |
             (?:                                                      # start advanced values (inside quotes)
-                (["'])                                                   # start quote
+                (?<startkeyless>["'])                                    # start quote
                 (?:
                     \\.                                                      # escaped character
                     |
-                    (?!\5)                                                   # anything but end quote
-                    .
+                    (?!\<startkeyless>)                                      # anything but
+                    .                                                        # end quote
                 )*?
-                \5                                                       # end quote
+                \k<startkeyless>                                         # end quote
             )                                                        # end advanced values
         )                                                        # end key less parameter section
     )                                                        # end parameter

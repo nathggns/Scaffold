@@ -11,5 +11,4 @@ class DatabaseQueryBuilderSqliteTest extends DatabaseQueryBuilderSQLTest {
 
         $this->assertEquals('DELETE FROM `users`;', $sql);
     }
-
 }

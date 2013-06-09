@@ -495,7 +495,7 @@ class ModelDatabase extends Model {
 
                     $class_name = static::$prefix . $model;
 
-                    $obj = new $class_name;
+                    $obj = new $class_name(null, $this->driver);
 
                     $foreign_key = $rel['foreign_key'];
                     $local_key = $rel['local_key'];
@@ -671,7 +671,7 @@ class ModelDatabase extends Model {
 
         if (is_array($results)) {
             foreach ($results as $result) {
-                $this->rows[] = new $class($result['id']);
+                $this->rows[] = new $class($result['id'], $this->driver);
             }
         }
 

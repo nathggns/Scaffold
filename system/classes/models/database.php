@@ -223,6 +223,26 @@ class ModelDatabase extends Model {
             throw new Exception('Can\'t delete non-single row');
         }
 
+        foreach ($this->relationships as $type => $relationships) {
+            foreach ($relationships as $model => $real_realationships) {
+                foreach ($real_realationships as $relationship) {
+                    if ($relationship['dependant']) {
+                        $models = $this->value($relationship['alias']);
+
+                        if ($models->mode === static::MODE_SINGLE) {
+                            $models = [$models];
+                        }
+
+                        foreach ($models as $model) {
+                            if ($model->count()) {
+                                $model->delete();    
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         $id = $this->id;
 
         $this->driver->delete($this->table_name, ['id' => $id]);
@@ -286,7 +306,8 @@ class ModelDatabase extends Model {
             'model' => $model,
             'alias' => $alias,
             'foreign_key' => $foreign_key,
-            'local_key' => $local_key
+            'local_key' => $local_key,
+            'dependant' => $dependant
         ], $other);
 
         // @TODO Use a single method to build the array

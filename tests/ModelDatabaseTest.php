@@ -17,7 +17,13 @@ class MDT_ModelUser extends ModelDatabase {
 
     public function init() {
         $this->has_many('MDT_ModelPost', 'posts');
-        $this->has_one('MDT_ModelSettings', 'settings');
+
+        $this->has_one([
+            'model' => 'MDT_ModelSettings',
+            'alias' => 'settings',
+            'dependant' => true
+        ]);
+
         $this->habtm('MDT_ModelUser', 'followers', 'follower_id', 'id', 'user_id', 'friendships');
     }
 }
@@ -794,5 +800,17 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
         }
 
         $this->assertNotEquals(1, count(array_unique($ids)));
+    }
+
+    public function testDependantRelationships() {
+        $user = new MDT_ModelUser(1, static::$driver);
+        $settings = $user->settings;
+
+        $settings_id = $settings->id;
+
+        $this->assertEquals(1, $settings->count());
+        $user->delete();
+
+        $this->assertEquals(0, $settings->count());
     }
 }

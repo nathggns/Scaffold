@@ -199,6 +199,10 @@ abstract class Model implements ModelInterface {
             'local_key' => 'id'
         ];
 
+        $only_if_hash = [
+            'dependant' => false
+        ];
+
         if (count($args) === 1 && is_hash($args[0])) {
             $args = $args[0];
         }
@@ -220,6 +224,14 @@ abstract class Model implements ModelInterface {
                 if (isset($args[$key])) {
                     $real_args[$key] = $args[$key];
                 }
+            }
+
+            foreach ($only_if_hash as $key => $value) {
+                if (isset($args[$key])) {
+                    $value = $args[$key];
+                }
+
+                $real_args[$key] = $value;
             }
         } else {
             foreach ($required as $key => $name) {
@@ -251,6 +263,12 @@ abstract class Model implements ModelInterface {
 
         if (isset($args['other'])) {
             $real_args['other'] = array_merge($real_args['other'], $args['other']);
+        }
+
+        foreach ($only_if_hash as $key => $value) {
+            if (!isset($real_args[$key])) {
+                $real_args[$key] = $value;
+            }
         }
 
         $real_args = array_merge([

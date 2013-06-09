@@ -1,0 +1,17 @@
+# Turn on URL Rewriting
+RewriteEngine On
+
+# Set the RewriteBase.
+# This needs to be the path to this folder from your document root.
+RewriteBase /
+
+# Protect application and system files from being viewed
+RewriteRule ^(?:application|system|tests)\b.* index.php/$0 [L]
+
+# Prevent files and directories from being rewritten
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Route everything through Scaffold
+RewriteRule (.*) index.php/$1 [L]
+

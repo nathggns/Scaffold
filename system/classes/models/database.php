@@ -223,6 +223,26 @@ class ModelDatabase extends Model {
             throw new Exception('Can\'t delete non-single row');
         }
 
+        foreach ($this->relationships as $type => $relationships) {
+            foreach ($relationships as $model => $real_realationships) {
+                foreach ($real_realationships as $relationship) {
+                    if ($relationship['dependant']) {
+                        $models = $this->value($relationship['alias']);
+
+                        if ($models->mode === static::MODE_SINGLE) {
+                            $models = [$models];
+                        }
+
+                        foreach ($models as $model) {
+                            if ($model->count()) {
+                                $model->delete();    
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         $id = $this->id;
 
         $this->driver->delete($this->table_name, ['id' => $id]);
@@ -244,30 +264,34 @@ class ModelDatabase extends Model {
 
     public function has_many() {
         $args = func_get_args();
-        array_unshift($args, static::HAS_MANY);
+        $args = $this->relationship_args_shuffle(static::HAS_MANY, $args);
 
-        return call_user_func_array([$this, 'relationship'], $args);
+        return $this->relationship($args);
     }
 
     public function has_one() {
         $args = func_get_args();
-        array_unshift($args, static::HAS_ONE);
+        $args = $this->relationship_args_shuffle(static::HAS_ONE, $args);
 
-        return call_user_func_array([$this, 'relationship'], $args);
+        return $this->relationship($args);
     }
 
     public function belongs_to() {
         $args = func_get_args();
-        array_unshift($args, static::BELONGS_TO);
+        $args = $this->relationship_args_shuffle(static::BELONGS_TO, $args);
 
-        return call_user_func_array([$this, 'relationship'], $args);
+        return $this->relationship($args);
     }
 
-    public function habtm($model, $alias = null, $foreign_key, $local_key, $table_foreign_key, $table) {
-        $this->relationship(static::HABTM, $model, $alias, $foreign_key, $local_key, ['table' => $table, 'table_foreign_key' => $table_foreign_key]);
+    public function habtm() {
+        $args = func_get_args();
+        $args = $this->relationship_args_shuffle(static::HABTM, $args, ['table_foreign_key', 'table']);
+
+        $this->relationship($args);
     }
 
-    public function relationship($type, $model, $alias = null, $foreign_key = null, $local_key = 'id', $other = []) {
+    public function relationship($args) {
+        extract($args);
 
         if (!$alias) {
 
@@ -282,7 +306,8 @@ class ModelDatabase extends Model {
             'model' => $model,
             'alias' => $alias,
             'foreign_key' => $foreign_key,
-            'local_key' => $local_key
+            'local_key' => $local_key,
+            'dependant' => $dependant
         ], $other);
 
         // @TODO Use a single method to build the array
@@ -491,7 +516,7 @@ class ModelDatabase extends Model {
 
                     $class_name = static::$prefix . $model;
 
-                    $obj = new $class_name;
+                    $obj = new $class_name(null, $this->driver);
 
                     $foreign_key = $rel['foreign_key'];
                     $local_key = $rel['local_key'];
@@ -667,7 +692,7 @@ class ModelDatabase extends Model {
 
         if (is_array($results)) {
             foreach ($results as $result) {
-                $this->rows[] = new $class($result['id']);
+                $this->rows[] = new $class($result['id'], $this->driver);
             }
         }
 

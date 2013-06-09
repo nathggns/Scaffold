@@ -17,7 +17,13 @@ class MDT_ModelUser extends ModelDatabase {
 
     public function init() {
         $this->has_many('MDT_ModelPost', 'posts');
-        $this->has_one('MDT_ModelSettings', 'settings');
+
+        $this->has_one([
+            'model' => 'MDT_ModelSettings',
+            'alias' => 'settings',
+            'dependant' => true
+        ]);
+
         $this->habtm('MDT_ModelUser', 'followers', 'follower_id', 'id', 'user_id', 'friendships');
     }
 }
@@ -647,14 +653,14 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
      * @expectedException ExceptionValidate
      */
     public function testValidationWhenCreatingViaPropertyFail() {
-        $user = new MDT_ModelUser();
+        $user = new MDT_ModelUser(null, static::$driver);
         $user->create();
         $user->name = 'nat@nath.is';
         $user->save();
     }
 
     public function testValidationWhenCreatingViaProperty() {
-        $user = new MDT_ModelUser();
+        $user = new MDT_ModelUser(null, static::$driver);
         $user->create();
         $user->name = 'Charlie';
         $user->save();
@@ -664,7 +670,7 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
      * @expectedException ExceptionValidate
      */
     public function testValidationWhenCreatingViaArrayFail() {
-        $user = new MDT_ModelUser();
+        $user = new MDT_ModelUser(null, static::$driver);
         $user->create([
             'name' => 'nat@nath.is'
         ]);
@@ -674,21 +680,21 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
      * @expectedException ExceptionValidate
      */
     public function testValidationWhenCreatingAndSavingViaArrayFail() {
-        $user = new MDT_ModelUser();
+        $user = new MDT_ModelUser(null, static::$driver);
         $user->create()->save([
             'name' => 'nat@nath.is'
         ]);
     }
 
     public function testValidationWhenCreatingViaArray() {
-        $user = new MDT_ModelUser();
+        $user = new MDT_ModelUser(null, static::$driver);
         $user->create([
             'name' => 'Charlie'
         ]);
     }
 
     public function testValidationWhenCreatingAndSavingViaArray() {
-        $user = new MDT_ModelUser();
+        $user = new MDT_ModelUser(null, static::$driver);
         $user->create()->save([
             'name' => 'Charlie'
         ]);
@@ -698,13 +704,13 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
      * @expectedException ExceptionValidate
      */
     public function testValidationWhenUpdatingViaPropertyFail() {
-        $user = new MDT_ModelUser(1);
+        $user = new MDT_ModelUser(1, static::$driver);
         $user->name = 'nat@nath.is';
         $user->save();
     }
 
     public function testValidationWhenUpdatingViaProperty() {
-        $user = new MDT_ModelUser(1);
+        $user = new MDT_ModelUser(1, static::$driver);
         $user->name = 'Charlie';
         $user->save();
     }
@@ -713,21 +719,21 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
      * @expectedException ExceptionValidate
      */
     public function testValidationWhenUpdatingViaArrayFail() {
-        $user = new MDT_ModelUser(1);
+        $user = new MDT_ModelUser(1, static::$driver);
         $user->save([
             'name' => 'nat@nath.is'
         ]);
     }
 
     public function testValidationWhenUpdatingViaArray() {
-        $user = new MDT_ModelUser(1);
+        $user = new MDT_ModelUser(1, static::$driver);
         $user->save([
             'name' => 'Charlie'
         ]);
     }
 
     public function testGettingIdAfterCreating() {
-        $user = new MDT_ModelUser();
+        $user = new MDT_ModelUser(null, static::$driver);
         $user->create([
             'name' => 'Charlie'
         ]);
@@ -738,11 +744,11 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
     }
 
     public function testNonCachingofAliasedFunctions() {
-        $users = new MDT_ModelUser();
+        $users = new MDT_ModelUser(null, static::$driver);
         $users->alias('count', Database::func_count('*'));
         $count = $users->count;
 
-        $user = new MDT_ModelUser();
+        $user = new MDT_ModelUser(null, static::$driver);
         $user->create([
             'name' => 'Charlie'
         ]);
@@ -755,35 +761,35 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
 
 
     public function testCountingUsingFunction() {
-        $user = new MDT_ModelUser();
+        $user = new MDT_ModelUser(null, static::$driver);
         $count = $user->value(Database::func_count('*'));
 
         $this->assertEquals(8, $count);
     }
 
     public function testAliasing() {
-        $user = new MDT_ModelUser(1);
+        $user = new MDT_ModelUser(1, static::$driver);
         $user->alias('alias_id', 'id');
 
         $this->assertEquals($user->id, $user->alias_id);
     }
 
     public function testAliasingForFunction() {
-        $user = new MDT_ModelUser();
+        $user = new MDT_ModelUser(null, static::$driver);
         $user->alias('count', Database::func_count('*'));
 
         $this->assertEquals(8, $user->count);
     }
 
     public function testUsingCall() {
-        $user = new MDT_ModelUser();
+        $user = new MDT_ModelUser(null, static::$driver);
 
         $this->assertEquals(8, $user->max('id'));
         $this->assertEquals(1, $user->min('id'));
     }
 
     public function testRandom() {
-        $user = new MDT_ModelUser();
+        $user = new MDT_ModelUser(null, static::$driver);
 
         $ids = [];
         $max = $user->count();
@@ -794,5 +800,17 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
         }
 
         $this->assertNotEquals(1, count(array_unique($ids)));
+    }
+
+    public function testDependantRelationships() {
+        $user = new MDT_ModelUser(1, static::$driver);
+        $settings = $user->settings;
+
+        $settings_id = $settings->id;
+
+        $this->assertEquals(1, $settings->count());
+        $user->delete();
+
+        $this->assertEquals(0, $settings->count());
     }
 }

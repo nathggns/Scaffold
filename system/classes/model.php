@@ -188,4 +188,102 @@ abstract class Model implements ModelInterface {
         return $key;
     }
 
+    /**
+     * Shuffle arguments for relationship helpers
+     * @param  int   $type       Type of relationship, represented by constants
+     * @param  array $args       Array of arguments passed to the helper
+     * @param  array $other_keys Keys Any extra arguments that could be passed
+     * @return array             Key-value argument pair
+     *
+     * @todo Make this smaller using built in PHP functions such as array_intersect
+     */
+    protected function relationship_args_shuffle($type, $args, $other_keys = []) {
+        $required = [
+            'model'
+        ];
+
+        $defaults = [
+            'alias' => null,
+            'foreign_key' => null,
+            'local_key' => 'id'
+        ];
+
+        $only_if_hash = [
+            'dependant' => false
+        ];
+
+        if (count($args) === 1 && is_hash($args[0])) {
+            $args = $args[0];
+        }
+
+        $real_args = [];
+
+        if (is_hash($args)) {
+            foreach ($required as $key) {
+                $real_args[$key] = $args[$key];
+            }
+
+            foreach ($defaults as $key => $value) {
+                if (isset($args[$key])) $value = $args[$key];
+
+                $real_args[$key] = $value;
+            }
+
+            foreach ($other_keys as $key) {
+                if (isset($args[$key])) {
+                    $real_args[$key] = $args[$key];
+                }
+            }
+
+            foreach ($only_if_hash as $key => $value) {
+                if (isset($args[$key])) {
+                    $value = $args[$key];
+                }
+
+                $real_args[$key] = $value;
+            }
+        } else {
+            foreach ($required as $key => $name) {
+                $real_args[$name] = $args[$key];
+            }
+
+            $key = count($required) - 1;
+
+            foreach ($defaults as $name => $value) {
+                if (isset($args[++$key])) {
+                    $value = $args[$key];
+                }
+
+                $real_args[$name] = $value;
+            }
+
+            $key = count($real_args) - 1;
+
+            foreach ($other_keys as $name) {
+                if (isset($args[++$key])) {
+                    $real_args['other'][$name] = $args[$key];
+                }
+            }
+        }
+
+        if (!isset($real_args['other'])) {
+            $real_args['other'] = [];
+        }
+
+        if (isset($args['other'])) {
+            $real_args['other'] = array_merge($real_args['other'], $args['other']);
+        }
+
+        foreach ($only_if_hash as $key => $value) {
+            if (!isset($real_args[$key])) {
+                $real_args[$key] = $value;
+            }
+        }
+
+        $real_args = array_merge([
+            'type' => $type
+        ], $real_args);
+
+        return $real_args;
+    }
 }

@@ -77,7 +77,7 @@ function is_hash($arr) {
     $keys = range(0, count($arr) - 1);
 
     foreach ($keys as $key) {
-        if (!isset($arr[$key])) {
+        if (!array_key_exists($key, $arr)) {
             return true;
         }
     }

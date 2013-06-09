@@ -188,6 +188,42 @@ abstract class Model implements ModelInterface {
         return $key;
     }
 
+    public function shuffle_export_args($args) {
+
+        $defaults = [
+            'values' => null,
+            'level' => 0,
+            'count_models' => false
+        ];
+
+        if (count($args) === 1 && is_hash($args[0])) $args = $args[0];
+
+        $real_args = [];
+
+        if (is_hash($args)) {
+            foreach ($defaults as $key => $value) {
+                if (array_key_exists($key, $args)) {
+                    $value = $args[$key];
+                }
+
+                $real_args[$key] = $value;
+            }
+        } else {
+
+            foreach (array_keys($defaults) as $i => $name) {
+                $value = $defaults[$name];
+
+                if (count($args) - 1 >= $i) {
+                    $value = $args[$i];
+                }
+
+                $real_args[$name] = $value;
+            }
+        }
+
+        return $real_args;
+    }
+
     /**
      * Shuffle arguments for relationship helpers
      * @param  int   $type       Type of relationship, represented by constants

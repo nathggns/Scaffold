@@ -425,7 +425,7 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
     public function testExportUserBasic() {
         $user = $this->get()->fetch(['id' => 1]);
 
-        $data = $user->export();
+        $data = $user->export(null, 1);
 
         $expected = [
             'id' => $user->id,
@@ -489,11 +489,22 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
             'followers' => [
                 [
                     'id' => 2,
-                    'name' => 'Joe'
+                    'name' => 'Joe',
+                    'posts' => [],
+                    'settings' => null,
+                    'followers' => []
                 ],
                 [
                     'id' => 3,
-                    'name' => 'Andrew'
+                    'name' => 'Andrew',
+                    'posts' => [],
+                    'settings' => null,
+                    'followers' => [
+                        [
+                            'id' => 1,
+                            'name' => 'Nat'
+                        ]
+                    ]
                 ]
             ]
         ], $data);
@@ -567,7 +578,7 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
     public function testExportWithRelationshipsWithoutData() {
         $user = new MDT_ModelUser(2, static::$driver);
 
-        $data = $user->export();
+        $data = $user->export(null, 1);
 
         $expected = [
             'id' => $user->id,
@@ -812,5 +823,51 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
         $user->delete();
 
         $this->assertEquals(0, $settings->count());
+    }
+
+    public function testExportShuffling() {
+        $user = new MDT_ModelUser(null, static::$driver);
+
+        $this->assertEquals([
+            'values' => null,
+            'level' => 0,
+            'count_models' => false
+        ], $user->shuffle_export_args());
+
+        $this->assertEquals([
+            'values' => true,
+            'level' => 0,
+            'count_models' => false
+        ], $user->shuffle_export_args([ true ]));
+
+        $this->assertEquals([
+            'values' => true,
+            'level' => 1,
+            'count_models' => false
+        ], $user->shuffle_export_args([ true, 1 ]));
+
+        $this->assertEquals([
+            'values' => true,
+            'level' => 1,
+            'count_models' => true
+        ], $user->shuffle_export_args([ true, 1, true ]));
+
+        $this->assertEquals($args = [
+            'values' => true,
+            'level' => 1,
+            'count_models' => true
+        ], $user->shuffle_export_args($args));
+
+        $this->assertEquals([
+            'values' => null,
+            'level' => 2,
+            'count_models' => false
+        ], $user->shuffle_export_args([ 'level' => 2]));
+
+        $this->assertEquals([
+            'values' => null,
+            'level' => 2,
+            'count_models' => false
+        ], $user->shuffle_export_args([ null, 2 ]));
     }
 }

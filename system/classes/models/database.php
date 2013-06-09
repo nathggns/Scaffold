@@ -325,7 +325,11 @@ class ModelDatabase extends Model {
         return $this;
     }
 
-    public function export($values = null, $level = 1, $count_models = false) {
+    public function export() {
+
+        $args = $this->shuffle_export_args(func_get_args());
+
+        extract($args);
 
         if ($this->count() < 1) {
 
@@ -342,7 +346,7 @@ class ModelDatabase extends Model {
 
             case static::MODE_MULT:
                 foreach ($this as $item) {
-                    $data[] = $item->export($values, $level - 1, $count_models);
+                    $data[] = $item->export($values, $level, $count_models);
                 }
             break;
 

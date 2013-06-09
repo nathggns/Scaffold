@@ -20,9 +20,9 @@ interface ModelInterface extends ArrayAccess, Iterator, Countable {
 
     public function has_many();
     public function has_one();
-    public function habtm($model, $alias = null, $foreign_key, $local_key, $table_foreign_key, $table);
+    public function habtm();
     public function belongs_to();
-    public function relationship($type, $model, $alias = null, $foreign_key = null, $local_key = 'id', $other = []);
+    public function relationship($args);
 
     public function random();
     public function count();

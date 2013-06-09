@@ -13,6 +13,8 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
 
     public $type = 'sql';
 
+
+    // Functions used from outside the class
     public function select() {
         $args = func_get_args();
         $options = call_user_func_array([$this, 'extract_select'], $args);
@@ -86,18 +88,6 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         $query .= ';';
 
         return $query;
-    }
-
-    public function offset_val($val) {
-        return 'OFFSET ' . $val;
-    }
-
-    public function count() {
-        $args = func_get_args();
-        $options = call_user_func_array([$this, 'extract_select'], $args);
-        $options['count'] = true;
-
-        return $this->select($options);
     }
 
     public function insert($table, $data = null) {
@@ -226,6 +216,23 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         return 'SHOW FULL COLUMNS FROM ' . $this->backtick($table) . ';';
     }
 
+    public function clear($table) {
+        return 'TRUNCATE TABLE ' . $this->backtick($table) . ';';
+    }
+
+    public function offset_val($val) {
+        return 'OFFSET ' . $val;
+    }
+
+    public function count() {
+        $args = func_get_args();
+        $options = call_user_func_array([$this, 'extract_select'], $args);
+        $options['count'] = true;
+
+        return $this->select($options);
+    }
+
+    // Functions used by the class
     protected function where_array($conds) {
         return $this->conds($conds, 'WHERE');
     }

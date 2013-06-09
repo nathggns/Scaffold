@@ -675,4 +675,10 @@ class DatabaseQueryBuilderSQLTest extends PHPUnit_Framework_Testcase {
         $this->assertEquals('SELECT COUNT(*) AS `count` FROM `users`;', $sql);
     }
 
+    public function testClear() {
+        $sql = $this->builder->clear('users');
+
+        $this->assertEquals('TRUNCATE TABLE `users`;', $sql);
+    }
+
 }

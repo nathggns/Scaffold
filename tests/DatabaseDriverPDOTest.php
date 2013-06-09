@@ -11,7 +11,7 @@
 class DDPT_DatabaseDriverPDOTestClass extends DatabaseDriverPDO {
 
     public $query_string;
-    var $query = true;
+    public $query = true;
 
     function query($sql, $ret = false) {
         $this->query_string = $sql;
@@ -137,20 +137,20 @@ class DatabaseDriverPDOTest extends PHPUnit_Framework_TestCase {
     public function testInsert() {
         $query = $this->driver->insert('users', [
             'name' => 'Claudio',
-            'partner' => 'SuperMegaHotGuy'
+            'partner' => 'Person'
         ]);
 
-        $this->assertEquals('INSERT INTO `users` (`name`, `partner`) VALUES (\'Claudio\', \'SuperMegaHotGuy\');', $query->query_string);
+        $this->assertEquals('INSERT INTO `users` (`name`, `partner`) VALUES (\'Claudio\', \'Person\');', $query->query_string);
     }
 
     public function testUpdate() {
         $query = $this->driver->update('users', [
-            'partner' => 'SuperMegaHotGuy'
+            'partner' => 'Person'
         ], [
             'name' => 'Claudio'
         ]);
 
-        $this->assertEquals('UPDATE `users` SET `partner` = \'SuperMegaHotGuy\' WHERE `name` = \'Claudio\';', $query->query_string);
+        $this->assertEquals('UPDATE `users` SET `partner` = \'Person\' WHERE `name` = \'Claudio\';', $query->query_string);
     }
 
     public function testDeleteWithoutWhere() {
@@ -181,5 +181,11 @@ class DatabaseDriverPDOTest extends PHPUnit_Framework_TestCase {
         ])->count();
 
         $this->assertEquals('SELECT COUNT(*) FROM `users` WHERE `id` = 5;', $query->query_string);
+    }
+
+    public function testEmpty() {
+        $query = $this->driver->clear('users');
+
+        $this->assertEquals('DELETE FROM `users`;', $query->query_string);
     }
 }

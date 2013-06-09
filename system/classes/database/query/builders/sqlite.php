@@ -7,12 +7,16 @@ class DatabaseQueryBuilderSqlite extends DatabaseQueryBuilderSQL {
 
     public $type = 'sqlite';
 
-    function structure($table) {
+    public function structure($table) {
         return 'PRAGMA table_info(' . $this->backtick($table) . ');';
     }
 
-    function prevent_locking() {
+    public function prevent_locking() {
         return 'PRAGMA journal_mode=WAL;';
+    }
+
+    public function clear($table) {
+        return 'DELETE FROM ' . $this->backtick($table) . ';';
     }
 
 }

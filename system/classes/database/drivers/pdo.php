@@ -299,6 +299,14 @@ class DatabaseDriverPDO extends DatabaseDriver {
         return $this->query($query);
     }
 
+    public function clear($table) {
+        $this->table = $table;
+
+        $query = $this->builder->clear($table);
+
+        return $this->query($query);
+    }
+
     /**
      * Run a query.
      *

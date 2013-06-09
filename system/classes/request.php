@@ -12,6 +12,7 @@ class Request {
     const PUT    = 'put';
     const DELETE = 'delete';
     const HEAD   = 'head';
+    const CONSOLE = 'console';
 
     /**
      * HTTP methods supported by this class
@@ -23,7 +24,8 @@ class Request {
         self::POST,
         self::PUT,
         self::DELETE,
-        self::HEAD
+        self::HEAD,
+        self::CONSOLE
     ];
 
     /**
@@ -39,6 +41,88 @@ class Request {
      * @var array
      */
     protected $query = [];
+
+    /**
+     * Parsed CLI arguments
+     *
+     * @var array
+     */
+    protected $argv = [];
+
+    /**
+     * The regex pattern used to parse CLI arguments.
+     *
+     * @var string
+     */
+    protected static $argv_pattern = <<<'EOT'
+/
+    (?:                                                     # start parameter
+        (?:                                                     # start key value section
+            (?<keys>                                                # start key
+                (?:                                                     # start long key
+                    --[^=\s]+                                               # long key
+                )                                                       # end long key
+                |
+                (?:                                                     # start short key
+                    -[^=]                                                   # short key
+                )                                                       # end short key
+            )                                                       # end key
+
+            (?:                                                     # start value
+                [=\s]                                                   # key value seperator
+                (?<values>                                               # start real value
+                    (?:                                                     # start simple values (not inside quotes)
+                        \\.                                                     # escaped characters
+                        |
+                        [^\s\-"']                                               # normal characters
+                    )+                                                      # end simple values
+                    |
+                    (?:                                                     # start advances values (inside quotes)
+                        (?<start>["'])                                          # start quote
+                        (?:
+                            \\.                                                     # escaped characters
+                            |
+                            (?!\<start>)                                            # any character
+                            .                                                       # besides end quote
+                        )*?  
+                        \k<start>                                               # end quote
+                    )                                                       # end adances
+                )
+            )?                                                       # end value
+        )                                                        # end key val section
+        |
+        (?<others>                                               # start keyless parameter section
+            (?:                                                      # start simple section (not inside quotes)
+                (?:
+                    \\.                                                  # escaped characters
+                    |
+                    [^\s\-"']                                            # normal characters
+                )+
+            )                                                        # end simple section
+            |
+            (?:                                                      # start advanced values (inside quotes)
+                (?<startkeyless>["'])                                    # start quote
+                (?:
+                    \\.                                                      # escaped character
+                    |
+                    (?!\<startkeyless>)                                      # anything but
+                    .                                                        # end quote
+                )*?
+                \k<startkeyless>                                         # end quote
+            )                                                        # end advanced values
+        )                                                        # end key less parameter section
+    )                                                        # end parameter
+
+    \s?                                                      # parameter seperator
+/x
+EOT;
+
+    /**
+     * The function to handle the results from the regex pattern matching
+     *
+     * @var Closure
+     */
+    protected static $argv_callback;
 
     /**
      * Route parameters
@@ -79,6 +163,7 @@ class Request {
         $this->query    = static::detect_query();
         $this->body     = static::detect_body();
         $this->headers  = static::detect_headers();
+        $this->argv     = static::detect_argv();
     }
 
     /**
@@ -113,7 +198,47 @@ class Request {
      * @return string URI
      */
     public static function detect_uri() {
-        return isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : '/';
+
+        if (isset($_SERVER['PATH_INFO'])) {
+            return $_SERVER['PATH_INFO'];
+        }
+
+        if (CONSOLE) {
+            $argv = static::detect_argv();
+
+            if (isset($argv['uri'])) {
+                return $argv['uri'];
+            }
+        }
+
+        return '/';
+    }
+
+    /**
+     * Detect and parse command line arguments
+     *
+     * @param string $pattern Expression used to decode arguments.
+     */
+    public static function detect_argv($pattern = null, $closure = null) {
+
+        if (!CONSOLE) return [];
+
+        if (is_null($closure)) {
+            $closure = static::get_argv_callback();
+        }
+
+        if (is_null($pattern)) {
+            $pattern = static::get_argv_pattern();
+        }
+
+        $argv = array_slice($_SERVER['argv'], 1);
+        $string = implode(' ', $argv);
+
+        preg_match_all($pattern, $string, $matches);
+
+        $params = call_user_func($closure, $matches);
+       
+        return $params;
     }
 
     /**
@@ -151,7 +276,15 @@ class Request {
      * @return string Request method
      */
     public static function detect_request_method() {
-        return isset($_SERVER['REQUEST_METHOD']) ? strtolower($_SERVER['REQUEST_METHOD']) : 'get';
+        if (isset($_SERVER['REQUEST_METHOD'])) {
+            return strtolower($_SERVER['REQUEST_METHOD']);
+        }
+
+        if (CONSOLE) {
+            return 'console';
+        }
+
+        return 'get';
     }
 
     /**
@@ -167,7 +300,8 @@ class Request {
                 return $_POST;
 
             case 'get':
-                // GET requests don't have a body
+            case 'console':
+                // GET and CONSOLE requests don't have a body
                 return [];
 
             case 'post':
@@ -199,4 +333,77 @@ class Request {
         return $this->$property;
     }
 
+    /**
+     * Getter for argv_pattern
+     *
+     * @return string argv_pattern
+     */
+    public static function get_argv_pattern() {
+        return static::$argv_pattern;
+    }
+
+    /**
+     * Setter for argv_pattern
+     *
+     * @param string $pattern New argv_pattern
+     */
+    public static function set_argv_pattern($pattern) {
+        static::$argv_pattern = $pattern;
+    }
+
+    /**
+     * Getter for argv_callback
+     * 
+     * @return Closure argv_callback
+     */
+    public static function get_argv_callback() {
+        if (!static::$argv_callback) {
+            static::$argv_callback = function($matches) {
+                $matches['keys'] = array_map(function($item) {
+                    return ltrim($item, '-');
+                }, $matches['keys']);
+
+                $matches['others'] = array_filter($matches['others'], function($item) {
+                    return !empty($item);
+                });
+
+                $matches['values'] = array_map(function($item) {
+
+                    if (
+                        ($item[0] === '"' || $item[0] === chr(39)) &&
+                        $item[0] === substr($item, -1)
+                    ) {
+                        $item = substr($item, 1, strlen($item) - 2);
+                    }
+
+                    $item = preg_replace('/\\\\(.)/', '$1', $item);
+
+                    return $item;
+                }, $matches['values']);
+
+                $matches['others'] = array_map(function($item) {
+                    $item = preg_replace('/\\\\(.)/', '$1', $item);
+
+                    return $item;
+                }, $matches['others']);
+
+                $params = array_merge($matches['others'], array_combine($matches['keys'], $matches['values']));
+
+                unset($params['']);
+
+                return $params;
+            };
+        }
+
+        return static::$argv_callback;
+    }
+
+    /**
+     * Setter for argv_callback
+     *
+     * @param closure Closure new argv_callback
+     */
+    public static function set_argv_callback($callback) {
+        static::$argv_callback = $callback;
+    }
 }

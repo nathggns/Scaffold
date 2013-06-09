@@ -82,6 +82,18 @@ class Router {
     }
 
     /**
+     * Add a custom CONSOLE route
+     *
+     * @param  string $path     path
+     * @param  mixed  $target   target
+     * @param  array  $defaults defaults
+     * @return Router           this
+     */
+    public function console($path, $target = null, array $defaults = []) {
+        return $this->add_route(Request::CONSOLE, $path, $target, $defaults);
+    }
+
+    /**
      * Add a custom route for all methods
      *
      * @param  string $path     path
@@ -235,7 +247,9 @@ class Router {
 
         $route = $this->find_route($request);
 
-        if (!$route) static::throw_error($request->method, $request->uri);
+        if (!$route || (!CONSOLE && $request->method === Request::CONSOLE)) {
+            static::throw_error($request->method, $request->uri);
+        }
 
         // parse URI and add defaults
         $params = static::parse_uri($request->uri, $route['path']);

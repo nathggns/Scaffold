@@ -48,7 +48,7 @@ class RequestTest extends PHPUnit_Framework_Testcase {
         $this->assertEquals(Request::detect_request_method(), 'post');
 
         unset($_SERVER['REQUEST_METHOD']);
-        $this->assertEquals(Request::detect_request_method(), 'get');
+        $this->assertEquals(Request::detect_request_method(), 'console');
     }
 
     /**
@@ -85,6 +85,53 @@ class RequestTest extends PHPUnit_Framework_Testcase {
 
         $this->assertEquals($request->uri, $uri);
         $this->assertEquals($request->method, $method);
+    }
+
+    /**
+     * @covers Request::detect_argv
+     */
+    public function testArgv() {
+
+        $_argv = $_SERVER['argv'];
+
+        $_SERVER['argv'] = [
+            'THIS GETS REMOVED',
+            '--key=val',
+            '--key2=val2',
+            '--key3',
+            '-k',
+            '--key4=val4',
+            '--key5 val5',
+            '--key6 "val 6"',
+            '--k2 "val 7\'"',
+            '--k3 "val \\"5\\""',
+            'abc',
+            'def',
+            '--filter RequestTest::testArgv',
+            '--k4 a\ b',
+            '"abc def"'
+        ];
+
+        $argv = Request::detect_argv();
+
+        $_SERVER['argv'] = $_argv;
+
+        $this->assertEquals([
+            'abc',
+            'def',
+            '"abc def"',
+            'key' => 'val',
+            'key2' => 'val2',
+            'key3' => '',
+            'k' => '',
+            'key4' => 'val4',
+            'key5' => 'val5',
+            'key6' => 'val 6',
+            'k2' => 'val 7\'',
+            'k3' => 'val "5"',
+            'filter' => 'RequestTest::testArgv',
+            'k4' => 'a b'
+        ], $argv);
     }
 
 }

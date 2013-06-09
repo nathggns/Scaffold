@@ -53,6 +53,11 @@ defined('SYSTEM') or define('SYSTEM', ROOT . 'system' . DS);
 defined('APPLICATION') or define('APPLICATION', ROOT . 'application' . DS);
 
 /**
+ * Is this via the console or the web
+ */
+defined('CONSOLE') or define('CONSOLE', php_sapi_name() === 'cli');
+
+/**
  * Boot Scaffold
  */
 require(SYSTEM . 'bootstrap.php');

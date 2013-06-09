@@ -300,7 +300,11 @@ class ModelDatabase extends Model {
         return $this;
     }
 
-    public function export($values = null, $level = 0, $count_models = false) {
+    public function export() {
+
+        $args = $this->shuffle_export_args(func_get_args());
+
+        extract($args);
 
         if ($this->count() < 1) {
 

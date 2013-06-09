@@ -13,7 +13,7 @@ interface ModelInterface extends ArrayAccess, Iterator, Countable {
     public function delete();
     public function reset();
     public function find($conditions, $mode = null);
-    public function export($values = [], $level = 1);
+    public function export();
     public function force_load();
     public function alias($alias, $key);
     public function virtual($field, $value);

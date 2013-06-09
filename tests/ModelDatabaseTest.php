@@ -806,4 +806,50 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
 
         $this->assertNotEquals(1, count(array_unique($ids)));
     }
+
+    public function testExportShuffling() {
+        $user = new MDT_ModelUser(null, static::$driver);
+
+        $this->assertEquals([
+            'values' => null,
+            'level' => 0,
+            'count_models' => false
+        ], $user->shuffle_export_args());
+
+        $this->assertEquals([
+            'values' => true,
+            'level' => 0,
+            'count_models' => false
+        ], $user->shuffle_export_args([ true ]));
+
+        $this->assertEquals([
+            'values' => true,
+            'level' => 1,
+            'count_models' => false
+        ], $user->shuffle_export_args([ true, 1 ]));
+
+        $this->assertEquals([
+            'values' => true,
+            'level' => 1,
+            'count_models' => true
+        ], $user->shuffle_export_args([ true, 1, true ]));
+
+        $this->assertEquals($args = [
+            'values' => true,
+            'level' => 1,
+            'count_models' => true
+        ], $user->shuffle_export_args($args));
+
+        $this->assertEquals([
+            'values' => null,
+            'level' => 2,
+            'count_models' => false
+        ], $user->shuffle_export_args([ 'level' => 2]));
+
+        $this->assertEquals([
+            'values' => null,
+            'level' => 2,
+            'count_models' => false
+        ], $user->shuffle_export_args([ null, 2 ]));
+    }
 }

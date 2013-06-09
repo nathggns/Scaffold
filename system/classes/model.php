@@ -188,6 +188,15 @@ abstract class Model implements ModelInterface {
         return $key;
     }
 
+    /**
+     * Shuffle arguments for relationship helpers
+     * @param  int   $type       Type of relationship, represented by constants
+     * @param  array $args       Array of arguments passed to the helper
+     * @param  array $other_keys Keys Any extra arguments that could be passed
+     * @return array             Key-value argument pair
+     *
+     * @todo Make this smaller using built in PHP functions such as array_intersect
+     */
     protected function relationship_args_shuffle($type, $args, $other_keys = []) {
         $required = [
             'model'

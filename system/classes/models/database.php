@@ -244,30 +244,34 @@ class ModelDatabase extends Model {
 
     public function has_many() {
         $args = func_get_args();
-        array_unshift($args, static::HAS_MANY);
+        $args = $this->relationship_args_shuffle(static::HAS_MANY, $args);
 
-        return call_user_func_array([$this, 'relationship'], $args);
+        return $this->relationship($args);
     }
 
     public function has_one() {
         $args = func_get_args();
-        array_unshift($args, static::HAS_ONE);
+        $args = $this->relationship_args_shuffle(static::HAS_ONE, $args);
 
-        return call_user_func_array([$this, 'relationship'], $args);
+        return $this->relationship($args);
     }
 
     public function belongs_to() {
         $args = func_get_args();
-        array_unshift($args, static::BELONGS_TO);
+        $args = $this->relationship_args_shuffle(static::BELONGS_TO, $args);
 
-        return call_user_func_array([$this, 'relationship'], $args);
+        return $this->relationship($args);
     }
 
-    public function habtm($model, $alias = null, $foreign_key, $local_key, $table_foreign_key, $table) {
-        $this->relationship(static::HABTM, $model, $alias, $foreign_key, $local_key, ['table' => $table, 'table_foreign_key' => $table_foreign_key]);
+    public function habtm() {
+        $args = func_get_args();
+        $args = $this->relationship_args_shuffle(static::HABTM, $args, ['table_foreign_key', 'table']);
+
+        $this->relationship($args);
     }
 
-    public function relationship($type, $model, $alias = null, $foreign_key = null, $local_key = 'id', $other = []) {
+    public function relationship($args) {
+        extract($args);
 
         if (!$alias) {
 

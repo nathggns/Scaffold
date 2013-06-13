@@ -681,4 +681,12 @@ class DatabaseQueryBuilderSQLTest extends PHPUnit_Framework_Testcase {
         $this->assertEquals('TRUNCATE TABLE `users`;', $sql);
     }
 
+    public function testGeneratingSqlWithEscapedValues() {
+        $sql = $this->builder->insert('users', [
+            'bi`o' => 'Quote\'s are cool'
+        ]);
+
+        $this->assertEquals('INSERT INTO `users` (`bi\`o`) VALUES (\'Quote\\\'s are cool\');', $sql);
+    }
+
 }

@@ -436,6 +436,7 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
                 return $func . '(' . implode(', ', $parts) . ')';
             }
 
+            $value = str_replace('`', '\\`', $value);
             $value = str_replace('.', '`.`', $value);
             $value = '`' . $value . '`';   
         }
@@ -491,6 +492,9 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
             try {
                 $validator->test(['val' => $value]);
             } catch (ExceptionValidate $e) {
+
+                $value = str_replace('\'', '\\\'', $value);
+
                 $value = '\'' . $value . '\'';
             }
         }

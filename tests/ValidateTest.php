@@ -199,4 +199,13 @@ class ValidateTest extends PHPUnit_Framework_Testcase {
 
         $this->assertNotEquals(-1, $failed);
     }
+
+    public function testThatRulesDontFailIfDataNotPresent() {
+        $validator = new Validate([
+            'email' => 'email',
+            'username' => 'not_empty alphanumeric'
+        ]);
+
+        $this->assertTrue($validator->test(['username' => 'nat@nath.is']));
+    }
 }

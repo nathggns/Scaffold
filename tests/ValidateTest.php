@@ -206,6 +206,6 @@ class ValidateTest extends PHPUnit_Framework_Testcase {
             'username' => 'not_empty alphanumeric'
         ]);
 
-        $this->assertTrue($validator->test(['username' => 'nat@nath.is']));
+        $this->assertTrue($validator->test(['username' => 'nath']));
     }
 }

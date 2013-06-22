@@ -135,6 +135,9 @@ class Validate {
                     }
                 } else if (isset($data[$field])) {
                     $c_data[$field] = $data[$field];
+                } else if (in_array('not_empty', $rules)) {
+                    $c_data[$field] = null;
+                    $rules = ['not_empty'];
                 }
 
                 foreach ($c_data as $key => $value) {

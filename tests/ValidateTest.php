@@ -208,4 +208,15 @@ class ValidateTest extends PHPUnit_Framework_Testcase {
 
         $this->assertTrue($validator->test(['username' => 'nath']));
     }
+
+    /**
+     * @expectedException ExceptionValidate
+     */
+    public function testNotEmpty() {
+        $validator = new Validate([
+            'id' => 'not_empty numeric'
+        ]);
+
+        $validator->test([]);
+    }
 }

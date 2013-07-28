@@ -170,8 +170,8 @@ class Router {
 
         $allowed = ['\w', '\-', '_', '\.', '\!', '\~', '\*', '\'', '\(', '\)'];
         $default = '[' . implode('', $allowed) . ']+';
-        $regex = preg_replace('/\\\\\/:\?([a-z]+)/', '(?:\/(' . $default . '))?', $escaped_route);
-        $regex = preg_replace('/:([a-z]+)/', '(' . $default . ')', $regex);
+        $regex = preg_replace('/\\\\\/:\?([a-z]+)/i', '(?:\/(' . $default . '))?', $escaped_route);
+        $regex = preg_replace('/:([a-z_-]+)/i', '(' . $default . ')', $regex);
         $regex = '/^' . $regex . '$/';
 
         return $regex;

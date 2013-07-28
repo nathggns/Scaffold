@@ -126,18 +126,18 @@ class Validate {
                 'type' => Validate::INVALID_DATA
             ]];
         } else {
-
             foreach ($this->_rules as $field => $rules) {
-
-
                 $c_data = [];
 
                 if (!$field) {
                     foreach ($data as $key => $val) {
                         $c_data[$key] = $val;
                     }
-                } else {
-                    $c_data[$field] = isset($data[$field]) ? $data[$field] : false;
+                } else if (isset($data[$field])) {
+                    $c_data[$field] = $data[$field];
+                } else if (in_array('not_empty', $rules)) {
+                    $c_data[$field] = null;
+                    $rules = ['not_empty'];
                 }
 
                 foreach ($c_data as $key => $value) {
@@ -147,6 +147,7 @@ class Validate {
                         'value' => $value,
                         'errors' => []
                     ];
+                    
                     $results = [];
 
                     foreach ($rules as $original_rule) {
@@ -161,7 +162,7 @@ class Validate {
                         $mods = [];
 
                         if (is_callable($rule)) {
-                            $result = $rule($value);
+                            $result = call_user_func($rule, $value);
                             $rule = $rule_name ? $rule_name : 'closure';
                         } else if (is_string($rule)) {
                             if ($this->check_is_regex($rule)) {

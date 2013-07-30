@@ -513,7 +513,7 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
     public function testExportSettingLevelAndFieldsAndCountModels() {
         $user = $this->get()->fetch(['id' => 1]);
 
-        $data = $user->export(['id', 'name', 'followers'], 2, true);
+        $data = $user->export(['id', 'name', 'followers'], 1, true);
 
         $this->assertEquals([
             'id' => 1,

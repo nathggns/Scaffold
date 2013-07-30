@@ -384,7 +384,7 @@ class ModelDatabase extends Model {
                     $value = $this->__get($key);
 
                     if ($value instanceof Model) {
-                        if ($count_models) {
+                        if ($count_models && $level === 1) {
                             $value = $value->count();
                         } else if ($level > 0) {
                             $value = $value->export(is_array($values[$key]) ? $values[$key] : null, $level - 1, $count_models);

@@ -22,6 +22,14 @@ class Router {
     protected $hooks = [];
 
     /**
+     * This is the pattern used to match a parameter in
+     * the URL.
+     * 
+     * @var string
+     */
+    protected static $param_regex = '([a-z_-]+)';
+
+    /**
      * Add a custom GET route
      *
      * @param  string $path     path
@@ -170,8 +178,8 @@ class Router {
 
         $allowed = ['\w', '\-', '_', '\.', '\!', '\~', '\*', '\'', '\(', '\)'];
         $default = '[' . implode('', $allowed) . ']+';
-        $regex = preg_replace('/\\\\\/:\?([a-z]+)/i', '(?:\/(' . $default . '))?', $escaped_route);
-        $regex = preg_replace('/:([a-z_-]+)/i', '(' . $default . ')', $regex);
+        $regex = preg_replace('/\\\\\/:\?' . static::$param_regex . '/i', '(?:\/(' . $default . '))?', $escaped_route);
+        $regex = preg_replace('/:' . static::$param_regex . '/i', '(' . $default . ')', $regex);
         $regex = '/^' . $regex . '$/';
 
         return $regex;
@@ -221,7 +229,7 @@ class Router {
 
         // search for matches
         preg_match_all($regex, $uri, $values);
-        preg_match_all('/:\??([a-z]+)/', $route, $names);
+        preg_match_all('/:\??' . static::$param_regex . '/', $route, $names);
 
         // remove full matches
         array_shift($values);

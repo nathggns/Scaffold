@@ -45,8 +45,8 @@ class RouterTest extends PHPUnit_Framework_Testcase {
      * @depends testPrepareRoute
      */
     public function testParseUri() {
-        $route = '/:one/:two/:three.:four';
-        $uri   = '/foo/5/baz.bla';
+        $route = '/:one/:two/:three.:four/:five_six/:?seven_eight';
+        $uri   = '/foo/5/baz.bla/bar/bee';
 
         $params = Router::parse_uri($uri, $route);
 
@@ -54,7 +54,9 @@ class RouterTest extends PHPUnit_Framework_Testcase {
             'one'   => 'foo',
             'two'   => 5,
             'three' => 'baz',
-            'four'  => 'bla'
+            'four'  => 'bla',
+            'five_six' => 'bar',
+            'seven_eight' => 'bee'
         ]);
     }
 

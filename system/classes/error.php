@@ -119,15 +119,15 @@ class Error {
 
         // Get all assigned handlers
         $all = static::$handlers[static::ALIAS_DEFAULT];
-        if ($this->alias !== static::ALIAS_DEFAULT) {
-            $all = array_merge_recursive($all, static::$handlers[$this->alias]);
+        if ($alias !== static::ALIAS_DEFAULT) {
+            $all = array_merge_recursive($all, static::$handlers[$alias]);
         }
 
         // Filter to the ones associated with this exception
         $handlers = [];
         foreach ($all as $class => $class_handlers) {
             if ($exc instanceof $class) {
-                $handlers = array_merge_recursive_overwrite($handlers, $class_handlers);
+                $handlers = array_merge($handlers, $class_handlers);
             }
         }
 

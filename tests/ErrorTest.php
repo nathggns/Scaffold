@@ -1,5 +1,18 @@
 <?php
 
+class ET_Class {
+
+    public static $e;
+
+    public static function method($e) {
+        static::$e = $e; 
+    }
+}
+
+class Exception_ET extends Exception {
+
+}
+
 class ErrorTest extends PHPUnit_Framework_TestCase {
 
     public function setUp() {
@@ -125,6 +138,21 @@ class ErrorTest extends PHPUnit_Framework_TestCase {
         }
 
         $this->assertEquals($error, $catchederror);
+    }
+
+    public function testMultipleHandlers() {
+        $error = null;
+
+        $this->error->attach('Exception', ['ET_Class', 'method'], 'testMultipleHandlers');
+        $this->error->attach('Exception_ET', function($e) use (&$error) {
+            $e->catch();
+            $error = $e;
+        }, 'testMultipleHandlers');
+
+        $this->error->handle(new Exception_ET(), 'testMultipleHandlers');
+
+        $this->assertNotEquals(null, $error);
+        $this->assertNotEquals(null, ET_Class::$e);
     }
 
 }

@@ -88,6 +88,11 @@ class ModelDatabase extends Model {
     protected $aliases = [];
 
     /**
+     * Does this model exist?
+     */
+    protected $exists = null;
+
+    /**
      * Inital Setup
      */
     public function __construct($id = null, $driver = null) {
@@ -185,6 +190,8 @@ class ModelDatabase extends Model {
      */
     public function save($data = []) {
 
+        $this->exists = null;
+
         if (!parent::save($data)) {
             return false;
         }
@@ -219,6 +226,9 @@ class ModelDatabase extends Model {
     }
 
     public function delete() {
+
+        $this->exists = null;
+
         if ($this->mode !== static::MODE_SINGLE) {
             throw new Exception('Can\'t delete non-single row');
         }
@@ -254,12 +264,27 @@ class ModelDatabase extends Model {
         parent::reset();
         $this->conditions = [];
         $this->db_data = [];
+        $this->exists = null;
 
         return $this;
     }
 
     protected function init() {
         // Here to be overwritten
+    }
+
+    public function exists($recheck = false) {
+        $mode = $this->mode();
+
+        if ($mode === static::MODE_INSERT) {
+            return true;
+        }
+
+        if ($this->exists === null || $recheck) {
+            $this->exists = !!$this->count();
+        }
+
+        return $this->exists;
     }
 
     public function has_many() {
@@ -291,6 +316,9 @@ class ModelDatabase extends Model {
     }
 
     public function relationship($args) {
+
+        $this->exists = null;
+
         extract($args);
 
         if (!$alias) {
@@ -317,6 +345,9 @@ class ModelDatabase extends Model {
     }
 
     public function virtual($field, $value) {
+
+        $this->exists = null;
+
         $this->virtual_fields[$field] = $value;
         $this->schema[$field] = [
             'field' => $field
@@ -331,7 +362,7 @@ class ModelDatabase extends Model {
 
         extract($args);
 
-        if ($this->count() < 1) {
+        if (!$this->exists()) {
 
             if ($this->mode === static::MODE_MULT) {
                 return [];
@@ -407,6 +438,9 @@ class ModelDatabase extends Model {
     }
 
     public function force_load() {
+
+        $this->exists = null;
+
         switch ($this->mode) {
             case static::MODE_SINGLE:
                 $this->__get('id');
@@ -444,6 +478,7 @@ class ModelDatabase extends Model {
      * @todo Implement Iterator instead.
      */
     public function count() {
+
         $this->__find([], false);
 
         return $this->driver->count();
@@ -484,7 +519,7 @@ class ModelDatabase extends Model {
         }
 
         // If we won't be able to get it, throw an exception
-        if ($this->mode !== static::MODE_SINGLE || (!array_key_exists($key, $this->schema) || $this->count() === 0)) {
+        if ($this->mode !== static::MODE_SINGLE || (!array_key_exists($key, $this->schema) || !$this->exists())) {
             throw new Exception('Property ' . $key . ' does not exist on model ' . $this->name);
         }
         
@@ -619,6 +654,9 @@ class ModelDatabase extends Model {
      * Real find
      */
     protected function __find($conditions = [], $execute = true) {
+
+        $this->exists = null;
+
         return $this->driver->find(
             $this->table_name,
             array_merge_recursive($conditions, $this->conditions()),
@@ -740,6 +778,12 @@ class ModelDatabase extends Model {
         $obj = call_user_func_array(['Database', 'func_' . $name], $args);
 
         return $this->func($obj);
+    }
+
+    public function __set($key, $val) {
+        $this->exists = null;
+
+        return call_user_func_array(['parent', '__set'], func_get_args());
     }
 
     public function random() {

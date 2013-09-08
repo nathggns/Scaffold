@@ -444,7 +444,7 @@ class ModelDatabase extends Model {
      * @todo Implement Iterator instead.
      */
     public function count() {
-        $this->__find();
+        $this->__find([], false);
 
         return $this->driver->count();
     }
@@ -618,10 +618,11 @@ class ModelDatabase extends Model {
     /**
      * Real find
      */
-    protected function __find($conditions = []) {
+    protected function __find($conditions = [], $execute = true) {
         return $this->driver->find(
             $this->table_name,
-            array_merge_recursive($conditions, $this->conditions())
+            array_merge_recursive($conditions, $this->conditions()),
+            $execute
         );
     }
 

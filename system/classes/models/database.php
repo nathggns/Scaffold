@@ -148,6 +148,9 @@ class ModelDatabase extends Model {
 
     public function fetch($conditions = [], $reset = true) {
         if ($reset) $this->reset();
+
+        $this->exists = null;
+
         $this->mode = static::MODE_SINGLE;
         $this->conditions['where'] = recursive_overwrite($this->conditions['where'], $conditions);
 
@@ -156,6 +159,9 @@ class ModelDatabase extends Model {
 
     public function fetch_all($conditions = [], $reset = true) {
         if ($reset) $this->reset();
+
+        $this->exists = null;
+
         $this->mode = static::MODE_MULT;
         $this->conditions['where'] = recursive_overwrite($this->conditions['where'], $conditions);
 
@@ -165,6 +171,8 @@ class ModelDatabase extends Model {
     public function find($conditions, $mode = null, $reset = true) {
 
         if ($reset) $this->reset();
+
+        $this->exists = null;
 
         if (is_null($mode)) {
             $mode = static::MODE_MULT;

@@ -181,7 +181,8 @@ class ValidateTest extends PHPUnit_Framework_Testcase {
             'abcd' => [
                 'not_abc' => function($val) {
                     return $val !== 'abc';
-                }
+                },
+                'alphanumeric'
             ]
         ]);
 
@@ -218,5 +219,27 @@ class ValidateTest extends PHPUnit_Framework_Testcase {
         ]);
 
         $validator->test([]);
+    }
+
+    public function testArgs() {
+        $args = (new Validate())->args([
+            'key' => [
+                'not_empty', 'equals_abc' => function($item) {
+                    return $item === 'abc';
+                }, '/[a-z]/'
+            ],
+            'key2' => 'not_empty',
+            'key3' => 'not_empty alphanumeric',
+            'key4' => $key4 = function() {},
+            'key5' => ['not_empty']
+        ]);
+
+        $this->assertEquals([
+            'key'  => ['not_empty', 'equals_abc', '/[a-z]/'],
+            'key2' => ['not_empty'],
+            'key3' => ['not_empty', 'alphanumeric'],
+            'key4' => [$key4],
+            'key5' => ['not_empty']
+        ], $args);
     }
 }

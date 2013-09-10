@@ -90,8 +90,7 @@ class Validate {
             $is_hash = is_array($value);
 
             foreach ($value as $test_name => $item) {
-
-                if (is_hash($value)) {
+                if (!is_numeric($test_name)) {
                     $this->test_checks[$name][$test_name] = $item;
                     $item = [$test_name];
                 } else {

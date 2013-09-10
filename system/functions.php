@@ -237,3 +237,91 @@ function abs2rel($path, $base = ROOT) {
 
     return implode('/', $rel);
 }
+
+
+/**
+ * Limitable "var_dump".
+ *
+ * NOTE: Due to limits in PHP, we cannot get protected/private properties. 
+ * 
+ * @param  mixed   $val   The var to dump
+ * @param  integer $depth The limit to how deep you can go. Set to -1 to
+ *                        have an infinite limit.
+ * @param  scalar  $key   The key of the item you're dumping
+ * @param  integer $level The current level of how deep you are
+ * @return string         The dumped value
+ */
+function var_log($val, $depth = 4, $key = null, $level = 0) {
+
+    $tab = str_repeat(' ', $level * 2);
+
+    $output = '';
+
+    $output .= $tab;
+
+    if (!is_null($key)) {
+        $output .= '[';
+
+        if (is_string($key)) {
+            $output .= chr(34) . $key . chr(34);
+        } else {
+            $output .= $key;
+        }
+
+        $output .= ']=> ';
+    }
+
+    $output .= chr(10);
+    $output .= $tab;
+
+    if (is_array($val) || is_object($val)) {
+        if (is_array($val)) {
+            $output .= 'array(' . count($val) . ')';
+        } else {
+            $output .= 'object(' . get_class($val) . ')';
+        }
+
+        if ($depth) {
+
+            if (is_object($val)) {
+                $val = get_object_vars($val);
+            }
+
+            $output .= ' {';
+
+            if (count($val)) {
+                $output .= chr(10);
+
+                $first = true;
+
+                foreach ($val as $k => $v) {
+
+                    if (!$first) {
+                        $output .= chr(10);
+                    }
+
+                    $first = false;
+
+                    $output .= var_log($v, $depth - 1, $k, $level + 1);
+                }
+
+                $output .= chr(10);
+                $output .= $tab;
+            } else {
+                $output .= ' ';
+            }
+            $output .= '}';
+        }
+    } else if (is_string($val)) {
+        $output .= 'string(' . strlen($val) . ') ' . chr(34) . $val . chr(34);
+    } else if (is_bool($val)) {
+        $output .= $val ? 'TRUE' : 'FALSE';
+    } else if (is_null($val)) {
+        $output .= 'NULL';
+    } else {
+        $output .=  'int(' . $val . ')';
+    }
+
+    return $output;
+
+}

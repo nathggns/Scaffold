@@ -281,14 +281,14 @@ class ModelDatabase extends Model {
         // Here to be overwritten
     }
 
-    public function exists($recheck = false) {
+    public function exists($recheck = false, $check = true) {
         $mode = $this->mode();
 
         if ($mode === static::MODE_INSERT) {
             return true;
         }
 
-        if ($this->exists === null || $recheck) {
+        if ($check && ($this->exists === null || $recheck)) {
             $this->exists = !!$this->count();
         }
 
@@ -527,7 +527,7 @@ class ModelDatabase extends Model {
         }
 
         // If we won't be able to get it, throw an exception
-        if ($this->mode !== static::MODE_SINGLE || (!array_key_exists($key, $this->schema) || !$this->exists())) {
+        if ($this->mode !== static::MODE_SINGLE || (!array_key_exists($key, $this->schema) || $this->exists(false, false) === false)) {
             throw new Exception('Property ' . $key . ' does not exist on model ' . $this->name);
         }
         
@@ -648,11 +648,15 @@ class ModelDatabase extends Model {
             $this->__find();
             $result = $this->driver->fetch();
 
-            if (!isset($result[$key])) {
-                $result[$key] = null;
-            }
+            if ($result && count($result)) {
+                if (!isset($result[$key])) {
+                    $result[$key] = null;
+                }
 
-            $this->db_data = array_merge($this->db_data, $result);
+                $this->db_data = array_merge($this->db_data, $result);   
+            } else {
+                $this->exists = false;
+            }
 
             return $this->value($key);
         }

@@ -333,6 +333,11 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
             // Spacings
             if (!$first || $level < 2) $query .= ' ';
 
+            // If we have a one item array, just take it out
+            if (is_array($val) && !is_hash($val) && count($val) === 1) {
+                $val = current($val);
+            }
+
             // Let's escape val and stuff
             if (is_scalar($val) || $this->is_func($val)) {
                 $val = $this->escape($val);

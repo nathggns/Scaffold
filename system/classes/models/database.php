@@ -384,6 +384,9 @@ class ModelDatabase extends Model {
         switch ($this->mode) {
 
             case static::MODE_MULT:
+
+                $this->fetch_data();
+
                 foreach ($this as $item) {
                     $data[] = $item->export($values, $level, $count_models);
                 }

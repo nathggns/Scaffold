@@ -870,4 +870,59 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
             'count_models' => false
         ], $user->shuffle_export_args([ null, 2 ]));
     }
+
+    public function testFetchData() {
+        $model = new MDT_ModelUser();
+        $model->fetch_all()->fetch_data();
+
+        $map = [];
+
+        foreach ($model as $item) {
+
+            $id = $item->conditions()['where']['id'];
+
+            while (is_object($id)) {
+                $id = $id->val;
+            }
+
+            $map[$id] = $item->data();
+        }
+
+        $expected = [
+            1 => [
+                'id' => '1',
+                'name' => 'Nat',
+            ],
+            2 => [
+                'id' => '2',
+                'name' => 'Joe',
+            ],
+            3 => [
+                'id' => '3',
+                'name' => 'Andrew',
+            ],
+            4 => [
+                'id' => '4',
+                'name' => 'Claudio',
+            ],
+            5 => [
+                'id' => '5',
+                'name' => 'Doug',
+            ],
+            6 => [
+                'id' => '6',
+                'name' => 'Will',
+            ],
+            7 => [
+                'id' => '7',
+                'name' => 'Matt',
+            ],
+            8 => [
+                'id' => '8',
+                'name' => 'Alex',
+            ]
+        ];
+
+        $this->assertEquals($expected, $map);
+    }
 }

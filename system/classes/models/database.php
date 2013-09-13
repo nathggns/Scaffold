@@ -705,6 +705,38 @@ class ModelDatabase extends Model {
         }
 
         return $has;
+    } 
+
+    /**
+     * This will fetch the data for all of your models in one query. Helps
+     * to cut down on query counts.
+     */
+    public function fetch_data() {
+        if ($this->mode !== static::MODE_MULT) {
+            throw new Exception('Can only fetch all for multiple models');
+        }
+
+        $this->__find();
+        $results = $this->driver->fetch_all();
+
+        $map = [];
+
+        foreach ($this as $row) {
+            $id = $row->conditions()['where']['id'];
+
+            while (is_object($id)) {
+                $id = $id->val;
+            }
+
+            $map[$id] = $row;
+        }
+
+        foreach ($results as $i => $result) {
+            $id = $result['id'];
+            $map[$id]->data = array_merge($map[$id]->data, $result);
+        }
+
+        return $this;
     }
 
     public function offsetGet($offset) {
@@ -807,6 +839,10 @@ class ModelDatabase extends Model {
         $this->find($conditions, Model::MODE_SINGLE);
         
         return $this;
+    }
+
+    public function data() {
+        return $this->data;
     }
 
 }

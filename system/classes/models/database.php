@@ -281,7 +281,7 @@ class ModelDatabase extends Model {
         // Here to be overwritten
     }
 
-    public function exists($recheck = false, $check = true) {
+    public function exists($recheck = false, $check = true, $use_results = false) {
         $mode = $this->mode();
 
         if ($mode === static::MODE_INSERT) {
@@ -289,7 +289,7 @@ class ModelDatabase extends Model {
         }
 
         if ($check && ($this->exists === null || $recheck)) {
-            $this->exists = !!$this->count();
+            $this->exists = !!$this->count($use_results);
         }
 
         return $this->exists;
@@ -370,7 +370,7 @@ class ModelDatabase extends Model {
 
         extract($args);
 
-        if (!$this->exists()) {
+        if (!$this->exists(false, true, true)) {
 
             if ($this->mode === static::MODE_MULT) {
                 return [];
@@ -488,9 +488,24 @@ class ModelDatabase extends Model {
      *
      * @todo Implement Iterator instead.
      */
-    public function count() {
+    public function count($use_results = false) {
 
         $this->__find([], false);
+
+        if ($use_results) {
+            
+            try {
+                $this->force_load();
+            } catch (Exception $e) {
+                return 0;
+            }
+
+            if ($this->mode === static::MODE_SINGLE) {
+                return 1;
+            } else {
+                return count($this->rows);
+            }
+        }
 
         return $this->driver->count();
     }
@@ -782,7 +797,10 @@ class ModelDatabase extends Model {
 
         if (is_array($results)) {
             foreach ($results as $result) {
-                $this->rows[] = new $class($result['id'], $this->driver);
+                $model = new $class($result['id'], $this->driver);
+                $model->exists = true;
+
+                $this->rows[] = $model;
             }
         }
 

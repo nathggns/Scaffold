@@ -93,6 +93,11 @@ class ModelDatabase extends Model {
     protected $exists = null;
 
     /**
+     * Prefix all vals with this, if it's "truthy"
+     */
+    protected $val_prefix = null;
+
+    /**
      * Inital Setup
      */
     public function __construct($id = null, $driver = null) {
@@ -423,7 +428,7 @@ class ModelDatabase extends Model {
                 $schema = array_intersect($schema, array_keys($values));
 
                 foreach ($schema as $key){
-                    $value = $this->__get($key);
+                    $value = $this->value($key);
 
                     if ($value instanceof Model) {
                         if ($count_models && $level === 1) {
@@ -621,24 +626,24 @@ class ModelDatabase extends Model {
                         break;
 
                         case static::HABTM:
-                        
-                            $this->driver->find($rel['table'], [
-                                'vals' => [$foreign_key],
+                            
+                            $obj->find([
+                                'from' => [
+                                    Database::alias($rel['table'], 'join'),
+                                    Database::alias($this->table_name, 'local'),
+                                    Database::alias($obj->table_name, 'remote')
+                                ],
+                                'vals' => array_map(function($field) {
+                                    return $field['field'];
+                                }, $obj->schema_db),
                                 'where' => [
-                                    $rel['table_foreign_key'] => $this->value($local_key)
+                                    'local.' . $local_key => Database::column('join.' . $rel['table_foreign_key']),
+                                    'remote.id' => Database::column('join.' . $rel['foreign_key']),
+                                    'join.' . $rel['table_foreign_key'] => $this->value($local_key)
                                 ]
                             ]);
 
-                            $results = $this->driver->fetch_all();
-
-                            $ids = array_map(function($a) use($foreign_key) {
-                                return $a[$foreign_key];
-                            }, $results);
-
-                            $obj->fetch_all([
-                                'id' => $ids
-                            ]);
-
+                            $obj->val_prefix = 'remote.';
                         break;
                     }
 
@@ -687,9 +692,31 @@ class ModelDatabase extends Model {
 
         $this->exists = null;
 
+        $conditions = array_merge_recursive($conditions, $this->conditions());
+
+        if ($this->val_prefix && isset($conditions['vals'])) {
+            $val_prefix = $this->val_prefix;
+
+            $real_conds = [];
+
+            foreach ($conditions['vals'] as $k => $v) {
+                if (is_int($k)) {
+                    $k = $v;
+                }
+
+                if (strpos($k, '.') === false) {
+                    $k = $val_prefix . $k;
+                }
+
+                $real_conds[$k] = $v;
+            }
+
+            $conditions['vals'] = $real_conds;
+        }
+
         return $this->driver->find(
             $this->table_name,
-            array_merge_recursive($conditions, $this->conditions()),
+            $conditions,
             $execute
         );
     }
@@ -758,6 +785,7 @@ class ModelDatabase extends Model {
     }
 
     public function offsetGet($offset) {
+
         if ($this->mode != static::MODE_MULT) {
             throw new Exception('Cannot access row via index');
         }
@@ -776,9 +804,12 @@ class ModelDatabase extends Model {
 
         $this->rows = [];
 
-        $this->__find([
-            'vals' => ['id']
-        ]);
+        $conditions = $this->conditions();
+        $conditions['vals'] = ['id'];
+
+        $this->conditions = $conditions;
+
+        $this->__find();
 
         $results = $this->driver->fetch_all();
 

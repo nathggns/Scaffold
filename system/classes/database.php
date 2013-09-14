@@ -24,6 +24,23 @@ class Database {
 
     /* Query Helpers */
     public static function __callStatic($name, $args = []) {
+
+        if ($name === 'alias') {
+            return new Dynamic([
+                'type' => 'alias',
+                'key' => $args[0],
+                'value' => $args[1]
+            ]);
+        }
+
+        if (in_array($name, ['column', 'value'])) {
+            return new Dynamic([
+                'type' => 'special',
+                'name' => $name,
+                'value' => $args[0]
+            ]);
+        }
+
         if (preg_match('/^where_/i', $name)) {
             $name = substr($name, strlen('where_'));
 

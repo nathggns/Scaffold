@@ -35,32 +35,11 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
             $val = 'COUNT(*)';
         } else {
 
-            $maps = [];
-
-            $vals = $this->backtick($vals, function($obj, $value) use (&$maps) {
-                $maps[$value] = $obj;
-
-                return $value;
-            });
+            $vals = $this->backtick($vals);
 
             foreach ($vals as $key => $val) {
-
-                $alias = null;
-                $column = $key;
-
                 if (!is_int($key)) {
-                    $alias = $val;
-                    $column = $this->backtick($key);
-                }
-
-                if (isset($maps[$val]) && !is_null($maps[$val]->column_name)) {
-                    $alias = $this->backtick($maps[$val]->column_name);
-                }
-
-                $vals[$key] = $val;
-
-                if (!is_null($alias)) {
-                    $vals[$key] .= ' AS ' . $alias;
+                    $vals[$key] = $key . ' AS ' . $val;
                 }
             }
 
@@ -307,7 +286,7 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
             $obj = false;
 
             // Keep a reference to our object for later
-            if (is_object($val) && !$this->is_func($val)) {
+            if (is_object($val) && !$this->is_func($val) && $val->type !== 'special') {
                 $obj = $val;
                 $val = $obj->val;
             }
@@ -339,7 +318,7 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
             }
 
             // Let's escape val and stuff
-            if (is_scalar($val) || $this->is_func($val)) {
+            if (is_scalar($val) || $this->is_func($val) || (is_object($val) && $val->type === 'special')) {
                 $val = $this->escape($val);
             }
 
@@ -413,23 +392,46 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
         return $query;
     }
 
-    protected function backtick($value, $callback = null) {
+    protected function backtick($value) {
+
+        if (is_object($value) && $value->type === 'special') {
+            return $this->auto_escape($value);
+        }
+
         $_this = $this;
 
-        if (is_array($value)) return array_map(function($item) use ($_this, $callback) {
-            return $_this->backtick($item, $callback);
-        }, $value);
+        if (is_array($value)) {
+
+            $real_value = [];
+
+            if (is_hash($value)) {
+                foreach ($value as $key => $value) {
+                    $real_value[$this->backtick($key)] = $this->backtick($value);
+                }
+            } else {
+
+                foreach ($value as $val) {
+                    $obj = $val;
+                    $val = $this->backtick($val);
+
+                    if ($this->is_func($obj) && $obj->column_name) {
+                        $real_value[$val] = $this->backtick($obj->column_name);
+                    } else {
+                        $real_value[] = $val;
+                    }
+                }
+            }
+
+            return $real_value;
+        }
 
         if ($value === '*') return $value;
 
         if ($this->is_func($value)) {
             $obj = $value;
             $value = $this->func($value, [$this, 'backtick']);
-
-            if (!is_null($callback)) {
-                $value = call_user_func_array($callback, [$obj, $value]);
-            }
         } else {
+
             if (strpos($value, '(') !== false && substr($value, -1, 1) === ')') {
                 preg_match('/(.*?)\((.*)\)/', $value, $matches);
 
@@ -443,7 +445,7 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
 
             $value = str_replace('`', '\\`', $value);
             $value = str_replace('.', '`.`', $value);
-            $value = '`' . $value . '`';   
+            $value = '`' . $value . '`';
         }
 
         return $value;
@@ -484,6 +486,11 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
 
     protected function escape($value) {
 
+        if (is_object($value) && $value->type === 'special') {
+            return $this->auto_escape($value);
+        }
+
+
         if (is_array($value)) {
             return array_map([$this, 'escape'], $value);
         }
@@ -508,17 +515,31 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
     }
 
     protected function table($table) {
+
         $parts = [];
         foreach ($table as $key => $val) {
+
+            if (is_object($val) && $val->type === 'alias') {
+                $key = $val->key;
+                $val = $val->value;
+            }
+
             $col = $this->backtick(is_int($key) ? $val : $key);
 
             if (!is_int($key)) {
+
                 $col .= ' AS ' . $this->backtick($val);
             }
 
             $parts[] = $col;
         }
 
-        return implode(',', $parts);
+        return implode(', ', $parts);
+    }
+
+    protected function auto_escape($obj, $callback = null) {
+        $method = $obj->name === 'column' ? 'backtick' : 'escape';
+
+        return $this->$method($obj->value, $callback);
     }
 }

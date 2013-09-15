@@ -1,6 +1,50 @@
 <?php
 
-class MDT_DatabaseDriverSqliteTestClass extends DatabaseDriverSqlite {
+class MDT_DatabaseDriverReuse extends DatabaseDriverSqlite {
+
+    public static function from_instance(MDT_DatabaseDriverReuse $inst) {
+        $builder = $inst->get_builder();
+        $config = $inst->get_config();
+        $connection = $inst->get_connection();
+
+        $class_name = get_called_class();
+        $new_inst = new $class_name($builder, $config, false);
+
+        $new_inst->set_connection($connection);
+
+        return $new_inst;
+    }
+
+    public function get_builder() {
+        return $this->builder;
+    }
+    
+    public function get_config() {
+        return $this->config;
+    }
+
+    public function get_connection() {
+        return $this->connection;
+    }
+
+    public function set_connection($conn) {
+        $this->connection = $conn;
+    }
+}
+
+class MDT_DatabaseDriverSqliteGetLastQueryTestClass extends MDT_DatabaseDriverReuse {
+    
+    public $last_query;
+
+    public function query($query, $ret = false) {
+        $this->last_query = $query;
+
+        return call_user_func_array(['parent', 'query'], func_get_args());
+    }
+
+}
+
+class MDT_DatabaseDriverSqliteTestClass extends MDT_DatabaseDriverReuse {
     public function manual_query() {
         return call_user_func_array([$this, 'query'], func_get_args());
     }
@@ -26,6 +70,11 @@ class MDT_ModelUser extends ModelDatabase {
 
         $this->habtm('MDT_ModelUser', 'followers', 'follower_id', 'id', 'user_id', 'friendships');
     }
+}
+
+class MDT_ModelUser_No_Rels extends ModelDatabase {
+    protected $table_name = 'users';
+    protected static $prefix = '';
 }
 
 class MDT_ModelPost extends ModelDatabase {
@@ -924,5 +973,39 @@ class ModelDatabaseTest extends PHPUnit_Framework_TestCase {
         ];
 
         $this->assertEquals($expected, $map);
+    }
+
+    public function testColumnPrefix() {
+        $driver = MDT_DatabaseDriverSqliteGetLastQueryTestClass::from_instance(static::$driver);
+
+        $user = new MDT_ModelUser_No_Rels(null, $driver);
+
+        $user->column_prefix('test.');
+
+        $error = false;
+
+        try {
+            $user->find(['vals' => ['id'], 'where' => ['id' => 1]], Model::MODE_SINGLE, false)->export();
+        } catch (Exception $e) {
+            $error = true;
+        }
+
+        if (!$error) {
+            $this->assertEquals('SELECT `test`.`id` AS `id` FROM `users` WHERE `id` = 1;', $driver->last_query);
+        }
+
+        $user->reset();
+
+        try {
+            $user->find(['vals' => ['id'], 'where' => ['id' => 1]], Model::MODE_SINGLE, false)->export();
+        } catch (Exception $e) {
+            $error = true;
+        }
+
+        if (!$error) {
+            $this->assertEquals('SELECT `id` FROM `users` WHERE `id` = 1;', $driver->last_query);
+        }
+
+
     }
 }

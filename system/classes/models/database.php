@@ -95,7 +95,7 @@ class ModelDatabase extends Model {
     /**
      * Prefix all vals with this, if it's "truthy"
      */
-    protected $val_prefix = null;
+    protected $column_prefix = null;
 
     /**
      * Inital Setup
@@ -278,6 +278,7 @@ class ModelDatabase extends Model {
         $this->conditions = [];
         $this->db_data = [];
         $this->exists = null;
+        $this->column_prefix = null;
 
         return $this;
     }
@@ -643,7 +644,7 @@ class ModelDatabase extends Model {
                                 ]
                             ]);
 
-                            $obj->val_prefix = 'remote.';
+                            $obj->column_prefix = 'remote.';
                         break;
                     }
 
@@ -694,8 +695,8 @@ class ModelDatabase extends Model {
 
         $conditions = array_merge_recursive($conditions, $this->conditions());
 
-        if ($this->val_prefix && isset($conditions['vals'])) {
-            $val_prefix = $this->val_prefix;
+        if ($this->column_prefix && isset($conditions['vals'])) {
+            $column_prefix = $this->column_prefix;
 
             $real_conds = [];
 
@@ -705,7 +706,7 @@ class ModelDatabase extends Model {
                 }
 
                 if (strpos($k, '.') === false) {
-                    $k = $val_prefix . $k;
+                    $k = $column_prefix . $k;
                 }
 
                 $real_conds[$k] = $v;
@@ -909,6 +910,16 @@ class ModelDatabase extends Model {
 
     public function data() {
         return $this->data;
+    }
+
+    public function column_prefix($prefix = null) {
+        if (is_null($prefix)) {
+            return $this->column_prefix;
+        }
+
+        $this->column_prefix = $prefix;
+
+        return $this;
     }
 
 }

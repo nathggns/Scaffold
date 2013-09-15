@@ -192,6 +192,10 @@ class DatabaseDriverPDO extends DatabaseDriver {
         // If we're using it as a shortcut for find, call find
         if (!is_null($table) && !is_null($options)) $this->find($table, $options);
 
+        if (!$this->query) {
+            $this->throw_no_query_exc();
+        }
+
         // Fetch a row from the query
         return $this->query->fetch(PDO::FETCH_ASSOC);
     }
@@ -205,8 +209,16 @@ class DatabaseDriverPDO extends DatabaseDriver {
         // If we're using it as a shortcut for find, call find
         if (!is_null($table) && !is_null($options)) $this->find($table, $options);
 
+        if (!$this->query) {
+            $this->throw_no_query_exc();
+        }
+
         // Fetch all the rows from the query
         return $this->query ? $this->query->fetchAll(PDO::FETCH_ASSOC) : null;
+    }
+
+    protected function throw_no_query_exc() {
+        throw new Exception('No query to find data');
     }
 
     /**

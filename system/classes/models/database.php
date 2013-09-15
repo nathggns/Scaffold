@@ -738,14 +738,28 @@ class ModelDatabase extends Model {
 
         foreach ($data as $key => $val) {
 
-            if (isset($conds['where'][$key])) {
-                $real_val = $conds['where'][$key];
+            $conditions = $this->conditions();
+            $conditions['vals'] = [$key];
 
-                if (!is_array($real_val)) $real_val = [$real_val];
+            $this->conditions = $conditions;
 
-                $has = in_array($val, $real_val);
+            $this->__find();
+
+            $results = $this->driver->fetch_all();
+
+            if (count($results)) {
+                $results = array_map(function($item) use($key) {
+                    return $item[$key];
+                }, $results);
+
+                $has = in_array($val, $results);
+
             } else {
                 $has = false;
+            }
+
+            if (!$has) {
+                break;
             }
         }
 

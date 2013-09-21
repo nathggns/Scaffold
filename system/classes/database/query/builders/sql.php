@@ -334,6 +334,15 @@ class DatabaseQueryBuilderSQL extends DatabaseQueryBuilder {
                 $val = 'NULL';
             }
 
+            extract($this->transform_value([
+                'key' => $key,
+                'val' => $val,
+                'obj' => $obj,
+                'operator' => $operator,
+                'meta' => $meta,
+                'query' => $query
+            ]));
+
             // Operator based queries (including IN queries)
             if (is_scalar($val)) {
                 // If we have a not special

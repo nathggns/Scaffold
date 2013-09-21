@@ -333,4 +333,7 @@ abstract class DatabaseQueryBuilder implements DatabaseQueryBuilderInterface {
         return $resp;
     }
 
+    public function transform_value($val) {
+        return $val;
+    }
 }
